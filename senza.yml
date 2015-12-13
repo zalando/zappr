@@ -1,0 +1,39 @@
+SenzaInfo:
+  StackName: zappr
+  Parameters:
+    - ImageVersion:
+        Description: "Docker image version of zappr."
+
+SenzaComponents:
+
+  - Configuration:
+      Type: Senza::StupsAutoConfiguration # auto-detect network setup
+
+  - AppServer:
+      Type: Senza::TaupageAutoScalingGroup
+      InstanceType: t2.micro
+      SecurityGroups:
+        - app-zappr
+      IamRoles:
+        - app-zappr
+      ElasticLoadBalancer: AppLoadBalancer
+      AssociatePublicIpAddress: false
+      TaupageConfig:
+        root: true
+        application_version: "{{Arguments.ImageVersion}}"
+        runtime: Docker
+        source: "pierone.stups.zalan.do/hackweek/zappr:{{Arguments.ImageVersion}}"
+        health_check_path: /health
+        ports:
+          3000: 3000
+        mint_bucket: "zalando-stups-mint-243385153324-eu-west-1"
+        environment:
+          NODE_ENV: production
+
+  - AppLoadBalancer:
+      Type: Senza::WeightedDnsElasticLoadBalancer
+      HTTPPort: 3000
+      HealthCheckPath: /health
+      SecurityGroups:
+        - app-zappr-lb
+      Scheme: internet-facing
