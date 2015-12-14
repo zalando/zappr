@@ -10,7 +10,10 @@ module.exports = {
   },
   module: {
     loaders: [{
-      test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel?presets[]=es2015,presets[]=react'
+      test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel', query: {
+        presets: ['es2015', 'stage-1', 'react'],
+        plugins: ['transform-runtime']
+      }
     }, {
       test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader?minimize')
     }, {

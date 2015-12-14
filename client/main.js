@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import app from './components/app.jsx'
 
-const App = React.createFactory(app)
+import Main from './components/main.jsx'
 
-ReactDOM.render(App(), document.getElementById('main'))
+ReactDOM.render(<Main/>, document.getElementById('main'))
