@@ -12,6 +12,35 @@ git_version() {
   echo $(git describe --tags --always)
 }
 
+########################################
+# Return 'dirty' or an empty string
+########################################
+git_scm_status() {
+  if [ -n "$(git status --porcelain)" ]; then echo "dirty"; else echo ""; fi
+}
+
+########################################
+# Write the scm-source.json file.
+# See http://docs.stups.io/en/latest/user-guide/application-development.html
+# Arguments:
+#  SCM URL - URL of the code repository
+########################################
+write_scm_source() {
+  local scm_url=$1
+  local scm_version=$(git rev-parse HEAD)
+  local scm_author=$USER
+  local scm_status=$(git_scm_status)
+  printf "{
+  \"url\": \"${scm_url}\",
+  \"revision\": \"${scm_version}\",
+  \"author\": \"${scm_author}\",
+  \"status\": \"${scm_status}\"
+}" > scm-source.json
+}
+
+########################################
+# Build the node application.
+########################################
 npm_build() {
   if [ ! -d "node_modules" ]; then
     npm install
@@ -38,9 +67,11 @@ docker_build() {
 
   local img=${DOCKER_IMG}:${version}
 
-  docker build ${args} -t ${img} .
-  echo "Built ${img}"
+  docker build ${args} -t ${img} . \
+  && echo "Built ${img}"
 }
 
 # Usage: ./build.sh (<tag>) ([args])
-npm_build && docker_build ${@}
+npm_build \
+&& write_scm_source \
+&& docker_build ${@}

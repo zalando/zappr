@@ -13,6 +13,8 @@ COPY dist/ $HOME/dist
 
 RUN chown -R node:node ${HOME} && chmod 0770 ${HOME}
 
+COPY scm-source.json /scm-source.json
+
 USER node
 ENTRYPOINT ["npm"]
 CMD ["start"]
