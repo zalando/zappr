@@ -17,3 +17,9 @@ npm run run-watch
 ```
 npm test
 ```
+
+**Docker image:**
+
+```
+./build.sh
+```
