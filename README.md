@@ -21,5 +21,5 @@ npm test
 **Docker image:**
 
 ```
-./build.sh
+./tools/build.sh
 ```
