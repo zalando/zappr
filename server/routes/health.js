@@ -1,8 +1,8 @@
 /**
  * Health check endpoint.
  */
-export default function (router) {
-  return router.get('health', '/health', function *() {
-    this.body = 'OK'
+export function health(router) {
+  return router.get('health', '/health', ctx => {
+    ctx.body = 'OK'
   })
 }

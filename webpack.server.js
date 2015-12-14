@@ -23,6 +23,8 @@ module.exports = {
   module: {
     loaders: [{
       test: /\.js$/, exclude: /node_modules/, loader: 'babel?presets[]=node5'
+    }, {
+      test: /\.json$/, exclude: /node_modules/, loader: 'json'
     }]
   },
   externals: nodeModules()

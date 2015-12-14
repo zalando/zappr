@@ -1,0 +1,7 @@
+{
+  "SESSION_SECRET": "secret",
+  "GITHUB_CLIENT_ID": "id",
+  "GITHUB_CLIENT_SECRET": "secret",
+  "HOST_ADDR": "http://127.0.0.1:3000",
+  "NODE_ENV": "development"
+}
