@@ -30,6 +30,8 @@ SenzaComponents:
         scalyr_account_key: aws:kms:CiB/3ZjSheMJnIYy6CPNVfBiarW1/yAS0iGY/MfJ2DOdZxK1AQEBAgB4f92Y0oXjCZyGMugjzVXwYmq1tf8gEtIhmPzHydgznWcAAACMMIGJBgkqhkiG9w0BBwagfDB6AgEAMHUGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMYcVmkyjL5CnvtFUKAgEQgEhfZQUjT7XBBnM8TNLEP/NzUKmAazLd4fnX2+BcXJqJpBHjejsBZ2R6DX1TxDR60pqw85k4LYQYBCmq2/mOnUSo3XyfvxxaiJM=
         environment:
           NODE_ENV: production
+          HOST_ADDR: https://zappr.hackweek.zalan.do
+          DEBUG: zappr:*
 
   - AppLoadBalancer:
       Type: Senza::WeightedDnsElasticLoadBalancer

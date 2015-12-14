@@ -58,10 +58,12 @@
   },
   "dependencies": {
     "bootstrap": "3.3.6",
+    "debug": "2.2.0",
     "koa": "2.0.0-alpha.3",
     "koa-bodyparser": "3.0.0",
     "koa-convert": "1.2.0",
     "koa-generic-session": "1.10.0",
+    "koa-morgan": "1.0.0",
     "koa-passport": "2.0.1",
     "koa-router": "7.0.0",
     "koa-static": "1.5.2",

@@ -15,6 +15,12 @@ RUN chown -R node:node ${HOME} && chmod 0770 ${HOME}
 
 COPY scm-source.json /scm-source.json
 
+ENV LOG_FORMAT short
+ENV NODE_ENV production
+ENV APP_PORT 3000
+
+EXPOSE 3000
+
 USER node
 ENTRYPOINT ["npm"]
 CMD ["start"]
