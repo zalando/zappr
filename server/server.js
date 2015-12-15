@@ -7,8 +7,8 @@ import passport from 'koa-passport'
 import convert from 'koa-convert'
 import morgan from 'koa-morgan'
 
-import {config} from './config'
-import {logger} from './debug'
+import { config } from './config'
+import { logger } from '../common/debug'
 
 export const app = new Koa()
 

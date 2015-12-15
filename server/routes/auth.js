@@ -1,8 +1,8 @@
 import passport from 'koa-passport'
-import {Strategy as GitHubStrategy} from 'passport-github2'
+import { Strategy as GitHubStrategy } from 'passport-github2'
 
-import {config} from '../config'
-import {logger} from '../debug'
+import { config } from '../config'
+import { logger } from '../../common/debug'
 
 const GITHUB_CLIENT_ID = config.get('GITHUB_CLIENT_ID')
 const GITHUB_CLIENT_SECRET = config.get('GITHUB_CLIENT_SECRET')

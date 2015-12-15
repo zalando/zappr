@@ -17,7 +17,7 @@ module.exports = {
     }, {
       test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader?minimize')
     }, {
-      test: /\.(otf|eot|svg|ttf|woff2?)$/, loader: 'file'
+      test: /\.(otf|eot|svg|ttf|woff2?)/, loader: 'file'
     }]
   },
   plugins: [

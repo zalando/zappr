@@ -12,6 +12,13 @@ npm run build
 npm run run-watch
 ```
 
+**Debug the client:**
+
+```
+npm run build-client -- -d
+npm run run-client -- -d
+```
+
 **Test:**
 
 ```
