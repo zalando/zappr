@@ -19,9 +19,10 @@ app.proxy = true
 app.keys = [config.get('SESSION_SECRET')]
 
 // Routing
-import {health} from './routes/health'
-import {authorize, login, logout} from './routes/auth.js'
-import {env} from './routes/api'
+import { health } from './routes/health'
+import { authorize, login, logout } from './routes/auth.js'
+import { env } from './routes/api'
+import renderStatic from './react/render-static'
 
 const router = [health, authorize, login, logout, env].
 reduce((router, route) => route(router), Router())
@@ -38,7 +39,8 @@ use(passport.initialize()).
 use(passport.session()).
 use(router.routes()).
 use(router.allowedMethods()).
-use(convert(serve('dist/client')))
+use(convert(serve('dist/client', {index: 'none'}))).
+use(renderStatic)
 
 if (require.main === module) {
   const port = config.get('APP_PORT')

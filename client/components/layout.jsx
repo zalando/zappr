@@ -30,7 +30,8 @@ export class Col extends React.Component {
     xs: React.PropTypes.number,
     sm: React.PropTypes.number,
     md: React.PropTypes.number,
-    lg: React.PropTypes.number
+    lg: React.PropTypes.number,
+    push: React.PropTypes.number
   }
 
   render() {
@@ -41,15 +42,21 @@ export class Col extends React.Component {
           case 'sm':
           case 'md':
           case 'lg':
-            return `col-${k}-${this.props[k]}`
+            const name = `col-${k}-${this.props[k]}`
+            const push = this.props.push
+            if (this.props.push) {
+              return `${name} col-${k}-push-${push}`
+            } else {
+              return name
+            }
           default:
             return ''
         }
       }).
       reduce((a, b) => (
         `${a} ${b}`
-      ))
-      + (this.props.className || '')
+      )).
+      trim() + (this.props.className || '')
 
     return (
       <div className={className}>

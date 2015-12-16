@@ -22,7 +22,13 @@ module.exports = {
   },
   module: {
     loaders: [{
-      test: /\.js$/, exclude: /node_modules/, loader: 'babel?presets[]=node5'
+      test: /\.jsx$/, exclude: /node_modules/, loader: 'babel', query: {
+        presets: ['node5', 'stage-1', 'react']
+      }
+    }, {
+      test: /\.js$/, exclude: /node_modules/, loader: 'babel', query: {
+        presets: ['node5', 'stage-3']
+      }
     }, {
       test: /\.json$/, exclude: /node_modules/, loader: 'json'
     }]

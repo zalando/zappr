@@ -20,9 +20,15 @@ export default class Nav extends React.Component {
         <div className="container">
           <div className="container-fluid">
             <div className="navbar-header">
-              <span className="navbar-brand">ZAPPR</span>
+              <Link to="/" className="navbar-brand"
+                    style={{padding: '0 15px'}}>
+                <img alt="ZAPPR"
+                     style={{paddingTop: '1px'}}
+                     src={require('../img/icon.png')}
+                     className="img-responsive"/>
+              </Link>
             </div>
-            <div id="navbar" className="navbar-collapse collapse">
+            <div className="navbar-collapse collapse">
               <ul className="nav navbar-nav">
                 <li className={this.isActive('/')}>
                   <Link to="/">Home</Link>

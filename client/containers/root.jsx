@@ -12,22 +12,31 @@ import Home from '../components/home.jsx'
 import Login from '../components/login.jsx'
 import Settings from '../components/settings.jsx'
 
+export function getRoutes() {
+  return (
+    <Route path="/" component={App}>
+      <IndexRoute component={requireAuth(Home)}/>
+      <Route path="login" component={Login}/>
+      <Route path="settings" component={requireAuth(Settings)}/>
+    </Route>
+  )
+}
+
 export default class Root extends React.Component {
   static propTypes = {
     history: React.PropTypes.object.isRequired,
-    store: React.PropTypes.object.isRequired
+    store: React.PropTypes.object.isRequired,
+    routerContext: React.PropTypes.func
   }
 
   render() {
+    const PolymorphRouter = this.props.routerContext || Router
+
     return (
       <Provider store={this.props.store}>
-        <Router history={this.props.history}>
-          <Route path="/" component={App}>
-            <IndexRoute component={requireAuth(Home)}/>
-            <Route path="login" component={Login}/>
-            <Route path="settings" component={Settings}/>
-          </Route>
-        </Router>
+        <PolymorphRouter history={this.props.history}>
+          {getRoutes()}
+        </PolymorphRouter>
       </Provider>
     )
   }

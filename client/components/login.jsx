@@ -34,8 +34,12 @@ class Login extends React.Component {
   render() {
     return (
       <Row>
-        <Col md={4} className="col-md-push-4">
-          <h2 className="text-center">ZAPPR</h2>
+        <Col sm={4} md={4} push={4}>
+          <div className="page-header">
+            <img alt="ZAPPR"
+                 src={require('../img/zappr.png')}
+                 className="img-responsive center-block"/>
+          </div>
           <button type="button"
                   className="btn btn-block btn-social btn-github"
                   disabled={this.props.isAuthenticating}

@@ -1,5 +1,3 @@
-import { handleActions } from 'redux-actions'
-
 import {
   LOGIN_GITHUB_REQUEST,
   LOGIN_GITHUB_SUCCESS,
