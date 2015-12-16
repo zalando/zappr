@@ -74,6 +74,7 @@
     "koa-static": "1.5.2",
     "nconf": "0.8.2",
     "passport": "0.3.2",
+    "passport-github2": "0.1.9",
     "react": "0.14.3",
     "react-bootstrap": "0.28.1",
     "react-dom": "0.14.3",
