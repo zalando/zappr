@@ -18,11 +18,6 @@ class Login extends React.Component {
     isAuthenticating: React.PropTypes.bool
   }
 
-  login(event) {
-    event.preventDefault()
-    this.props.loginGithub()
-  }
-
   componentDidMount() {
     log('componentDidMount', this.props)
   }
@@ -40,13 +35,14 @@ class Login extends React.Component {
                  src={require('../img/zappr.png')}
                  className="img-responsive center-block"/>
           </div>
-          <button type="button"
+          <a type="button"
                   className="btn btn-block btn-social btn-github"
                   disabled={this.props.isAuthenticating}
-                  onClick={this.login.bind(this)}>
+                  href="/auth/github"
+                  onClick={this.props.loginGithub}>
             <span className="fa fa-github"/>
             Sign in with GitHub
-          </button>
+          </a>
         </Col>
       </Row>
     )

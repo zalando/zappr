@@ -69,7 +69,7 @@ export function authorize(router) {
 export function logout(router) {
   return router.get('logout', '/logout', ctx => {
     ctx.logout()
-    ctx.redirect('/login?status=logout')
+    ctx.redirect('/login')
   })
 }
 

@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 
 import authActions from '../actions/auth'
 import Optional from '../components/optional.jsx'
-import Nav from '../components/nav.jsx'
+import ZapprNav from '../components/navbar.jsx'
 import { logger } from '../../common/debug'
 const log = logger('app')
 
@@ -22,24 +22,19 @@ class App extends React.Component {
     children: React.PropTypes.node.isRequired
   }
 
-  logout(event) {
-    event.preventDefault()
-    this.props.logoutGithub()
-  }
-
   componentDidMount() {
     log('componentDidMount', this.props)
   }
 
   render() {
-    const {displayName, photos} = this.props.user
+    const { displayName,url } = this.props.user
+    const avatar = this.props.user.photos[0]
 
     return (
       <div>
-        <Optional if={this.props.path !== '/login'}>
-          <Nav path={this.props.path}
-               user={{displayName, photos}}
-               logout={this.logout.bind(this)}/>
+        <Optional if={this.props.path.search(/^\/login/) === -1}>
+          <ZapprNav path={this.props.path}
+                    user={{displayName, avatar, url}}/>
         </Optional>
         <div className="container">
           {this.props.children}

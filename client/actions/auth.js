@@ -34,18 +34,18 @@ function loginGithubFailure() {
 function loginGithub(redirect = '/') {
   return (dispatch) => {
     dispatch(loginGithubRequest())
-    new Promise(resolve => (
-      setTimeout(resolve, 200)
-    )).
-    then(() => {
-      log('log in success :)')
-      dispatch(loginGithubSuccess())
-      dispatch(pushPath(redirect))
-    }).
-    catch(err => {
-      log('log in failure :(', err)
-      dispatch(loginGithubFailure())
-    })
+
+  //  fetch(new Request('/auth/github')).
+  //  then(response => {
+  //    log('log in success :)')
+  //    log(response)
+  //    dispatch(loginGithubSuccess())
+  //    dispatch(pushPath(redirect))
+  //  }).
+  //  catch(err => {
+  //    log('log in failure :(', err)
+  //    dispatch(loginGithubFailure())
+  //  })
   }
 }
 

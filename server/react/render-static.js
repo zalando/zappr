@@ -18,6 +18,16 @@ export default async function renderStatic(ctx, next) {
   // passport user object http://passportjs.org/docs/profile
   const user = ctx.req.user || {}
 
+  if (!user.photos && user._json && user._json.avatar_url) {
+    user.photos = [user._json.avatar_url]
+  } else if (!user.photos) {
+    user.photos = []
+  }
+
+  if (user._json) {
+    user.url = user._json.html_url
+  }
+
   const store = configureStore({
     auth: {
       isAuthenticated: !!user.id
