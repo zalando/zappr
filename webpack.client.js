@@ -1,5 +1,4 @@
 const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const AppCachePlugin = require('appcache-webpack-plugin')
 
@@ -23,16 +22,15 @@ module.exports = {
     }]
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      title: 'Zapp',
-      template: './client/index.html',
-      favicon: './client/img/favicon.ico',
-      minify: {
-        collapseWhitespace: true,
-        preserveLineBreaks: true
-      }
-    }),
     new ExtractTextPlugin('styles.min.css'),
     new AppCachePlugin({output: 'zappr.appcache'})
-  ]
+  ],
+  devServer: {
+    proxy: {
+      '*': {
+        target: 'http://localhost:3000',
+        secure: false
+      }
+    }
+  }
 }

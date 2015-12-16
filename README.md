@@ -9,14 +9,15 @@ Approvals for Github pull requests.
 ```
 npm install
 npm run build
-npm run run-watch
+npm start
 ```
 
-**Debug the client:**
+**Debug client & server:**
 
 ```
 npm run build-client -- -d
-npm run run-client -- -d
+npm run build-server -- -d
+npm run run-all
 ```
 
 **Test:**
