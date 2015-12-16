@@ -1,4 +1,4 @@
-FROM node:5.2-slim
+FROM node:5.2
 
 RUN adduser --disabled-login --disabled-password --gecos "" node
 ENV HOME /home/node

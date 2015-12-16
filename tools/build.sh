@@ -45,7 +45,7 @@ npm_build() {
   if [ ! -d "node_modules" ]; then
     npm install
   fi
-  npm run build
+  npm run clean && npm run build
 }
 
 ########################################
