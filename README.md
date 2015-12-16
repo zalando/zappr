@@ -20,6 +20,12 @@ npm run build-server -- -d
 npm run run-all
 ```
 
+Enable debug logs in the browser console:
+
+```
+window.DEBUG.enable('zappr:*')
+```
+
 **Test:**
 
 ```

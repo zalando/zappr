@@ -11,7 +11,8 @@ const log = logger('app')
 function mapStateToProps(state) {
   return {
     path: state.router.path,
-    isAuthenticated: state.auth.isAuthenticated
+    isAuthenticated: state.auth.isAuthenticated,
+    user: state.user
   }
 }
 
@@ -31,10 +32,14 @@ class App extends React.Component {
   }
 
   render() {
+    const {displayName, photos} = this.props.user
+
     return (
       <div>
         <Optional if={this.props.path !== '/login'}>
-          <Nav path={this.props.path} logout={this.logout.bind(this)}/>
+          <Nav path={this.props.path}
+               user={{displayName, photos}}
+               logout={this.logout.bind(this)}/>
         </Optional>
         <div className="container">
           {this.props.children}

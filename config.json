@@ -2,7 +2,7 @@
   "SESSION_SECRET": "secret",
   "GITHUB_CLIENT_ID": "id",
   "GITHUB_CLIENT_SECRET": "secret",
-  "HOST_ADDR": "http://127.0.0.1:3000",
+  "HOST_ADDR": "http://127.0.0.1:8080",
   "NODE_ENV": "development",
   "LOG_FORMAT": "dev",
   "APP_PORT": 3000

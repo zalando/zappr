@@ -14,10 +14,15 @@ const log = logger('react')
 export default async function renderStatic(ctx, next) {
   const routes = getRoutes()
   const assets = await getAssets()
+
+  // passport user object http://passportjs.org/docs/profile
+  const user = ctx.req.user || {}
+
   const store = configureStore({
     auth: {
-      isAuthenticated: false // TODO: determine actual state
-    }
+      isAuthenticated: !!user.id
+    },
+    user
   })
 
   const props = {

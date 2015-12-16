@@ -14,12 +14,8 @@ import 'font-awesome/css/font-awesome.css'
 import 'bootstrap-social'
 import './css/main.css'
 
-// TODO: get actual initial state
-const initialState = {
-  auth: {
-    isAuthenticated: false
-  }
-}
+// Get the initial state from a global injected by the server
+const initialState = window.__INITIAL_STATE__
 
 const history = createBrowserHistory()
 const store = configureStore(initialState)

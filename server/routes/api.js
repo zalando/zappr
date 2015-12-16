@@ -1,5 +1,5 @@
-import {config} from '../config'
-import {requireAuth} from './auth'
+import { config } from '../config'
+import { requireAuth } from './auth'
 
 /**
  * Environment variables endpoint.

@@ -58,8 +58,8 @@ export function login(router) {
  */
 export function authorize(router) {
   return router.get('/auth/github/callback', passport.authenticate('github', {
-    successRedirect: '/?auth=true',
-    failureRedirect: '/?auth=false'
+    successRedirect: '/',
+    failureRedirect: '/login?status=failure'
   }))
 }
 
@@ -69,7 +69,7 @@ export function authorize(router) {
 export function logout(router) {
   return router.get('logout', '/logout', ctx => {
     ctx.logout()
-    ctx.redirect('/?auth=false')
+    ctx.redirect('/login?status=logout')
   })
 }
 

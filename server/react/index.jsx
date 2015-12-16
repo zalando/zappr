@@ -6,7 +6,8 @@ import Root from '../../client/containers/root.jsx'
 export default class Index extends React.Component {
   static propTypes = {
     js: React.PropTypes.array.isRequired,
-    css: React.PropTypes.array.isRequired
+    css: React.PropTypes.array.isRequired,
+    store: React.PropTypes.object.isRequired
   }
 
   render() {
@@ -26,6 +27,9 @@ export default class Index extends React.Component {
             __html: ReactDOMServer.renderToString(<Root {...other}/>)
           }}/>
       {js.map((s, i) => (<script key={i} src={`/${s}`} defer={true}/>))}
+      <script dangerouslySetInnerHTML={{
+            __html: `window.__INITIAL_STATE__ = ${JSON.stringify(this.props.store.getState())}`
+          }}/>
       </body>
       </html>
     )
