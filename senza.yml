@@ -29,8 +29,8 @@ SenzaComponents:
         mint_bucket: "zalando-stups-mint-243385153324-eu-west-1"
         scalyr_account_key: aws:kms:CiB/3ZjSheMJnIYy6CPNVfBiarW1/yAS0iGY/MfJ2DOdZxK1AQEBAgB4f92Y0oXjCZyGMugjzVXwYmq1tf8gEtIhmPzHydgznWcAAACMMIGJBgkqhkiG9w0BBwagfDB6AgEAMHUGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMYcVmkyjL5CnvtFUKAgEQgEhfZQUjT7XBBnM8TNLEP/NzUKmAazLd4fnX2+BcXJqJpBHjejsBZ2R6DX1TxDR60pqw85k4LYQYBCmq2/mOnUSo3XyfvxxaiJM=
         environment:
-          GITHUB_CLIENT_ID: id         # TODO: use actual client id
-          GITHUB_CLIENT_SECRET: secret # TODO: use encrypted client secret
+          GITHUB_CLIENT_ID: 1520865cc388d7c2941b
+          GITHUB_CLIENT_SECRET: aws:kms:CiB/3ZjSheMJnIYy6CPNVfBiarW1/yAS0iGY/MfJ2DOdZxKwAQEBAgB4f92Y0oXjCZyGMugjzVXwYmq1tf8gEtIhmPzHydgznWcAAACHMIGEBgkqhkiG9w0BBwagdzB1AgEAMHAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMGJf/CqaamWu1mYNgAgEQgEM7E9hFjyhvoVkDlwgrxLwC/obf6M5TFjPH5pv5lXEADQ02zDY55Wpc67tbKcMMqczF7M37Nz6FwZ6Ge1S0axYg/1Ea
           NODE_ENV: production
           HOST_ADDR: https://zappr.hackweek.zalan.do
           DEBUG: zappr:*
