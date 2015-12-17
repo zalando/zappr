@@ -1,22 +1,8 @@
 import glob from 'glob'
 import path from 'path'
-import { config } from './config'
+import config from './config'
 
-/**
- * Optional monoid.
- *
- * @param v A value
- * @returns {Function}
- */
-export function optional(v) {
-  return (attr, dflt) => {
-    if (!attr) return v
-    if (dflt && v) return v[attr] || dflt
-    if (dflt) return dflt
-    if (v) return optional(v[attr])
-    else return optional()
-  }
-}
+export { optional } from '../common/util'
 
 function find(pattern) {
   return new Promise((resolve, reject) =>

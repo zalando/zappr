@@ -5,13 +5,13 @@ import { connect } from 'react-redux'
 import authActions from '../actions/auth'
 import Optional from '../components/optional.jsx'
 import ZapprNav from '../components/navbar.jsx'
+import { optional } from '../../common/util'
 import { logger } from '../../common/debug'
 const log = logger('app')
 
 function mapStateToProps(state) {
   return {
     path: state.router.path,
-    isAuthenticated: state.auth.isAuthenticated,
     user: state.user
   }
 }
@@ -19,6 +19,7 @@ function mapStateToProps(state) {
 class App extends React.Component {
   static propTypes = {
     path: React.PropTypes.string.isRequired,
+    user: React.PropTypes.object.isRequired,
     children: React.PropTypes.node.isRequired
   }
 
@@ -28,7 +29,8 @@ class App extends React.Component {
 
   render() {
     const { displayName,url } = this.props.user
-    const avatar = this.props.user.photos[0]
+    const defaultUrl = 'https://placehold.it/50?text=user'
+    const avatar = optional(this.props.user)('photos')(0, defaultUrl)
 
     return (
       <div>

@@ -1,34 +1,46 @@
 import passport from 'koa-passport'
 import { Strategy as GitHubStrategy } from 'passport-github2'
 
-import { config } from '../config'
-import { logger } from '../../common/debug'
+import { Database } from '../persistence'
+import config from '../config'
 
 const GITHUB_CLIENT_ID = config.get('GITHUB_CLIENT_ID')
 const GITHUB_CLIENT_SECRET = config.get('GITHUB_CLIENT_SECRET')
 const HOST_ADDR = config.get('HOST_ADDR')
 
+import { logger } from '../../common/debug'
 const log = logger('auth')
 
 // https://github.com/cfsghost/passport-github/blob/master/examples/login/app.js
 
 /**
- * Serialize user into the session.
+ * Serialize user data into the session.
  */
-passport.serializeUser((user, done) => {
-  // TODO: just put the user id into the session and store the user data in the database
-  log(`serializeUser id: ${user.id} username: ${user.username}`)
-  done(null, user)
+passport.serializeUser((data, done) => {
+  log(`serializeUser id: ${data.id}`)
+  done(null, data)
 })
 
 /**
- * Deserialize user out of the session.
+ * Deserialize user profile out of the session.
  */
-passport.deserializeUser((obj, done) => {
-  // TODO: get the user data from the database by id
-  log(`deserializeUser id: ${obj.id} username: ${obj.username}`)
-  done(null, obj)
+passport.deserializeUser((data, done) => {
+  log(`deserializeUser id: ${data.id}`)
+  const db = Database.instance()
+  const { id, accessToken } = data
+  db.get(id).then((user) => done(null, {...user, accessToken})).catch(done)
 })
+
+/**
+ * http://passportjs.org/docs/profile
+ */
+function normalizeProfile(profile) {
+  const { id, _json, _raw, ...rest } = profile
+  const normalizedProfile = { ...rest, ..._json }
+  normalizedProfile.photos =  normalizedProfile.photos || [normalizedProfile.avatar_url]
+  normalizedProfile.url = normalizedProfile.html_url
+  return normalizedProfile
+}
 
 passport.use(new GitHubStrategy({
     clientID: GITHUB_CLIENT_ID,
@@ -36,11 +48,17 @@ passport.use(new GitHubStrategy({
     callbackURL: `${HOST_ADDR}/auth/github/callback`
   },
   (accessToken, refreshToken, profile, done) => {
-    // TODO: get existing user record or create new user in the database
     // Add the accessToken to the returned object so that it is stored in the session.
     // DO NOT persist the accessToken in the database.
     log(`verify profile id: ${profile.id} username: ${profile.username}`)
-    done(null, profile)
+
+    // Clean up the user profile data
+    const normalizedProfile = normalizeProfile(profile)
+    const id = normalizedProfile.id
+
+    const db = Database.instance()
+    const data = { id, accessToken } // the session data
+    db.put(id, normalizedProfile).then(() => done(null, data)).catch(done)
   }
 ))
 

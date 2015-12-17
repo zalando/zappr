@@ -17,11 +17,7 @@ const log = logger('react')
 export default async function renderStatic(ctx, next) {
   const routes = getRoutes()
   const assets = await getAssets()
-
-  // passport user object http://passportjs.org/docs/profile
   const user = ctx.req.user || {}
-  user.photos = [optional(user)('_json')('avatar_url')()] || user.photos || []
-  user.url = optional(user)('_json')('html_url')
 
   const store = configureStore({
     auth: {

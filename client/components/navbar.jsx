@@ -58,7 +58,7 @@ export default class ZapprNav extends React.Component {
             </li>
           </Nav>
           <Nav pullRight>
-            <NavDropdown title={this.props.user.displayName}>
+            <NavDropdown title={this.props.user.displayName} id="basic-nav-dropdown">
               <MenuItem href={this.props.user.url}>
                 Profile
               </MenuItem>
