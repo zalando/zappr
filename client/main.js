@@ -13,6 +13,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'font-awesome/css/font-awesome.css'
 import 'bootstrap-social'
 import './css/main.css'
+import 'file?name=[name].[ext]!./img/favicon.ico'
 
 // Get the initial state from a global injected by the server
 const initialState = window.__INITIAL_STATE__

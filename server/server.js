@@ -7,6 +7,7 @@ import passport from 'koa-passport'
 import convert from 'koa-convert'
 import morgan from 'koa-morgan'
 
+import LevelStore from './session/level-store'
 import { config } from './config'
 import { logger } from '../common/debug'
 
@@ -31,9 +32,13 @@ reduce((router, route) => route(router), Router())
 const LOG_FORMAT = config.get('LOG_FORMAT')
 const log = logger('app')
 
+// Level DB
+const level = config.get('LEVEL_DB')
+const store = new LevelStore(level)
+
 app.
 use(morgan(LOG_FORMAT)).
-use(convert(session(app))). // TODO: use persistent Session Store
+use(convert(session({store: store}))).
 use(bodyParser()).
 use(passport.initialize()).
 use(passport.session()).

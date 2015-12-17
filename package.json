@@ -72,6 +72,7 @@
     "koa-passport": "2.0.1",
     "koa-router": "7.0.0",
     "koa-static": "1.5.2",
+    "level": "1.4.0",
     "nconf": "0.8.2",
     "passport": "0.3.2",
     "passport-github2": "0.1.9",

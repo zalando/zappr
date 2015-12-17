@@ -15,11 +15,12 @@ export default class Index extends React.Component {
     return (
       <html lang="en">
       <head>
-        <meta charset="utf-8"/>
-        <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+        <meta charSet="utf-8"/>
+        <meta httpEquiv="x-ua-compatible" content="ie=edge"/>
         <meta name="description" content="Approvals for Github pull requests"/>
         <meta name="viewport" content="width=device-width,initial-scale=1"/>
         <title>ZAPPR</title>
+        <link rel="shortcut icon" href="favicon.ico"/>
         {css.map((s, i) => (<link key={i} href={`/${s}`} rel="stylesheet"/>))}
       </head>
       <body>
