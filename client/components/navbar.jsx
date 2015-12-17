@@ -16,6 +16,22 @@ export default class ZapprNav extends React.Component {
   }
 
   render() {
+    const style = {
+      logo: {
+        marginTop: '1px',
+        display: 'inline'
+      },
+      logoText: {
+        fontFamily: 'minecraftmedium',
+        fontSize: '2rem',
+        marginBottom: 0,
+        color: '#663931'
+      },
+      avatar: {
+        width: '40px',
+        marginTop: '5px'
+      }
+    }
     return (
       <Navbar>
         <Navbar.Header>
@@ -24,11 +40,15 @@ export default class ZapprNav extends React.Component {
                   style={{padding: '0 15px'}}>
               <Image alt="ZAPPR"
                      src={require('../img/icon.png')}
-                     style={{marginTop: '1px', display:'inline'}}/>
+                     style={style.logo}/>
             </Link>
           </Navbar.Brand>
+          <Navbar.Toggle />
         </Navbar.Header>
         <Navbar.Collapse>
+          <Navbar.Text style={style.logoText}>
+            ZAPPR
+          </Navbar.Text>
           <Nav>
             <li className={this.isActive('/')}>
               <Link to="/">Home</Link>
@@ -42,14 +62,15 @@ export default class ZapprNav extends React.Component {
               <MenuItem href={this.props.user.url}>
                 Profile
               </MenuItem>
-              <MenuItem divider />
+              <MenuItem divider/>
               <MenuItem href="/logout">
                 <i className="fa fa-sign-out"/>&nbsp;sign out
               </MenuItem>
             </NavDropdown>
             <li>
               <Image alt="avatar"
-                     style={{width: '40px', marginTop: '5px'}}
+                     className="hidden-xs"
+                     style={style.avatar}
                      src={this.props.user.avatar}
                      circle/>
             </li>

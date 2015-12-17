@@ -39,7 +39,7 @@ use(passport.initialize()).
 use(passport.session()).
 use(router.routes()).
 use(router.allowedMethods()).
-use(convert(serve('dist/client', {index: 'none'}))).
+use(convert(serve(config.get('STATIC_DIR'), {index: 'none'}))).
 use(renderStatic)
 
 if (require.main === module) {

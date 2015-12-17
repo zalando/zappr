@@ -1,12 +1,18 @@
 const path = require('path')
+const CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const AppCachePlugin = require('appcache-webpack-plugin')
 
 module.exports = {
-  entry: './client/main.js',
+  entry: {
+    client: './client/main.js',
+    vendor: [
+      'react',
+      'react-dom'
+    ]
+  },
   output: {
     path: path.join(__dirname, 'dist', 'client'),
-    filename: 'client.min.js'
+    filename: '1-client.min.js'
   },
   module: {
     loaders: [{
@@ -23,7 +29,7 @@ module.exports = {
   },
   plugins: [
     new ExtractTextPlugin('styles.min.css'),
-    new AppCachePlugin({output: 'zappr.appcache'})
+    new CommonsChunkPlugin('vendor', '0-vendor.min.js')
   ],
   devServer: {
     proxy: {

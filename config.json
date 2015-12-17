@@ -5,5 +5,6 @@
   "HOST_ADDR": "http://127.0.0.1:8080",
   "NODE_ENV": "development",
   "LOG_FORMAT": "dev",
-  "APP_PORT": 3000
+  "APP_PORT": 3000,
+  "STATIC_DIR": "./dist/client"
 }
