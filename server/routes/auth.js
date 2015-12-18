@@ -1,7 +1,7 @@
 import passport from 'koa-passport'
 import { Strategy as GitHubStrategy } from 'passport-github2'
 
-import { Database } from '../persistence'
+import UserRepository from '../persistence/user-repository'
 import config from '../config'
 
 const GITHUB_CLIENT_ID = config.get('GITHUB_CLIENT_ID')
@@ -11,7 +11,7 @@ const HOST_ADDR = config.get('HOST_ADDR')
 import { logger } from '../../common/debug'
 const log = logger('auth')
 
-// https://github.com/cfsghost/passport-github/blob/master/examples/login/app.js
+const userRepo = new UserRepository()
 
 /**
  * Serialize user data into the session.
@@ -26,9 +26,8 @@ passport.serializeUser((data, done) => {
  */
 passport.deserializeUser((data, done) => {
   log(`deserializeUser id: ${data.id}`)
-  const db = Database.instance()
   const { id, accessToken } = data
-  db.get(id).then((user) => done(null, {...user, accessToken})).catch(done)
+  userRepo.findOne(id).then((user) => done(null, {...user, accessToken})).catch(done)
 })
 
 /**
@@ -56,9 +55,8 @@ passport.use(new GitHubStrategy({
     const normalizedProfile = normalizeProfile(profile)
     const id = normalizedProfile.id
 
-    const db = Database.instance()
     const data = { id, accessToken } // the session data
-    db.put(id, normalizedProfile).then(() => done(null, data)).catch(done)
+    userRepo.save(normalizedProfile).then(() => done(null, data)).catch(done)
   }
 ))
 

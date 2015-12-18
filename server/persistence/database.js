@@ -1,7 +1,7 @@
 import level from 'level'
-import config from './config'
+import config from '../config'
 
-export class Database {
+export default class Database {
   constructor() {
     // TODO: offer other solutions than LevelDB
     const name = config.get('LEVEL_DB')

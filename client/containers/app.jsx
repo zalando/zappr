@@ -14,7 +14,8 @@ function mapStateToProps(state) {
   return {
     path: state.router.path,
     user: state.user,
-    githubRepos: state.githubRepos
+    githubRepos: state.githubRepos,
+    isAuthenticated: state.auth.isAuthenticated
   }
 }
 
@@ -27,7 +28,9 @@ class App extends React.Component {
 
   componentDidMount() {
     log('componentDidMount', this.props)
-    this.props.fetchReposIfNeeded()
+    if (this.props.isAuthenticated) {
+      this.props.fetchReposIfNeeded()
+    }
   }
 
   onRepoToggle(id, isActive) {
@@ -36,7 +39,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { displayName,url } = this.props.user
+    const { displayName, url } = this.props.user
     const defaultUrl = 'https://placehold.it/50?text=user'
     const avatar = optional(this.props.user)('photos')(0, defaultUrl)
     const childrenProps = {

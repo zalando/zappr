@@ -3,6 +3,8 @@ SenzaInfo:
   Parameters:
     - ImageVersion:
         Description: "Docker image version of zappr."
+    - SessionSecret:
+        Description: "Koa session secret"
 
 SenzaComponents:
 
@@ -34,6 +36,7 @@ SenzaComponents:
           NODE_ENV: production
           HOST_ADDR: https://zappr.hackweek.zalan.do
           DEBUG: zappr:*
+          SESSION_SECRET: "{{Arguments.SessionSecret}}"
 
   - AppLoadBalancer:
       Type: Senza::WeightedDnsElasticLoadBalancer

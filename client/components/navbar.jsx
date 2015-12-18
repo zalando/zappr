@@ -16,6 +16,8 @@ export default class ZapprNav extends React.Component {
   }
 
   render() {
+    const { displayName, url, avatar } = this.props.user
+
     const style = {
       logo: {
         marginTop: '1px',
@@ -58,8 +60,8 @@ export default class ZapprNav extends React.Component {
             </li>
           </Nav>
           <Nav pullRight>
-            <NavDropdown title={this.props.user.displayName} id="basic-nav-dropdown">
-              <MenuItem href={this.props.user.url}>
+            <NavDropdown title={displayName || 'anonymous'} id="basic-nav-dropdown">
+              <MenuItem href={url}>
                 Profile
               </MenuItem>
               <MenuItem divider/>
@@ -71,7 +73,7 @@ export default class ZapprNav extends React.Component {
               <Image alt="avatar"
                      className="hidden-xs"
                      style={style.avatar}
-                     src={this.props.user.avatar}
+                     src={avatar}
                      circle/>
             </li>
           </Nav>
