@@ -1,5 +1,10 @@
 import { REPO_UPDATE_REPO, REPO_SET_ENABLED } from '../actions/repo'
-import { API_REQUEST_REPOS, API_RECEIVE_REPOS } from '../actions/api'
+import {
+  API_REQUEST_REPOS,
+  API_RECEIVE_REPOS,
+  API_SEND_REPO_UPDATE,
+  API_COMPLETE_REPO_UPDATE
+} from '../actions/api'
 
 import { logger } from '../../common/debug'
 const log = logger('api')
@@ -43,6 +48,12 @@ export function githubRepos(state = {
           ...state.repos.slice(i + 1)
         ]
       })
+    case API_SEND_REPO_UPDATE:
+      log('API_SEND_REPO_UPDATE')
+      return state // TODO
+    case API_COMPLETE_REPO_UPDATE:
+      log('API_COMPLETE_REPO_UPDATE')
+      return state // TODO
     default:
       return state
   }

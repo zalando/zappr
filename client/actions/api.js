@@ -19,6 +19,22 @@ function receiveRepos(json) {
   }
 }
 
+export const API_SEND_REPO_UPDATE = 'API_SEND_REPO_UPDATE'
+function sendRepoUpdate(json) {
+  return {
+    type: API_SEND_REPO_UPDATE,
+    repo: json
+  }
+}
+
+export const API_COMPLETE_REPO_UPDATE = 'API_COMPLETE_REPO_UPDATE'
+function completeRepoUpdate(json) {
+  return {
+    type: API_COMPLETE_REPO_UPDATE,
+    repo: json
+  }
+}
+
 function fetchRepos() {
   return dispatch => {
     dispatch(requestRepos())
@@ -41,5 +57,24 @@ export function fetchReposIfNeeded() {
     if (shouldFetchRepos(getState())) {
       return dispatch(fetchRepos())
     }
+  }
+}
+
+export function updateRepo(repo) {
+  return dispatch => {
+    dispatch(sendRepoUpdate(repo))
+
+    return fetch(`/api/repos/${repo.id}`, {
+      method: 'put',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(repo),
+      credentials: 'same-origin'
+    }).
+    then(response => response.json()).
+    then(json =>
+      dispatch(completeRepoUpdate(json)))
   }
 }

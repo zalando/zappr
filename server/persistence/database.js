@@ -1,6 +1,9 @@
 import level from 'level'
 import config from '../config'
 
+import { logger } from '../../common/debug'
+const log = logger('persistence')
+
 export default class Database {
   constructor() {
     // TODO: offer other solutions than LevelDB
@@ -27,8 +30,9 @@ export default class Database {
 
   put(id, value) {
     return new Promise((resolve, reject) => {
-      this.db.put(id, value, (err, v) =>
-        err ? reject(err) : resolve(v))
+      this.db.put(id, value, err => {
+        return err ? reject(err) : resolve(value)
+      })
     })
   }
 
