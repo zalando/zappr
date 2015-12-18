@@ -22,10 +22,10 @@ app.keys = [config.get('SESSION_SECRET')]
 // Routing
 import { health } from './routes/health'
 import { authorize, login, logout } from './routes/auth.js'
-import { env } from './routes/api'
+import { env, repos } from './routes/api'
 import renderStatic from './react/render-static'
 
-const router = [health, authorize, login, logout, env].
+const router = [health, authorize, login, logout, env, repos].
 reduce((router, route) => route(router), Router())
 
 // Logging

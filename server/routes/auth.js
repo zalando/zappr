@@ -64,10 +64,12 @@ passport.use(new GitHubStrategy({
 
 /**
  * Login endpoint.
+ *
+ * https://developer.github.com/v3/oauth/#scopes
  */
 export function login(router) {
   return router.get('login', '/auth/github', passport.authenticate('github', {
-    scope: ['user:email']
+    scope: config.get('GITHUB_SCOPES')
   }))
 }
 

@@ -1,14 +1,15 @@
 import React from 'react'
 import { connect } from 'react-redux'
+import { Row, Col } from 'react-bootstrap'
 
-import authActions from '../actions/auth'
-import { Row, Col } from './layout.jsx'
+import { loginGithub, confirmLoginGithub } from '../actions/auth'
 
 import { logger } from '../../common/debug'
 const log = logger('login')
 
 function mapStateToProps(state) {
   return {
+    isAuthenticated: state.auth.isAuthenticated,
     isAuthenticating: state.auth.isAuthenticating
   }
 }
@@ -20,26 +21,25 @@ class Login extends React.Component {
 
   componentDidMount() {
     log('componentDidMount', this.props)
-  }
-
-  componentWillUpdate(props) {
-    log('componentWillUpdate', props)
+    if (this.props.isAuthenticated) {
+      this.props.confirmLoginGithub()
+    }
   }
 
   render() {
     return (
       <Row>
-        <Col sm={4} md={4} push={4}>
+        <Col sm={4} md={4} mdPush={4}>
           <div className="page-header">
             <img alt="ZAPPR"
                  src={require('../img/zappr.png')}
                  className="img-responsive center-block"/>
           </div>
           <a type="button"
-                  className="btn btn-block btn-social btn-github"
-                  disabled={this.props.isAuthenticating}
-                  href="/auth/github"
-                  onClick={this.props.loginGithub}>
+             className="btn btn-block btn-social btn-github"
+             disabled={this.props.isAuthenticating}
+             href="/auth/github"
+             onClick={this.props.loginGithub}>
             <span className="fa fa-github"/>
             Sign in with GitHub
           </a>
@@ -49,4 +49,4 @@ class Login extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, authActions)(Login)
+export default connect(mapStateToProps, {loginGithub, confirmLoginGithub})(Login)

@@ -1,59 +1,49 @@
 import { pushPath } from 'redux-simple-router'
 
-import { logger } from '../../common/debug'
-const log = logger('auth')
-
-export const LOGIN_GITHUB_REQUEST = 'ZAPPR-LOGIN-GITHUB-REQUEST'
-export const LOGIN_GITHUB_SUCCESS = 'ZAPPR-LOGIN-GITHUB-SUCCESS'
-export const LOGIN_GITHUB_FAILURE = 'ZAPPR-LOGIN-GITHUB-FAILURE'
-export const LOGOUT_GITHUB = 'ZAPPR-LOGOUT-GITHUB'
-
-export default {
-  loginGithub,
-  logoutGithub
-}
-
+export const LOGIN_GITHUB_REQUEST = 'ZAPPR_LOGIN_GITHUB_REQUEST'
 function loginGithubRequest() {
   return {
     type: LOGIN_GITHUB_REQUEST
   }
 }
 
+export const LOGIN_GITHUB_SUCCESS = 'ZAPPR_LOGIN_GITHUB_SUCCESS'
 function loginGithubSuccess() {
   return {
     type: LOGIN_GITHUB_SUCCESS
   }
 }
 
+export const LOGIN_GITHUB_FAILURE = 'ZAPPR_LOGIN_GITHUB_FAILURE'
 function loginGithubFailure() {
   return {
     type: LOGIN_GITHUB_FAILURE
   }
 }
 
-function loginGithub(redirect = '/') {
-  return (dispatch) => {
-    dispatch(loginGithubRequest())
-
-  //  fetch(new Request('/auth/github')).
-  //  then(response => {
-  //    log('log in success :)')
-  //    log(response)
-  //    dispatch(loginGithubSuccess())
-  //    dispatch(pushPath(redirect))
-  //  }).
-  //  catch(err => {
-  //    log('log in failure :(', err)
-  //    dispatch(loginGithubFailure())
-  //  })
+export const LOGOUT_GITHUB_REQUEST = 'ZAPPR_LOGOUT_GITHUB_REQUEST'
+function logoutGithubRequest() {
+  return {
+    type: LOGOUT_GITHUB_REQUEST
   }
 }
 
-function logoutGithub() {
+export function loginGithub() {
   return (dispatch) => {
+    dispatch(loginGithubRequest())
+  }
+}
+
+export function confirmLoginGithub() {
+  return (dispatch) => {
+    dispatch(loginGithubSuccess())
+    dispatch(pushPath('/'))
+  }
+}
+
+export function logoutGithub() {
+  return (dispatch) => {
+    dispatch(logoutGithubRequest())
     dispatch(pushPath('/login'))
-    dispatch({
-      type: LOGOUT_GITHUB
-    })
   }
 }

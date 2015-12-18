@@ -2,7 +2,7 @@ import {
   LOGIN_GITHUB_REQUEST,
   LOGIN_GITHUB_SUCCESS,
   LOGIN_GITHUB_FAILURE,
-  LOGOUT_GITHUB
+  LOGOUT_GITHUB_REQUEST
 } from '../actions/auth'
 
 import { logger } from '../../common/debug'
@@ -30,8 +30,9 @@ export default function auth(state = initialState, action) {
         isAuthenticating: false,
         isAuthenticated: false
       })
-    case LOGOUT_GITHUB:
+    case LOGOUT_GITHUB_REQUEST:
       return Object.assign({}, state, {
+        isAuthenticating: false,
         isAuthenticated: false
       })
     default:

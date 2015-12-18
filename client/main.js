@@ -12,6 +12,7 @@ import Root from './containers/root.jsx'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'font-awesome/css/font-awesome.css'
 import 'bootstrap-social'
+import 'bootstrap-toggle/css/bootstrap2-toggle.css'
 import './css/main.css'
 import 'file?name=[name].[ext]!./img/favicon.ico'
 

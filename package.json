@@ -4,7 +4,7 @@
   "description": "Approvals for Github pull requests.",
   "main": "dist/server/server.min.js",
   "scripts": {
-    "test": "BABEL_ENV=test mocha --recursive --compilers js:babel-register",
+    "test": "NODE_ENV=test BABEL_ENV=test mocha --recursive --compilers js:babel-register",
     "clean": "rm -rf dist",
     "build-client": "webpack --config webpack.client.js",
     "build-server": "webpack --config webpack.server.js",
@@ -60,10 +60,12 @@
   "dependencies": {
     "bootstrap": "3.3.6",
     "bootstrap-social": "4.11.0",
+    "bootstrap-toggle": "2.2.1",
     "debug": "2.2.0",
     "font-awesome": "4.5.0",
     "glob": "6.0.1",
     "history": "1.13.1",
+    "isomorphic-fetch": "2.2.0",
     "koa": "2.0.0-alpha.3",
     "koa-bodyparser": "3.0.0",
     "koa-convert": "1.2.0",
@@ -84,13 +86,16 @@
     "redux": "3.0.5",
     "redux-router": "1.0.0-beta5",
     "redux-simple-router": "1.0.0",
-    "redux-thunk": "1.0.2"
+    "redux-thunk": "1.0.2",
+    "request": "2.67.0"
   },
   "babel": {
     "env": {
       "test": {
         "presets": [
-          "node5"
+          "node5",
+          "stage-1",
+          "react"
         ]
       }
     }
