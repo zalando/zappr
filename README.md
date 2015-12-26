@@ -4,6 +4,13 @@ Approvals for Github pull requests.
 
 ## Development
 
+Export your [Github credentials](https://github.com/settings/applications):
+
+```
+export GITHUB_CLIENT_ID=<your-client-id>
+export GITHUB_CLIENT_SECRET=<your-client-secret>
+```
+
 **Build & run:**
 
 ```
@@ -20,7 +27,15 @@ npm run build-server -- -d
 npm run run-all
 ```
 
-Enable debug logs in the browser console:
+Enable debug logs...
+
+...in the terminal:
+
+```
+export DEBUG="zappr:*"
+```
+
+...in the browser console:
 
 ```
 window.DEBUG.enable('zappr:*')
