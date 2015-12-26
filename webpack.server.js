@@ -10,7 +10,9 @@ const nodeModules = () => (
   reduce((modules, m) => {
     modules[m] = 'commonjs2 ' + m
     return modules
-  }, {})
+  }, {
+    'react-dom/server': 'commonjs2 react-dom/server'
+  })
 )
 
 module.exports = {
@@ -31,6 +33,8 @@ module.exports = {
       }
     }, {
       test: /\.json$/, exclude: /node_modules/, loader: 'json'
+    }, {
+      test: /\.png$/, loader: 'url-loader?mimetype=image/png'
     }]
   },
   externals: nodeModules()

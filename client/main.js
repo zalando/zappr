@@ -8,12 +8,13 @@ import { bind as bindLogger } from '../common/debug'
 import configureStore from './store/configureStore'
 import Root from './containers/root.jsx'
 
-// Import CSS. Will be extracted by webpack.
+// The CSS will be extracted by webpack.
 import 'bootstrap/dist/css/bootstrap.css'
 import 'font-awesome/css/font-awesome.css'
 import 'bootstrap-social'
 import 'bootstrap-toggle/css/bootstrap2-toggle.css'
 import './css/main.css'
+// Webpack copies the favicon file to the output directory.
 import 'file?name=[name].[ext]!./img/favicon.ico'
 
 // Get the initial state from a global injected by the server

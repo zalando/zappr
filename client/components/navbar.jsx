@@ -2,6 +2,8 @@ import React from 'react'
 import { Link } from 'react-router'
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Image } from 'react-bootstrap'
 
+import icon from '../img/icon.png'
+
 export default class ZapprNav extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired
@@ -41,7 +43,7 @@ export default class ZapprNav extends React.Component {
             <Link to="/"
                   style={{padding: '0 15px'}}>
               <Image alt="ZAPPR"
-                     src={require('../img/icon.png')}
+                     src={icon}
                      style={style.logo}/>
             </Link>
           </Navbar.Brand>

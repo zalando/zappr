@@ -2,6 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { Row, Col } from 'react-bootstrap'
 
+import logo from '../img/zappr.png'
 import { loginGithub, confirmLoginGithub } from '../actions/auth'
 
 import { logger } from '../../common/debug'
@@ -32,7 +33,7 @@ class Login extends React.Component {
         <Col sm={4} md={4} mdPush={4}>
           <div className="page-header">
             <img alt="ZAPPR"
-                 src={require('../img/zappr.png')}
+                 src={logo}
                  className="img-responsive center-block"/>
           </div>
           <a type="button"
