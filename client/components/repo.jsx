@@ -10,7 +10,8 @@ export default class Repo extends React.Component {
 
   render() {
     const onToggle = this.props.onToggle
-    const {name, html_url, zapprEnabled} = this.props.repo
+    const { name, html_url, zapprEnabled, isUpdating } = this.props.repo
+    const className = 'pull-right'
     const style = {
       row: {
         display: 'flex',
@@ -20,11 +21,11 @@ export default class Repo extends React.Component {
     return (
       <Panel>
         <Row style={style.row}>
-          <Col md={10}>
+          <Col xs={9} sm={10} md={10}>
             <a href={html_url}>{name}</a>
           </Col>
-          <Col md={2}>
-            <Toggle checked={zapprEnabled} onToggle={onToggle}/>
+          <Col xs={3} sm={2} md={2}>
+            <Toggle checked={zapprEnabled} {...{className, onToggle, isUpdating}}/>
           </Col>
         </Row>
       </Panel>

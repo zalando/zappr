@@ -12,7 +12,7 @@ function updateRepo(id, action) {
 export const REPO_SET_ENABLED = 'REPO_SET_ENABLED'
 export function setEnabled(id, enabled) {
   return dispatch => {
-    dispatch(updateRepo(id, {type: REPO_SET_ENABLED, enabled}))
+    //dispatch(updateRepo(id, {type: REPO_SET_ENABLED, enabled}))
     dispatch(apiUpdateRepo({id, zapprEnabled: enabled}))
   }
 }

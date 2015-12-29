@@ -1,7 +1,4 @@
-import fetch from 'isomorphic-fetch'
-
-import { logger } from '../../common/debug'
-const log = logger('api')
+import RepoService from '../service/repo-service'
 
 export const API_REQUEST_REPOS = 'ZAPPR_API_REQUEST_REPOS'
 function requestRepos() {
@@ -35,16 +32,21 @@ function completeRepoUpdate(json) {
   }
 }
 
+export const API_FAIL_REPO_UPDATE = 'API_FAIL_REPO_UPDATE'
+function failRepoUpdate(repo, error) {
+  return {
+    type: API_FAIL_REPO_UPDATE,
+    repo: repo,
+    error: error
+  }
+}
+
 function fetchRepos() {
   return dispatch => {
     dispatch(requestRepos())
 
-    return fetch('/api/repos', {
-      credentials: 'same-origin'
-    }).
-    then(response => response.json()).
-    then(json =>
-      dispatch(receiveRepos(json)))
+    return RepoService.fetchAll()
+      .then(json => dispatch(receiveRepos(json)))
   }
 }
 
@@ -64,17 +66,8 @@ export function updateRepo(repo) {
   return dispatch => {
     dispatch(sendRepoUpdate(repo))
 
-    return fetch(`/api/repos/${repo.id}`, {
-      method: 'put',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(repo),
-      credentials: 'same-origin'
-    }).
-    then(response => response.json()).
-    then(json =>
-      dispatch(completeRepoUpdate(json)))
+    return RepoService.updateOne(repo)
+      .then(json => dispatch(completeRepoUpdate(json)))
+      .catch(error => dispatch(failRepoUpdate(repo, error)))
   }
 }
