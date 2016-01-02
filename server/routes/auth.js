@@ -32,12 +32,11 @@ passport.deserializeUser((data, done) => {
 
 /**
  * http://passportjs.org/docs/profile
+ * https://developer.github.com/v3/users/#get-a-single-user
  */
 function normalizeProfile(profile) {
   const { id, _json, _raw, ...rest } = profile
   const normalizedProfile = { ...rest, ..._json }
-  normalizedProfile.photos =  normalizedProfile.photos || [normalizedProfile.avatar_url]
-  normalizedProfile.url = normalizedProfile.html_url
   return normalizedProfile
 }
 

@@ -45,10 +45,23 @@ export function getStaticAssets() {
   }))
 }
 
+function filterUserObject(user = {}) {
+  return [
+    'id',
+    'login',
+    'avatar_url',
+    'html_url',
+    'displayName'
+  ].reduce((obj, key) => {
+    obj[key] = user[key]
+    return obj
+  }, {})
+}
+
 export default async function renderStatic(ctx, next) {
 
   const assets = await getStaticAssets()
-  const { accessToken, ...user } = ctx.req.user || {}
+  const user = filterUserObject(ctx.req.user)
 
   const store = configureStore({
     auth: {
@@ -68,7 +81,7 @@ export default async function renderStatic(ctx, next) {
       log('redirect', redirectLocation)
       ctx.redirect(302, redirectLocation.pathname + redirectLocation.search)
     } else if (renderProps) {
-      const props = { ...assets, store, renderProps }
+      const props = {...assets, store, renderProps}
       ctx.body = ReactDOMServer.renderToStaticMarkup(<Index {...props}/>)
     } else {
       next()

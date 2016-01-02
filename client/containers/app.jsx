@@ -6,7 +6,6 @@ import { fetchReposIfNeeded } from '../actions/api'
 import { setEnabled as setRepoEnabled } from '../actions/repo'
 import Optional from '../components/optional.jsx'
 import ZapprNav from '../components/navbar.jsx'
-import { optional } from '../../common/util'
 import { logger } from '../../common/debug'
 const log = logger('app')
 
@@ -39,19 +38,15 @@ class App extends React.Component {
   }
 
   render() {
-    const { displayName, url } = this.props.user
-    const defaultUrl = 'https://placehold.it/50?text=user'
-    const avatar = optional(this.props.user)('photos')(0, defaultUrl)
     const childrenProps = {
       githubRepos: this.props.githubRepos,
       onRepoToggle: this.onRepoToggle.bind(this)
     }
-
     return (
       <div>
         <Optional if={this.props.path.search(/^\/login/) === -1}>
           <ZapprNav path={this.props.path}
-                    user={{displayName, avatar, url}}/>
+                    user={this.props.user}/>
         </Optional>
         <div className="container">
           {React.cloneElement(this.props.children, childrenProps)}

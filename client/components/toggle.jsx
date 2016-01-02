@@ -15,7 +15,8 @@ export default class Toggle extends React.Component {
   }
 
   static defaultProps = {
-    checked: false
+    checked: false,
+    isUpdating: false
   }
 
   onToggle(event) {
@@ -31,7 +32,7 @@ export default class Toggle extends React.Component {
     const disabled = isUpdating ? ' disabled' : ''
 
     const spinner = isUpdating
-      ? (<span><i className="fa fa-circle-o-notch fa-spin"/>&nbsp;</span>)
+      ? (<span><i className="fa fa-refresh fa-spin"/>&nbsp;</span>)
       : null
 
     return (
