@@ -19,6 +19,7 @@ module.exports = {
   entry: './server/server.js',
   target: 'node',
   output: {
+    libraryTarget: 'commonjs2',
     path: path.join(__dirname, 'dist', 'server'),
     filename: 'server.min.js'
   },

@@ -34,8 +34,12 @@ reduce((router, route) => route(router), Router())
 // Session store
 const store = new DatabaseStore()
 
+// HTTP logs
+const morganFormat = config.get('LOG_FORMAT')
+const morganSkip = (req, res) => res.statusCode > config.get('LOG_THRESH')
+
 app.
-use(morgan(config.get('LOG_FORMAT'))).
+use(morgan(morganFormat, {skip: morganSkip})).
 use(convert(session({store: store}))).
 use(bodyParser()).
 use(passport.initialize()).

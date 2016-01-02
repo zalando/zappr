@@ -4,7 +4,7 @@
   "description": "Approvals for Github pull requests.",
   "main": "dist/server/server.min.js",
   "scripts": {
-    "test": "NODE_ENV=test BABEL_ENV=test mocha --recursive --compilers js:babel-register",
+    "test": "DEBUG='zappr:test' LOG_THRESH=0 NODE_ENV=test BABEL_ENV=test mocha --recursive --compilers js:babel-register",
     "clean": "rm -rf dist",
     "build-client": "webpack --config webpack.client.js",
     "build-server": "webpack --config webpack.server.js",
