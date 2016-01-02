@@ -13,5 +13,8 @@
   "LOG_FORMAT": "dev",
   "APP_PORT": 3000,
   "STATIC_DIR": "./dist/client",
-  "LEVEL_DB": "./zappr.db"
+  "LEVEL_DB": "./zappr.db",
+  "DB_DRIVER": "sqlite",
+  "DB_NAME": "zappr",
+  "SQLITE_FILE": "./zappr.sqlite"
 }

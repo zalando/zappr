@@ -108,4 +108,4 @@ fabric.properties
 /dist
 .nvmrc
 scm-source.json
-/*.db
+*.sqlite

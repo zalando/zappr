@@ -74,7 +74,6 @@
     "koa-passport": "2.0.1",
     "koa-router": "7.0.0",
     "koa-static": "1.5.2",
-    "level": "1.4.0",
     "nconf": "0.8.2",
     "passport": "0.3.2",
     "passport-github2": "0.1.9",
@@ -87,7 +86,12 @@
     "redux-router": "1.0.0-beta5",
     "redux-simple-router": "1.0.2",
     "redux-thunk": "1.0.2",
-    "request": "2.67.0"
+    "request": "2.67.0",
+    "sequelize": "3.15.1"
+  },
+  "optionalDependencies": {
+    "pg": "4.4.x",
+    "sqlite3": "3.1.x"
   },
   "babel": {
     "env": {

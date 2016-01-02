@@ -8,8 +8,11 @@ import convert from 'koa-convert'
 import morgan from 'koa-morgan'
 
 import DatabaseStore from './session/database-store'
+import { syncModel } from './model'
 import config from './config'
+
 import { logger } from '../common/debug'
+const log = logger('app')
 
 export const app = new Koa()
 
@@ -28,15 +31,11 @@ import renderStatic from './react/render-static.jsx'
 const router = [health, authorize, login, logout, env, repos, repo].
 reduce((router, route) => route(router), Router())
 
-// Logging
-const LOG_FORMAT = config.get('LOG_FORMAT')
-const log = logger('app')
-
 // Session store
 const store = new DatabaseStore()
 
 app.
-use(morgan(LOG_FORMAT)).
+use(morgan(config.get('LOG_FORMAT'))).
 use(convert(session({store: store}))).
 use(bodyParser()).
 use(passport.initialize()).
@@ -46,8 +45,11 @@ use(router.allowedMethods()).
 use(convert(serve(config.get('STATIC_DIR'), {index: 'none'}))).
 use(renderStatic)
 
-if (require.main === module) {
+async function init() {
+  await syncModel()
   const port = config.get('APP_PORT')
   app.listen(port)
   log(`listening on port ${port}`)
 }
+
+if (require.main === module) init()

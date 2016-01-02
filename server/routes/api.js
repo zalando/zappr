@@ -1,11 +1,10 @@
 import request from 'request'
 
 import config from '../config'
-import RepoRepository from '../persistence/repo-repository'
 import { requireAuth } from './auth'
-import { logger } from '../../common/debug'
+import { Repository } from '../model'
 
-const repoRepository = new RepoRepository()
+import { logger } from '../../common/debug'
 const log = logger('api')
 
 /**
@@ -39,13 +38,35 @@ function githubRequest(ctx, path) {
 
 export function repos(router) {
   return router.get('/api/repos', requireAuth, async (ctx) => {
-    const repos = await githubRequest(ctx, '/user/repos')
-    const result = await Promise.all(repos.map(async (remoteRepo) => {
-      const localRepo = await repoRepository.findOne(remoteRepo.id)
-      return {...remoteRepo, ...localRepo}
-    }))
+
+    let repositories = await Repository.findAll()
+      .then(repos => repos.map(repo => ({
+        id: repo.id,
+        ...JSON.parse(repo.get('json'))
+      })))
+      .catch(err => ctx.throw(err))
+
+    if (repositories.length < 1 || ctx.params.refresh == 'true') {
+      log('refresh repositories from Github API...')
+      repositories = await githubRequest(ctx, '/user/repos')
+        .then(repos => repos.map(remoteRepo => ({
+          ...remoteRepo,
+          ...repositories.find(localRepo => localRepo.id === remoteRepo.id)
+        })))
+
+      log('update repositories in database...')
+      await Promise.all(repositories.map(repo => {
+        const {id, ...repoData} = repo
+        return Repository.upsert({
+          id,
+          json: repoData
+        }).
+        catch(err => ctx.throw(err))
+      }))
+    }
+
     ctx.response.type = 'application/json'
-    ctx.body = result
+    ctx.body = repositories
   })
 }
 
@@ -67,24 +88,36 @@ export function validateRepo(ctx, next) {
 export function repo(router) {
   return router.
   get('/api/repos/:id', requireAuth, async (ctx) => {
-    const result = await Promise.all([
-      repoRepository.findOne(ctx.params.id),
-      githubRequest(ctx, '/user/repos').
-      then(repos => repos.find(repo => repo.id == ctx.params.id))
-    ]).
-    then(([localRepo, remoteRepo]) => {
-      return {...remoteRepo, ...localRepo}
-    }).
-    catch(e => ctx.throw(e))
+    const repoId = parseInt(ctx.params.id)
+    const repoData = await Repository.findById(repoId)
+      .then(repository => repository ? repository.get('json') : null)
+      .then(json => JSON.parse(json))
+      .catch(err => ctx.throw(err))
+
+    if (!repoData) ctx.throw(404)
 
     ctx.response.type = 'application/json'
-    ctx.body = result
+    ctx.body = {id: repoId, ...repoData}
   }).
   put('/api/repos/:id', requireAuth, validateRepo, async (ctx) => {
-    const id = ctx.params.id
-    const repo = ctx.request.body
+    const repoId = parseInt(ctx.params.id)
+    const {id, ...repoData} = ctx.request.body
 
-    ctx.response.body = await repoRepository.save({id, ...repo})
+    const localRepo = await Repository.findById(repoId)
+      .then(repository => repository ? repository.get('json') : null)
+      .then(json => JSON.parse(json))
+      .catch(err => ctx.throw(err))
+
+    if (!localRepo) ctx.throw(404)
+
+    const mergedData = {...localRepo, ...repoData}
+
+    await Repository.upsert({
+      id: repoId,
+      json: mergedData
+    })
+
+    ctx.response.body = ({id: repoId, ...mergedData})
     ctx.response.type = 'application/json'
     ctx.response.status = 202
   })

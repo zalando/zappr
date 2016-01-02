@@ -1,7 +1,7 @@
 import passport from 'koa-passport'
 import { Strategy as GitHubStrategy } from 'passport-github2'
 
-import UserRepository from '../persistence/user-repository'
+import { User } from '../model'
 import config from '../config'
 
 const GITHUB_CLIENT_ID = config.get('GITHUB_CLIENT_ID')
@@ -10,8 +10,6 @@ const HOST_ADDR = config.get('HOST_ADDR')
 
 import { logger } from '../../common/debug'
 const log = logger('auth')
-
-const userRepo = new UserRepository()
 
 /**
  * Serialize user data into the session.
@@ -26,8 +24,11 @@ passport.serializeUser((data, done) => {
  */
 passport.deserializeUser((data, done) => {
   log(`deserializeUser id: ${data.id}`)
-  const { id, accessToken } = data
-  userRepo.findOne(id).then((user) => done(null, {...user, accessToken})).catch(done)
+  User.findById(data.id).
+  then(user => user ? user.get('json') : null).
+  then(json => JSON.parse(json)).
+  then(userData => done(null, {...userData, ...data})).
+  catch(done)
 })
 
 /**
@@ -36,7 +37,7 @@ passport.deserializeUser((data, done) => {
  */
 function normalizeProfile(profile) {
   const { id, _json, _raw, ...rest } = profile
-  const normalizedProfile = { ...rest, ..._json }
+  const normalizedProfile = {...rest, ..._json}
   return normalizedProfile
 }
 
@@ -47,15 +48,19 @@ passport.use(new GitHubStrategy({
   },
   (accessToken, refreshToken, profile, done) => {
     // Add the accessToken to the returned object so that it is stored in the session.
-    // DO NOT persist the accessToken in the database.
+    // DO NOT persist the accessToken in the user data.
     log(`verify profile id: ${profile.id} username: ${profile.username}`)
 
     // Clean up the user profile data
-    const normalizedProfile = normalizeProfile(profile)
-    const id = normalizedProfile.id
+    const {id, ...userData} = normalizeProfile(profile)
+    const data = {id, accessToken} // the session data
 
-    const data = { id, accessToken } // the session data
-    userRepo.save(normalizedProfile).then(() => done(null, data)).catch(done)
+    User.upsert({
+      id,
+      json: userData
+    }).
+    then(() => done(null, data)).
+    catch(done)
   }
 ))
 
@@ -86,6 +91,7 @@ export function authorize(router) {
 export function logout(router) {
   return router.get('logout', '/logout', ctx => {
     ctx.logout()
+    ctx.session = null
     ctx.redirect('/login')
   })
 }
