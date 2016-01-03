@@ -35,8 +35,8 @@ reduce((router, route) => route(router), Router())
 const store = new DatabaseStore()
 
 // HTTP logs
-const morganFormat = config.get('LOG_FORMAT')
-const morganSkip = (req, res) => res.statusCode > config.get('LOG_THRESH')
+const morganFormat = config.get('MORGAN_FORMAT')
+const morganSkip = (req, res) => res.statusCode < config.get('MORGAN_THRESH')
 
 app.
 use(morgan(morganFormat, {skip: morganSkip})).

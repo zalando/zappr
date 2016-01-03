@@ -1,4 +1,12 @@
+# ZAPPR default configuration.
+# All values can be overriden via commandline arguments
+# or environment variables using the nconf module.
+
+# IMPORTANT! Override secret with a secure value.
 SESSION_SECRET: secret
+
+# Override Github client id and secret with your
+# own values as defined in your Github account.
 GITHUB_CLIENT_ID: id
 GITHUB_CLIENT_SECRET: secret
 GITHUB_SCOPES:
@@ -6,12 +14,15 @@ GITHUB_SCOPES:
   - repo:status
   - write:repo_hook
 GITHUB_URL: https://api.github.com
+
+# Address of the web application host
+# that ZAPPR is going to run on.
 HOST_ADDR: http://127.0.0.1:8080
-NODE_ENV: development
-LOG_FORMAT: dev
 APP_PORT: 3000
+NODE_ENV: development
 STATIC_DIR: ./dist/client
-LEVEL_DB: ./zappr.db
+
+# Database configuration
 DB_DRIVER: sqlite
 DB_NAME: zappr
 #DB_USER: postgres
@@ -20,3 +31,7 @@ DB_NAME: zappr
 #DB_PORT: 5432
 #DB_SCHEMA: zappr
 SQLITE_FILE: ./zappr.sqlite
+
+# HTTP logging
+MORGAN_FORMAT: dev
+MORGAN_THRESH: 0
