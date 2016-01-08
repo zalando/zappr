@@ -4,7 +4,7 @@
   "description": "Approvals for Github pull requests.",
   "main": "dist/server/server.min.js",
   "scripts": {
-    "test": "DEBUG='zappr:test' MORGAN_THRESH=999 NODE_ENV=test BABEL_ENV=test mocha --recursive --compilers js:babel-register",
+    "test": "DEBUG='zappr:test' MORGAN_THRESH=999 NODE_ENV=test BABEL_ENV=test SQLITE_FILE=':memory:' mocha --recursive --compilers js:babel-register",
     "clean": "rm -rf dist",
     "build-client": "webpack --config webpack.client.js",
     "build-server": "webpack --config webpack.server.js",
@@ -36,6 +36,7 @@
     "babel-core": "6.3.x",
     "babel-eslint": "5.0.0-beta6",
     "babel-loader": "6.2.x",
+    "babel-plugin-webpack-loaders": "0.1.x",
     "babel-preset-es2015": "6.3.x",
     "babel-preset-node5": "10.1.x",
     "babel-preset-react": "6.3.x",
@@ -49,10 +50,14 @@
     "file-loader": "0.8.x",
     "json-loader": "0.5.x",
     "mocha": "2.3.x",
+    "mountebank": "bbyars/mountebank#ca16804",
     "nodemon": "1.8.x",
     "parallelshell": "2.0.x",
+    "passport-strategy": "1.0.x",
+    "rimraf": "2.5.x",
     "style-loader": "0.13.x",
     "supertest": "1.1.x",
+    "temp": "0.8.x",
     "url-loader": "0.5.x",
     "webpack": "1.12.x",
     "webpack-dev-server": "1.14.x"
@@ -88,7 +93,7 @@
     "redux-simple-router": "1.0.2",
     "redux-thunk": "1.0.2",
     "request": "2.67.0",
-    "sequelize": "3.15.1"
+    "sequelize": "3.17.1"
   },
   "optionalDependencies": {
     "pg": "4.4.x",
@@ -101,6 +106,15 @@
           "node5",
           "stage-1",
           "react"
+        ],
+        "plugins": [
+          [
+            "babel-plugin-webpack-loaders",
+            {
+              "config": "./webpack.server.test.js",
+              "verbose": false
+            }
+          ]
         ]
       }
     }

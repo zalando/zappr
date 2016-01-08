@@ -1,6 +1,6 @@
+import nconf from 'nconf'
 import request from 'request'
 
-import config from '../config'
 import { requireAuth } from './auth'
 import { Repository } from '../model'
 
@@ -13,14 +13,14 @@ const log = logger('api')
 export function env(router) {
   return router.get('/api/env', requireAuth, ctx => {
     ctx.body = {
-      'NODE_ENV': config.get('NODE_ENV')
+      'NODE_ENV': nconf.get('NODE_ENV')
     }
   })
 }
 
 function githubRequest(ctx, path) {
   const options = {
-    url: config.get('GITHUB_URL') + path,
+    url: nconf.get('GITHUB_URL') + path,
     headers: {
       'User-Agent': 'ZAPPR/1.0 (+https://zappr.hackweek.zalan.do)',
       'Authorization': `token ${ctx.req.user.accessToken}`
@@ -28,9 +28,9 @@ function githubRequest(ctx, path) {
   }
   return new Promise((resolve, reject) => {
     request(options, (err, response, body) => {
-      const {statusCode} = response
+      const {statusCode} = response || {}
       if (err) return reject(err)
-      if (statusCode !== 200) return reject(statusCode)
+      if (statusCode !== 200) return reject(new Error(statusCode))
       else resolve(JSON.parse(body))
     })
   })

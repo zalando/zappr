@@ -1,5 +1,5 @@
 import passport from 'koa-passport'
-import { Strategy as GitHubStrategy } from 'passport-github2'
+import getStrategy from '../passport/strategy'
 
 import { User } from '../model'
 import config from '../config'
@@ -41,7 +41,9 @@ function normalizeProfile(profile) {
   return normalizedProfile
 }
 
-passport.use(new GitHubStrategy({
+const PassportStrategy = getStrategy()
+
+passport.use(new PassportStrategy({
     clientID: GITHUB_CLIENT_ID,
     clientSecret: GITHUB_CLIENT_SECRET,
     callbackURL: `${HOST_ADDR}/auth/github/callback`
