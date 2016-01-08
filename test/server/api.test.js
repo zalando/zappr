@@ -17,7 +17,6 @@ describe('API', () => {
 
   before(async function (done) {
     // Override config values
-    nconf.use('memory')
     nconf.set('GITHUB_URL', `http://localhost:${imposter.port}`)
 
     try {
