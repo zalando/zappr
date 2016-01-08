@@ -16,7 +16,7 @@ export default function requireAuth(Component) {
   class RequireAuthComponent extends React.Component {
     static propTypes = {
       isAuthenticated: React.PropTypes.bool.isRequired
-    }
+    };
 
     componentWillMount() {
       this.checkAuth()

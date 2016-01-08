@@ -7,7 +7,7 @@ import icon from '../img/icon.png'
 export default class ZapprNav extends React.Component {
   static propTypes = {
     user: React.PropTypes.object.isRequired
-  }
+  };
 
   isActive(path) {
     if (this.props.path === path) {

@@ -18,7 +18,7 @@ function mapStateToProps(state) {
 class Login extends React.Component {
   static propTypes = {
     isAuthenticating: React.PropTypes.bool
-  }
+  };
 
   componentDidMount() {
     log('componentDidMount', this.props)

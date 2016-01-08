@@ -6,7 +6,7 @@ export default class Repo extends React.Component {
   static propTypes = {
     repo: React.PropTypes.object.isRequired,
     onToggle: React.PropTypes.func.isRequired
-  }
+  };
 
   render() {
     const onToggle = this.props.onToggle

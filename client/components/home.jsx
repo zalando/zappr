@@ -8,8 +8,7 @@ export default class Home extends React.Component {
   static propTypes = {
     githubRepos: React.PropTypes.object.isRequired,
     onRepoToggle: React.PropTypes.func.isRequired
-  }
-
+  };
 
   render() {
     const style = {

@@ -12,12 +12,12 @@ export default class Toggle extends React.Component {
     onToggle: React.PropTypes.func.isRequired,
     isUpdating: React.PropTypes.bool.isRequired,
     className: React.PropTypes.string
-  }
+  };
 
   static defaultProps = {
     checked: false,
     isUpdating: false
-  }
+  };
 
   onToggle(event) {
     event.preventDefault()

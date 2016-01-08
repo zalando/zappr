@@ -9,7 +9,7 @@ export default class Root extends React.Component {
   static propTypes = {
     history: React.PropTypes.object.isRequired,
     store: React.PropTypes.object.isRequired
-  }
+  };
 
   render() {
     return (

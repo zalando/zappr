@@ -23,7 +23,7 @@ class App extends React.Component {
     path: React.PropTypes.string.isRequired,
     user: React.PropTypes.object.isRequired,
     children: React.PropTypes.node.isRequired
-  }
+  };
 
   componentDidMount() {
     log('componentDidMount', this.props)
