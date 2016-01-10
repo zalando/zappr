@@ -52,3 +52,7 @@ npm test
 ```
 ./tools/build.sh
 ```
+
+## Documentation
+
+You can find the documentation [here](doc/readme.md).
