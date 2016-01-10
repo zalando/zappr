@@ -1,13 +1,15 @@
 import nconf from 'nconf'
 import supertest from 'supertest'
 import MountebankClient from '../MountebankClient'
-import { app } from '../../server/server'
-import { syncModel, Repository } from '../../server/model'
+import { init as initApp } from '../../server/server'
+import { sync as syncModel, Repository } from '../../server/model'
+import MockStrategy from '../passport/MockStrategy'
 
 import { logger } from '../../common/debug'
 const log = logger('test')
 
 describe('API', () => {
+  const app = initApp({PassportStrategy: MockStrategy})
   const mountebank = new MountebankClient()
   const request = supertest.agent(app.listen())
   const imposter = {

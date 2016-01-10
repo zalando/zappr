@@ -9,6 +9,9 @@ const profile = {
   }
 }
 
+/**
+ * Mock GithubStrategy from passport-github2.
+ */
 export default class MockStrategy extends Strategy {
   constructor(options, verify) {
     super()

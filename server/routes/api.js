@@ -1,4 +1,4 @@
-import nconf from 'nconf'
+import nconf from '../nconf'
 import request from 'request'
 
 import { requireAuth } from './auth'

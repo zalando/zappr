@@ -4,7 +4,7 @@ import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { match, RoutingContext } from 'react-router'
 
-import config from '../config'
+import nconf from '../nconf'
 import configureStore from '../../client/store/configureStore'
 import routes from '../../client/containers/routes.jsx'
 
@@ -33,7 +33,7 @@ function find(pattern) {
  * @returns {Promise.<object>}
  */
 export function getStaticAssets() {
-  const dir = config.get('STATIC_DIR')
+  const dir = nconf.get('STATIC_DIR')
 
   return Promise.all([
     find(path.join(dir, '*.js')),

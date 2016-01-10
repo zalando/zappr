@@ -1,5 +1,5 @@
 import Sequelize from 'sequelize'
-import config from './config'
+import nconf from './nconf'
 
 import { logger } from '../common/debug'
 const log = logger('model')
@@ -9,27 +9,27 @@ function getParameters(driver) {
     logging: log,
     typeValidation: true
   }
-  switch (config.get('DB_DRIVER')) {
+  switch (nconf.get('DB_DRIVER')) {
     case 'sqlite':
       return [
-        config.get('DB_NAME'),
+        nconf.get('DB_NAME'),
         null,
         null,
         {
           dialect: 'sqlite',
-          storage: config.get('SQLITE_FILE'),
+          storage: nconf.get('SQLITE_FILE'),
           ...options
         }
       ]
     case 'postgres':
       return [
-        config.get('DB_NAME'),
-        config.get('DB_USER'),
-        config.get('DB_PASS'),
+        nconf.get('DB_NAME'),
+        nconf.get('DB_USER'),
+        nconf.get('DB_PASS'),
         {
           dialect: 'postgres',
-          host: config.get('DB_HOST'),
-          port: config.get('DB_PORT'),
+          host: nconf.get('DB_HOST'),
+          port: nconf.get('DB_PORT'),
           ...options
         }
       ]
@@ -82,8 +82,8 @@ export const Session = sequelize.define('session', {
   }
 })
 
-export async function syncModel() {
-  const schema = config.get('DB_SCHEMA')
+export async function sync() {
+  const schema = nconf.get('DB_SCHEMA')
   const schemas = await sequelize.showAllSchemas().
   catch(err => log('error fetching schemas', err))
 

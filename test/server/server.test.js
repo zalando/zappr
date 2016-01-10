@@ -1,7 +1,9 @@
 import supertest from 'supertest'
-import { app } from '../../server/server'
+import { init as initApp } from '../../server/server'
+import MockStrategy from '../passport/MockStrategy'
 
 describe('Server', () => {
+  const app = initApp({PassportStrategy: MockStrategy})
   const request = supertest.agent(app.listen())
 
   describe('GET /health', () => {

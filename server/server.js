@@ -3,24 +3,25 @@ import Router from 'koa-router'
 import serve from 'koa-static'
 import session from 'koa-generic-session'
 import bodyParser from 'koa-bodyparser'
-import passport from 'koa-passport'
 import convert from 'koa-convert'
 import morgan from 'koa-morgan'
 
+import nconf from './nconf'
 import DatabaseStore from './session/database-store'
-import { syncModel } from './model'
-import config from './config'
+import { sync as syncModel } from './model'
+import { init as initPassport } from './passport'
 
 import { logger } from '../common/debug'
 const log = logger('app')
 
-export const app = new Koa()
+const app = new Koa()
+app.name = 'zappr'
 
 // Trust proxy header fields.
 app.proxy = true
 
 // Sessions
-app.keys = [config.get('SESSION_SECRET')]
+app.keys = [nconf.get('SESSION_SECRET')]
 
 // Routing
 import { health } from './routes/health'
@@ -35,25 +36,40 @@ reduce((router, route) => route(router), Router())
 const store = new DatabaseStore()
 
 // HTTP logs
-const morganFormat = config.get('MORGAN_FORMAT')
-const morganSkip = (req, res) => res.statusCode < config.get('MORGAN_THRESH')
+const morganFormat = nconf.get('MORGAN_FORMAT')
+const morganSkip = (req, res) => res.statusCode < nconf.get('MORGAN_THRESH')
 
-app.
-use(morgan(morganFormat, {skip: morganSkip})).
-use(convert(session({store: store}))).
-use(bodyParser()).
-use(passport.initialize()).
-use(passport.session()).
-use(router.routes()).
-use(router.allowedMethods()).
-use(convert(serve(config.get('STATIC_DIR'), {index: 'none'}))).
-use(renderStatic)
+/**
+ * Initialize the Koa application instance.
+ *
+ * @param {Object} options - Application options
+ * @param options.PassportStrategy - Authentication strategy
+ * @returns {Application} Koa application
+ */
+export function init(options = {}) {
+  const passport = initPassport(options.PassportStrategy)
 
-async function init() {
+  return app.
+  use(morgan(morganFormat, {skip: morganSkip})).
+  use(convert(session({store: store}))).
+  use(bodyParser()).
+  use(passport.initialize()).
+  use(passport.session()).
+  use(router.routes()).
+  use(router.allowedMethods()).
+  use(convert(serve(nconf.get('STATIC_DIR'), {index: 'none'}))).
+  use(renderStatic)
+}
+
+/**
+ * Run setup processes and start listening.
+ *
+ * @param {number} port Port to listen on
+ */
+async function start(port = nconf.get('APP_PORT')) {
   await syncModel()
-  const port = config.get('APP_PORT')
-  app.listen(port)
+  init().listen(port)
   log(`listening on port ${port}`)
 }
 
-if (require.main === module) init()
+if (require.main === module) start()
