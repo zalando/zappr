@@ -39,7 +39,7 @@ export default class Toggle extends React.Component {
       <div className={`${className} toggle btn btn-${off} ${disabled}`}
            style={{width:'58px',height:'34px'}}
            onClick={this.onToggle.bind(this)}>
-        <Input type="checkbox" checked={checked} disabled={!!disabled}/>
+        <Input type="checkbox" checked={checked} disabled={!!disabled} readOnly/>
         <div className="toggle-group">
           <label className="btn btn-primary toggle-on">{spinner || 'On'}</label>
           <label className="btn btn-default active toggle-off">{spinner || 'Off'}</label>
