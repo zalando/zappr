@@ -1,8 +1,7 @@
 import nconf from '../nconf'
-import request from 'request'
-
 import { requireAuth } from './auth'
 import { Repository } from '../model'
+import { repositoryHandler } from '../handler/RepositoryHandler'
 
 import { logger } from '../../common/debug'
 const log = logger('api')
@@ -18,55 +17,18 @@ export function env(router) {
   })
 }
 
-function githubRequest(ctx, path) {
-  const options = {
-    url: nconf.get('GITHUB_URL') + path,
-    headers: {
-      'User-Agent': 'ZAPPR/1.0 (+https://zappr.hackweek.zalan.do)',
-      'Authorization': `token ${ctx.req.user.accessToken}`
-    }
-  }
-  return new Promise((resolve, reject) => {
-    request(options, (err, response, body) => {
-      const {statusCode} = response || {}
-      if (err) return reject(err)
-      if (statusCode !== 200) return reject(new Error(statusCode))
-      else resolve(JSON.parse(body))
-    })
-  })
-}
-
+/**
+ * Repository collection.
+ */
 export function repos(router) {
   return router.get('/api/repos', requireAuth, async (ctx) => {
 
-    let repositories = await Repository.findAll()
-      .then(repos => repos.map(repo => ({
-        id: repo.id,
-        ...JSON.parse(repo.get('json'))
-      })))
-      .catch(err => ctx.throw(err))
-
-    if (repositories.length < 1 || ctx.params.refresh == 'true') {
-      log('refresh repositories from Github API...')
-      repositories = await githubRequest(ctx, '/user/repos')
-        .then(repos => repos.map(remoteRepo => ({
-          ...remoteRepo,
-          ...repositories.find(localRepo => localRepo.id === remoteRepo.id)
-        })))
-
-      log('update repositories in database...')
-      await Promise.all(repositories.map(repo => {
-        const {id, ...repoData} = repo
-        return Repository.upsert({
-          id,
-          json: repoData
-        }).
-        catch(err => ctx.throw(err))
-      }))
-    }
+    const {accessToken} = ctx.req.user
+    const refresh = ctx.params.refresh == 'true'
+    const repos = await repositoryHandler.onGetAll(accessToken, refresh)
 
     ctx.response.type = 'application/json'
-    ctx.body = repositories
+    ctx.body = repos
   })
 }
 
@@ -85,6 +47,10 @@ export function validateRepo(ctx, next) {
   }
 }
 
+/**
+ * Single repository.
+ * TODO: put logic into RepositoryHandler
+ */
 export function repo(router) {
   return router.
   get('/api/repos/:id', requireAuth, async (ctx) => {
