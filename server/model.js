@@ -68,6 +68,9 @@ export const Repository = sequelize.define('repository', {
   }
 })
 
+User.hasMany(Repository, {foreignKey: {allowNull: false}})
+Repository.belongsTo(User, {foreignKey: {allowNull: false}})
+
 export const Session = sequelize.define('session', {
   id: {
     type: Sequelize.STRING,

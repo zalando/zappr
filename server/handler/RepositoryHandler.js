@@ -10,27 +10,63 @@ class RepositoryHandler {
     this.githubService = githubService
   }
 
-  async onGetAll(accessToken, refresh) {
+  /**
+   * TODO: implement check, hook and status logic
+   * @deprecated Add or remove checks in the model
+   * @param {Number} id - Id of the repository
+   * @param {Object} user - Current user object
+   * @param {Boolean} zapprEnabled
+   * @returns {Promise.<Object>}
+   */
+  async onToggleZapprEnabled(id, user, zapprEnabled) {
+    const repo = await this.repositoryService.findOne(id, user.id, false)
+    if (!repo) return Promise.reject(new Error(404))
+    // Find a way to use JSONB with postgres.
+    repo.set('json', {...JSON.parse(repo.get('json')), zapprEnabled})
+    return repo.save().then(this.repositoryService.flatten)
+  }
 
+  /**
+   * Load one repository of a user if it exists in the local database.
+   *
+   * @param {Number} id - Id of the repository
+   * @param {Object} user - Current user object
+   * @returns {Promise.<Object|null>}
+   */
+  onGetOne(id, user) {
+    return this.repositoryService.findOne(id, user.id)
+  }
+
+  /**
+   * Load all repositories of a user.
+   * Fetch and save repositories from Github if necessary.
+   *
+   * @param {Object} user - Current user object
+   * @param {Boolean} [refresh = false] - Force reloading from Github
+   * @returns {Promise<Array.<Object>>}
+   */
+  async onGetAll(user, refresh) {
     log('load repositories from database...')
-    const localRepos = await this.repositoryService.findAll()
+    const localRepos = await this.repositoryService.findAll(user.id, false)
 
     if (localRepos.length > 0 && !refresh) {
-      return localRepos
+      return localRepos.map(this.repositoryService.flatten)
     }
 
     log('refresh repositories from Github API...')
-    const remoteRepos = await this.githubService.fetchRepos(accessToken)
+    const remoteRepos = await this.githubService.fetchRepos(user.accessToken)
 
-    const mergedRepos = remoteRepos.map(remoteRepo => ({
-      ...localRepos.find(localRepo => localRepo.id === remoteRepo.id),
-      ...remoteRepo
-    }))
+    let mergedRepos = remoteRepos.map(remoteRepo => {
+      let repo = localRepos.find(localRepo => localRepo.id === remoteRepo.id)
+      if (!repo) repo = RepositoryService.build(remoteRepo.id, user.id)
+      repo.set('json', remoteRepo)
+      return repo
+    })
 
     log('update repositories in database...')
-    await this.repositoryService.upsertAll(mergedRepos)
+    mergedRepos = await Promise.all(mergedRepos.map(repo => repo.save()))
 
-    return mergedRepos
+    return mergedRepos.map(this.repositoryService.flatten)
   }
 }
 

@@ -1,6 +1,5 @@
 import nconf from '../nconf'
 import { requireAuth } from './auth'
-import { Repository } from '../model'
 import { repositoryHandler } from '../handler/RepositoryHandler'
 
 import { logger } from '../../common/debug'
@@ -22,10 +21,9 @@ export function env(router) {
  */
 export function repos(router) {
   return router.get('/api/repos', requireAuth, async (ctx) => {
-
-    const {accessToken} = ctx.req.user
+    const user = ctx.req.user
     const refresh = ctx.params.refresh == 'true'
-    const repos = await repositoryHandler.onGetAll(accessToken, refresh)
+    const repos = await repositoryHandler.onGetAll(user, refresh)
 
     ctx.response.type = 'application/json'
     ctx.body = repos
@@ -49,42 +47,27 @@ export function validateRepo(ctx, next) {
 
 /**
  * Single repository.
- * TODO: put logic into RepositoryHandler
  */
 export function repo(router) {
   return router.
   get('/api/repos/:id', requireAuth, async (ctx) => {
-    const repoId = parseInt(ctx.params.id)
-    const repoData = await Repository.findById(repoId)
-      .then(repository => repository ? repository.get('json') : null)
-      .then(json => JSON.parse(json))
-      .catch(err => ctx.throw(err))
+    const user = ctx.req.user
+    const id = parseInt(ctx.params.id)
+    const repo = await repositoryHandler.onGetOne(id, user)
 
-    if (!repoData) ctx.throw(404)
-
+    if (!repo) ctx.throw(404)
     ctx.response.type = 'application/json'
-    ctx.body = {id: repoId, ...repoData}
+    ctx.body = repo
   }).
   put('/api/repos/:id', requireAuth, validateRepo, async (ctx) => {
-    const repoId = parseInt(ctx.params.id)
-    const {id, ...repoData} = ctx.request.body
+    // TODO: replace full update with specific actionable resources
+    const user = ctx.req.user
+    const id = parseInt(ctx.params.id)
+    const zapprEnabled = ctx.request.body.zapprEnabled
+    const repo = await repositoryHandler.onToggleZapprEnabled(id, user, zapprEnabled)
 
-    const localRepo = await Repository.findById(repoId)
-      .then(repository => repository ? repository.get('json') : null)
-      .then(json => JSON.parse(json))
-      .catch(err => ctx.throw(err))
-
-    if (!localRepo) ctx.throw(404)
-
-    const mergedData = {...localRepo, ...repoData}
-
-    await Repository.upsert({
-      id: repoId,
-      json: mergedData
-    })
-
-    ctx.response.body = ({id: repoId, ...mergedData})
     ctx.response.type = 'application/json'
     ctx.response.status = 202
+    ctx.response.body = repo
   })
 }
