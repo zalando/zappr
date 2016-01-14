@@ -1,6 +1,15 @@
 # Models
 
-## repository
+## User
+
+|name          |type   |
+|--------------|-------|
+|id            |BIGINT |
+|json          |JSONB  |
+
+* hasMany [Repositories](#repository)
+
+## Repository
 
 Github repository.
 
@@ -9,12 +18,13 @@ Github repository.
 |id            |BIGINT |
 |json          |JSONB  |
 
-* has (0..*) [checks](#check)
-* has (0..*) [webhooks](#webhook)
+* belongsTo [User](#user)
+* hasMany [Checks](#check)
+* hasMany [Webhooks](#webhook)
 
-## check
+## Check
 
-zappr check.
+Zappr check.
 
 |name          |type   |
 |--------------|-------|
@@ -22,10 +32,10 @@ zappr check.
 |repository_id |BIGINT |
 |type          |STRING |
 
-* belongs-to (1) [repository](#repository)
-* has (0..*) [statuses](#status)
+* belongsTo [Repository](#repository)
+* hasMany [Statuses](#status)
 
-## webhook
+## Webhook
 
 Github web hook.
 
@@ -35,9 +45,9 @@ Github web hook.
 |repository_id |BIGINT |
 |json          |JSONB  |
 
-* belongs-to (1) [repository](#repository)
+* belongsTo [Repository](#repository)
 
-## status
+## Status
 
 Github status.
 
@@ -47,4 +57,4 @@ Github status.
 |check_id      |BIGINT |
 |json          |JSONB  |
 
-* belongs-to (1) [check](#check)
+* belongsTo [Check](#check)
