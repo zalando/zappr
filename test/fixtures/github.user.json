@@ -1,0 +1,39 @@
+{
+  "id": 424242,
+  "displayName": "Ziggy Stardust",
+  "username": "ziggy",
+  "profileUrl": "https://github.com/ziggy",
+  "emails": [
+    {
+      "value": "ziggy.stardust@gmail.com"
+    }
+  ],
+  "provider": "github",
+  "login": "ziggy",
+  "avatar_url": "https://avatars.githubusercontent.com/u/424242?v=3",
+  "gravatar_id": "",
+  "url": "https://api.github.com/users/ziggy",
+  "html_url": "https://github.com/ziggy",
+  "followers_url": "https://api.github.com/users/ziggy/followers",
+  "following_url": "https://api.github.com/users/ziggy/following{/other_user}",
+  "gists_url": "https://api.github.com/users/ziggy/gists{/gist_id}",
+  "starred_url": "https://api.github.com/users/ziggy/starred{/owner}{/repo}",
+  "subscriptions_url": "https://api.github.com/users/ziggy/subscriptions",
+  "organizations_url": "https://api.github.com/users/ziggy/orgs",
+  "repos_url": "https://api.github.com/users/ziggy/repos",
+  "events_url": "https://api.github.com/users/ziggy/events{/privacy}",
+  "received_events_url": "https://api.github.com/users/ziggy/received_events",
+  "type": "User",
+  "site_admin": false,
+  "name": "Ziggy Stardust",
+  "company": "Star Ventures",
+  "blog": "https://ziggystardust.co.uk",
+  "location": "Berlin",
+  "email": "ziggy.stardust@gmail.com",
+  "hireable": true,
+  "bio": null,
+  "public_repos": 39,
+  "public_gists": 8,
+  "followers": 20,
+  "following": 5
+}

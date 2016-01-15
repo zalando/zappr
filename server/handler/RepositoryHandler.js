@@ -22,8 +22,8 @@ class RepositoryHandler {
     const repo = await this.repositoryService.findOne(id, user.id, false)
     if (!repo) return Promise.reject(new Error(404))
     // Find a way to use JSONB with postgres.
-    repo.set('json', {...JSON.parse(repo.get('json')), zapprEnabled})
-    return repo.save().then(this.repositoryService.flatten)
+    repo.set('json', {...repo.get('json'), zapprEnabled})
+    return repo.save().then(repo => repo.flatten())
   }
 
   /**
@@ -50,7 +50,7 @@ class RepositoryHandler {
     const localRepos = await this.repositoryService.findAll(user.id, false)
 
     if (localRepos.length > 0 && !refresh) {
-      return localRepos.map(this.repositoryService.flatten)
+      return localRepos.map(repo => repo.flatten())
     }
 
     log('refresh repositories from Github API...')
@@ -66,7 +66,7 @@ class RepositoryHandler {
     log('update repositories in database...')
     mergedRepos = await Promise.all(mergedRepos.map(repo => repo.save()))
 
-    return mergedRepos.map(this.repositoryService.flatten)
+    return mergedRepos.map(repo => repo.flatten())
   }
 }
 

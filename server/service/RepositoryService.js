@@ -13,19 +13,6 @@ export default class RepositoryService {
   }
 
   /**
-   * Reduce a database model into a flat object.
-   *
-   * @param {Sequelize.Instance} repo
-   * @returns {Object}
-   */
-  flatten(repo) {
-    if (!repo) return null
-    let {json, ...rest} = repo.toJSON()
-    if (typeof json === 'string') json = JSON.parse(json)
-    return {...json, ...rest}
-  }
-
-  /**
    * Find one repository by id.
    *
    * @param {Number} id - Id of the repository
@@ -35,7 +22,7 @@ export default class RepositoryService {
    */
   findOne(id, userId, flatten = true) {
     const promise = Repository.findOne({where: {id, userId}})
-    if (flatten) return promise.then(this.flatten)
+    if (flatten) return promise.then(repo => repo.flatten())
     else return promise
   }
 
@@ -48,7 +35,7 @@ export default class RepositoryService {
    */
   findAll(userId, flatten = true) {
     const promise = Repository.findAll({where: {userId}})
-    if (flatten) return promise.then(repos => repos.map(this.flatten))
+    if (flatten) return promise.then(repos => repos.map(repo => repo.flatten()))
     else return promise
   }
 

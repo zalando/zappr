@@ -64,7 +64,23 @@ export const Repository = sequelize.define('repository', {
   },
   json: {
     type: Sequelize.JSONB,
-    allowNull: false
+    allowNull: false,
+    get: function () {
+      const json = this.getDataValue('json')
+      return typeof json === 'string' ? JSON.parse(json) : json
+    }
+  }
+}, {
+  instanceMethods: {
+    /**
+     * Reduce a database model into a flat object.
+     *
+     * @returns {Object}
+     */
+    flatten: function () {
+      const {json, ...rest} = this.toJSON()
+      return {...json, ...rest}
+    }
   }
 })
 
