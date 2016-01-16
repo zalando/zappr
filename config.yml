@@ -23,8 +23,9 @@ NODE_ENV: development
 STATIC_DIR: ./dist/client
 
 # Database configuration
+# sqlite or postgres
 DB_DRIVER: sqlite
-DB_NAME: zappr
+#DB_NAME: postgres
 #DB_USER: postgres
 #DB_PASS: postgres
 #DB_HOST: 192.168.99.100
