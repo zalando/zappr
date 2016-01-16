@@ -1,5 +1,5 @@
 import GithubService from '../service/GithubService'
-import { sequelize, Repository } from '../model'
+import { db, Repository } from '../model'
 
 import { logger } from '../../common/debug'
 const log = logger('RepositoryHandler')
@@ -18,10 +18,9 @@ class RepositoryHandler {
    * @returns {Promise.<Object>}
    */
   async onToggleZapprEnabled(id, user, zapprEnabled) {
-    const repo = await Repository.findOne({where: {id, userId: user.id}})
+    const repo = await Repository.userScope(user).findById(id)
     if (!repo) return Promise.reject(new Error(404))
-    // Find a way to use JSONB with postgres.
-    repo.set('json', {...repo.get('json'), zapprEnabled})
+    repo.setJson('json.zapprEnabled', zapprEnabled)
     return repo.save().then(repo => repo.flatten())
   }
 
@@ -33,7 +32,7 @@ class RepositoryHandler {
    * @returns {Promise.<Object|null>}
    */
   onGetOne(id, user) {
-    return Repository.findOne({where: {id, userId: user.id}})
+    return Repository.userScope(user).findById(id)
   }
 
   /**
@@ -46,7 +45,7 @@ class RepositoryHandler {
    */
   async onGetAll(user, refresh) {
     log('load repositories from database...')
-    const localRepos = await Repository.findAll({where: {userId: user.id}})
+    const localRepos = await Repository.userScope(user).findAllSorted()
 
     if (localRepos.length > 0 && !refresh) {
       return localRepos.map(repo => repo.flatten())
@@ -56,7 +55,7 @@ class RepositoryHandler {
     const remoteRepos = await this.githubService.fetchRepos(user.accessToken)
 
     log('update repositories in database...')
-    const mergedRepos = await sequelize.transaction(t => {
+    const mergedRepos = await db.transaction(t => {
       return Promise.all(remoteRepos.map(remoteRepo =>
         Repository.findOrCreate({
           where: {id: remoteRepo.id},
@@ -67,8 +66,9 @@ class RepositoryHandler {
           transaction: t
         }).
         then(([localRepo]) => {
-          localRepo.set('json', remoteRepo)
-          return localRepo
+          const json = localRepo.get('json')
+          localRepo.set('json', {...json, remoteRepo})
+          return localRepo.save({transaction: t})
         })
       ))
     })

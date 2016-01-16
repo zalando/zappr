@@ -22,7 +22,7 @@ export function env(router) {
 export function repos(router) {
   return router.get('/api/repos', requireAuth, async (ctx) => {
     const user = ctx.req.user
-    const refresh = ctx.params.refresh == 'true'
+    const refresh = ctx.request.query.refresh == 'true'
     const repos = await repositoryHandler.onGetAll(user, refresh)
 
     ctx.response.type = 'application/json'
