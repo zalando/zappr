@@ -1,13 +1,11 @@
 import nconf from 'nconf'
-import { expect } from 'chai'
 import supertest from 'supertest'
-import MountebankClient from '../MountebankClient'
-import { init as initApp } from '../../server/server'
-import { sync as syncModel, Repository } from '../../server/model'
-import MockStrategy from '../passport/MockStrategy'
+import { expect } from 'chai'
 
-import { logger } from '../../common/debug'
-const log = logger('test')
+import MountebankClient from '../MountebankClient'
+import MockStrategy from '../passport/MockStrategy'
+import { init as initApp } from '../../server/server'
+import { syncDB, Repository } from '../../server/model'
 
 describe('API', () => {
   const app = initApp({PassportStrategy: MockStrategy})
@@ -24,7 +22,7 @@ describe('API', () => {
 
     try {
       // Initialize database
-      await syncModel()
+      await syncDB()
 
       // Configure mountebank
       const mb = await mountebank.start()
@@ -43,7 +41,6 @@ describe('API', () => {
         add().
       add().
       create()
-      //log('created mb imposter %o', imp)
     } catch (err) {
       done(err)
     }
@@ -83,7 +80,8 @@ describe('API', () => {
           if (err) return done(err)
 
           try {
-            const repos = await Repository.findAll()
+            const user = MockStrategy.props.user
+            const repos = await Repository.userScope(user).findAllSorted()
             expect(repos).to.have.length.within(body.length, body.length)
             expect(repos[0]).to.have.property('id').equal(body[0].id)
             done()

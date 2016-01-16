@@ -1,18 +1,21 @@
 import Strategy from 'passport-strategy'
 
-const accessToken = null
-const refreshToken = null
-const profile = {
-  username: 'test',
-  _json: {
-    id: 1
-  }
-}
-
 /**
  * Mock GithubStrategy from passport-github2.
  */
 export default class MockStrategy extends Strategy {
+  static props = {
+    accessToken: null,
+    refreshToken: null,
+    user: {
+      id: 1,
+      username: 'test',
+      _json: {
+        id: 1
+      }
+    }
+  };
+
   constructor(options, verify) {
     super()
     this.name = 'github'
@@ -21,7 +24,8 @@ export default class MockStrategy extends Strategy {
   }
 
   authenticate(req, options) {
-    this.verify(accessToken, refreshToken, profile, (err, data) => {
+    const {accessToken, refreshToken, user} = MockStrategy.props
+    this.verify(accessToken, refreshToken, user, (err, data) => {
       if (err) this.fail(err)
       else this.success(data)
     })

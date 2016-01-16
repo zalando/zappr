@@ -8,7 +8,7 @@ import morgan from 'koa-morgan'
 
 import nconf from './nconf'
 import DatabaseStore from './session/database-store'
-import { sync as syncModel } from './model'
+import { syncDB } from './model'
 import { init as initPassport } from './passport'
 
 import { logger } from '../common/debug'
@@ -67,7 +67,7 @@ export function init(options = {}) {
  * @param {number} port Port to listen on
  */
 async function start(port = nconf.get('APP_PORT')) {
-  await syncModel()
+  await syncDB()
   init().listen(port)
   log(`listening on port ${port}`)
 }

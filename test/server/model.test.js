@@ -1,5 +1,6 @@
 import { expect } from 'chai'
-import { sync, User, Repository } from '../../server/model'
+
+import { syncDB, User, Repository } from '../../server/model'
 
 import { logger } from '../../common/debug'
 const log = logger('test')
@@ -9,7 +10,7 @@ const userJson = require('../fixtures/github.user.json')
 
 describe('Model', () => {
 
-  before(done => sync().then(done).catch(done))
+  before(done => syncDB().then(done).catch(done))
 
   beforeEach(done => Promise.all([
     User.truncate(),
@@ -44,7 +45,7 @@ describe('Model', () => {
       try {
         await User.create({id: userId, json: userJson})
         await Repository.create({id: repoId, userId, json: repoJson})
-        const repo = await Repository.findById(repoId)
+        const repo = await Repository.userScope(userJson).findById(repoId)
 
         expect(repo.get('json')).to.be.an('object')
         expect(repo.get('json')).to.have.property('id', repoId)
