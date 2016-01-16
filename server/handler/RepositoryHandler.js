@@ -1,12 +1,11 @@
-import RepositoryService from '../service/RepositoryService'
 import GithubService from '../service/GithubService'
+import { sequelize, Repository } from '../model'
 
 import { logger } from '../../common/debug'
 const log = logger('RepositoryHandler')
 
 class RepositoryHandler {
-  constructor(repositoryService = new RepositoryService(), githubService = new GithubService()) {
-    this.repositoryService = repositoryService
+  constructor(githubService = new GithubService()) {
     this.githubService = githubService
   }
 
@@ -19,7 +18,7 @@ class RepositoryHandler {
    * @returns {Promise.<Object>}
    */
   async onToggleZapprEnabled(id, user, zapprEnabled) {
-    const repo = await this.repositoryService.findOne(id, user.id, false)
+    const repo = await Repository.findOne({where: {id, userId: user.id}})
     if (!repo) return Promise.reject(new Error(404))
     // Find a way to use JSONB with postgres.
     repo.set('json', {...repo.get('json'), zapprEnabled})
@@ -34,7 +33,7 @@ class RepositoryHandler {
    * @returns {Promise.<Object|null>}
    */
   onGetOne(id, user) {
-    return this.repositoryService.findOne(id, user.id)
+    return Repository.findOne({where: {id, userId: user.id}})
   }
 
   /**
@@ -47,7 +46,7 @@ class RepositoryHandler {
    */
   async onGetAll(user, refresh) {
     log('load repositories from database...')
-    const localRepos = await this.repositoryService.findAll(user.id, false)
+    const localRepos = await Repository.findAll({where: {userId: user.id}})
 
     if (localRepos.length > 0 && !refresh) {
       return localRepos.map(repo => repo.flatten())
@@ -56,15 +55,23 @@ class RepositoryHandler {
     log('refresh repositories from Github API...')
     const remoteRepos = await this.githubService.fetchRepos(user.accessToken)
 
-    let mergedRepos = remoteRepos.map(remoteRepo => {
-      let repo = localRepos.find(localRepo => localRepo.id === remoteRepo.id)
-      if (!repo) repo = RepositoryService.build(remoteRepo.id, user.id)
-      repo.set('json', remoteRepo)
-      return repo
-    })
-
     log('update repositories in database...')
-    mergedRepos = await Promise.all(mergedRepos.map(repo => repo.save()))
+    const mergedRepos = await sequelize.transaction(t => {
+      return Promise.all(remoteRepos.map(remoteRepo =>
+        Repository.findOrCreate({
+          where: {id: remoteRepo.id},
+          defaults: {
+            userId: user.id,
+            json: remoteRepo
+          },
+          transaction: t
+        }).
+        then(([localRepo]) => {
+          localRepo.set('json', remoteRepo)
+          return localRepo
+        })
+      ))
+    })
 
     return mergedRepos.map(repo => repo.flatten())
   }

@@ -10,9 +10,9 @@ const log = logger('session')
 export default class DatabaseStore {
   *get(sid) {
     log('get value for key %s', sid)
-    return yield Session.findById(sid)
-      .then(session => session ? session.get('json') : null)
-      .then(json => JSON.parse(json))
+    return yield Session.findById(sid).then(session => session
+      ? session.flatten()
+      : null)
   }
 
   *set(sid, val) {

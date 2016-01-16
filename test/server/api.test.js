@@ -1,4 +1,5 @@
 import nconf from 'nconf'
+import { expect } from 'chai'
 import supertest from 'supertest'
 import MountebankClient from '../MountebankClient'
 import { init as initApp } from '../../server/server'
@@ -70,9 +71,7 @@ describe('API', () => {
         .expect(200)
         .expect('Content-Type', /json/)
         .expect(response => {
-          const repos = response.body
-          if (!Array.isArray(repos)) throw new Error('not an array')
-          if (repos.length < 1) throw new Error('array is empty')
+          expect(response.body).to.be.an('array').and.to.have.length.above(1)
         })
         .end(done)
     })
@@ -80,19 +79,17 @@ describe('API', () => {
     it('should cache the response in the database', done => {
       request
         .get('/api/repos')
-        .end(async function(err, {body}) {
+        .end(async function (err, {body}) {
           if (err) return done(err)
 
           try {
             const repos = await Repository.findAll()
-            if (repos.length !== body.length)
-              return done(new Error('wrong length'))
-            if (repos[0].get('id') !== body[0].id)
-              return done(new Error('wrong id'))
+            expect(repos).to.have.length.within(body.length, body.length)
+            expect(repos[0]).to.have.property('id').equal(body[0].id)
+            done()
           } catch (err) {
             return done(err)
           }
-          done()
         })
     })
   })

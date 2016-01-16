@@ -44,10 +44,12 @@ export function init(Strategy = GithubStrategy) {
   passport.deserializeUser((data, done) => {
     log(`deserializeUser id: ${data.id}`)
     User.findById(data.id).
-    then(user => user ? user.get('json') : null).
-    then(json => JSON.parse(json)).
-    then(userData => done(null, {...userData, ...data})).
-    catch(done)
+    then(user => user
+      ? user.flatten()
+      : null).
+    then(user => user
+      ? done(null, {...user, ...data})
+      : done(new Error(`no user for id ${data.id}`)))
   })
 
   passport.use(new Strategy({
@@ -64,10 +66,7 @@ export function init(Strategy = GithubStrategy) {
       const {id, ...userData} = normalizeProfile(profile)
       const data = {id, accessToken} // the session data
 
-      User.upsert({
-        id,
-        json: userData
-      }).
+      User.upsert({id, json: userData}).
       then(() => done(null, data)).
       catch(done)
     }

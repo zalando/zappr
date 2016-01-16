@@ -4,19 +4,19 @@ import nconf from './nconf'
 import { logger } from '../common/debug'
 const log = logger('model')
 
-function getParameters(driver) {
+function getParameters(driver = nconf.get('DB_DRIVER')) {
   const options = {
     logging: log,
     typeValidation: true
   }
-  switch (nconf.get('DB_DRIVER')) {
+  switch (driver) {
     case 'sqlite':
       return [
         nconf.get('DB_NAME'),
         null,
         null,
         {
-          dialect: 'sqlite',
+          dialect: driver,
           storage: nconf.get('SQLITE_FILE'),
           ...options
         }
@@ -27,7 +27,7 @@ function getParameters(driver) {
         nconf.get('DB_USER'),
         nconf.get('DB_PASS'),
         {
-          dialect: 'postgres',
+          dialect: driver,
           host: nconf.get('DB_HOST'),
           port: nconf.get('DB_PORT'),
           ...options
@@ -38,7 +38,32 @@ function getParameters(driver) {
   }
 }
 
-const sequelize = new Sequelize(...getParameters())
+export const sequelize = new Sequelize(...getParameters())
+
+/**
+ * Model property getter.
+ * 
+ * Return the 'json' value as an object.
+ *
+ * @returns {Object}
+ */
+function getJsonValueAsObject() {
+  const json = this.getDataValue('json')
+  return typeof json === 'string' ? JSON.parse(json) : json
+}
+
+/**
+ * Model instance method.
+ *
+ * Flatten the 'json' property and the
+ * other values into one plain object.
+ *
+ * @returns {Object}
+ */
+function flattenJson() {
+  const {json, ...rest} = this.toJSON()
+  return {...json, ...rest}
+}
 
 export const User = sequelize.define('user', {
   id: {
@@ -50,7 +75,12 @@ export const User = sequelize.define('user', {
   },
   json: {
     type: Sequelize.JSONB,
-    allowNull: false
+    allowNull: false,
+    get: getJsonValueAsObject
+  }
+}, {
+  instanceMethods: {
+    flatten: flattenJson
   }
 })
 
@@ -65,22 +95,11 @@ export const Repository = sequelize.define('repository', {
   json: {
     type: Sequelize.JSONB,
     allowNull: false,
-    get: function () {
-      const json = this.getDataValue('json')
-      return typeof json === 'string' ? JSON.parse(json) : json
-    }
+    get: getJsonValueAsObject
   }
 }, {
   instanceMethods: {
-    /**
-     * Reduce a database model into a flat object.
-     *
-     * @returns {Object}
-     */
-    flatten: function () {
-      const {json, ...rest} = this.toJSON()
-      return {...json, ...rest}
-    }
+    flatten: flattenJson
   }
 })
 
@@ -97,7 +116,12 @@ export const Session = sequelize.define('session', {
   },
   json: {
     type: Sequelize.JSONB,
-    allowNull: false
+    allowNull: false,
+    get: getJsonValueAsObject
+  }
+}, {
+  instanceMethods: {
+    flatten: flattenJson
   }
 })
 
