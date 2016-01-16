@@ -72,4 +72,7 @@ async function start(port = nconf.get('APP_PORT')) {
   log(`listening on port ${port}`)
 }
 
-if (require.main === module) start()
+if (require.main === module) start().catch(err => {
+  log(err)
+  process.exit(1)
+})
