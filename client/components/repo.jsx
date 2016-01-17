@@ -10,7 +10,8 @@ export default class Repo extends React.Component {
 
   render() {
     const onToggle = this.props.onToggle
-    const { name, html_url, zapprEnabled, isUpdating } = this.props.repo
+    const { name, html_url, checks, isUpdating } = this.props.repo
+    const toggleIsChecked = checks.length > 0
     const className = 'pull-right'
     const style = {
       row: {
@@ -25,7 +26,7 @@ export default class Repo extends React.Component {
             <a href={html_url}>{name}</a>
           </Col>
           <Col xs={3} sm={2} md={2}>
-            <Toggle checked={zapprEnabled} {...{className, onToggle, isUpdating}}/>
+            <Toggle checked={toggleIsChecked} {...{className, onToggle, isUpdating}}/>
           </Col>
         </Row>
       </Panel>

@@ -62,6 +62,9 @@ export function fetchReposIfNeeded() {
   }
 }
 
+/**
+ * @deprecated Repositories cannot be changed. Add or remove 'checks' instead.
+ */
 export function updateRepo(repo) {
   return dispatch => {
     dispatch(sendRepoUpdate(repo))

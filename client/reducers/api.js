@@ -10,9 +10,11 @@ import {
 import { logger } from '../../common/debug'
 const log = logger('api')
 
+// TODO: implement 'check' reducer
+
 function githubRepo(state = {
-  zapprEnabled: false,
-  isUpdating: false
+  isUpdating: false,
+  checks: []
 }, action) {
   switch (action.type) {
     //case REPO_SET_ENABLED:
@@ -25,13 +27,12 @@ function githubRepo(state = {
       })
     case API_COMPLETE_REPO_UPDATE:
       return Object.assign({}, state, {
-        isUpdating: false,
-        zapprEnabled: action.repo.zapprEnabled
+        checks: action.repo.checks,
+        isUpdating: false
       })
     case API_FAIL_REPO_UPDATE:
       return Object.assign({}, state, {
-        isUpdating: false,
-        zapprEnabled: !action.repo.zapprEnabled
+        isUpdating: false
       })
   }
 }
