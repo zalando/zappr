@@ -1,9 +1,8 @@
 import Sequelize from 'sequelize'
 import dottie from 'dottie'
 
-import User from './User'
-import { db } from './database'
-import { schema, deserializeJson, flattenToJson } from './properties'
+import { db } from './Database'
+import { deserializeJson, flattenToJson } from './properties'
 
 /**
  * Github repository. Belongs to a {@link User}.
@@ -19,7 +18,7 @@ export default db.define('repository', {
   json: {
     type: Sequelize.JSONB,
     allowNull: false,
-    get: deserializeJson
+    get: deserializeJson('json')
   }
 }, {
   scopes: {
@@ -41,15 +40,16 @@ export default db.define('repository', {
     userScope: function (user) {
       return this.scope({method: ['userId', user.id]})
     },
-    findAllSorted: function () {
+    findAllSorted: function (options) {
       const order = {
         sqlite: ['id', 'ASC'],
         postgres: [db.json('json.name'), 'ASC']
       }
       return this.findAll({
+        ...options,
         order: [order[db.getDialect()]]
       })
     }
   },
-  schema: schema
+  schema: db.schema
 })

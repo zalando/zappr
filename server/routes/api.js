@@ -64,10 +64,14 @@ export function repo(router) {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id)
     const zapprEnabled = ctx.request.body.zapprEnabled
-    const repo = await repositoryHandler.onToggleZapprEnabled(id, user, zapprEnabled)
 
-    ctx.response.type = 'application/json'
-    ctx.response.status = 202
-    ctx.response.body = repo
+    try {
+      const repo = await repositoryHandler.onToggleZapprEnabled(id, user, zapprEnabled)
+      ctx.response.type = 'application/json'
+      ctx.response.status = 202
+      ctx.response.body = repo
+    } catch (e) {
+      ctx.throw(e)
+    }
   })
 }

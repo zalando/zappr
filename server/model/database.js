@@ -38,4 +38,36 @@ function getParameters(driver = nconf.get('DB_DRIVER')) {
   }
 }
 
-export const db = new Sequelize(...getParameters())
+class Database extends Sequelize {
+  constructor(...args) {
+    super(...args)
+  }
+
+  /**
+   * @returns {String}
+   */
+  get schema() {
+    return nconf.get('DB_SCHEMA')
+  }
+
+  /**
+   * Create the database schema and sync all models.
+   *
+   * @returns {Promise}
+   */
+  async sync() {
+    const schemas = await db.showAllSchemas()
+
+    if (schemas.indexOf(this.schema) === -1) {
+      await db.createSchema(this.schema).
+      then(result => log('created schema %o', result))
+    }
+
+    const values = obj => Object.keys(obj).map(k => obj[k])
+
+    return Promise.all(values(this.models).map(m => m.sync())).
+    then(models => log('synced models %o', models))
+  }
+}
+
+export const db = new Database(...getParameters())

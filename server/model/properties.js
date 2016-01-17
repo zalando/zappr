@@ -1,7 +1,5 @@
 import nconf from '../nconf'
 
-export const schema = nconf.get('DB_SCHEMA')
-
 /**
  * Model property getter.
  *
@@ -9,9 +7,11 @@ export const schema = nconf.get('DB_SCHEMA')
  *
  * @returns {Object}
  */
-export function deserializeJson() {
-  const json = this.getDataValue('json')
-  return typeof json === 'string' ? JSON.parse(json) : json
+export function deserializeJson(name) {
+  return function () {
+    const json = this.getDataValue(name)
+    return typeof json === 'string' ? JSON.parse(json) : json
+  }
 }
 
 /**

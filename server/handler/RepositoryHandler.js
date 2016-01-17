@@ -1,8 +1,10 @@
 import GithubService from '../service/GithubService'
-import { db, Repository } from '../model'
+import Approval from '../checks/Approval'
+import { db, Repository, Check } from '../model'
+import { checkHandler } from './CheckHandler'
 
 import { logger } from '../../common/debug'
-const log = logger('RepositoryHandler')
+const log = logger('handler')
 
 class RepositoryHandler {
   constructor(githubService = new GithubService()) {
@@ -18,10 +20,18 @@ class RepositoryHandler {
    * @returns {Promise.<Object>}
    */
   async onToggleZapprEnabled(id, user, zapprEnabled) {
-    const repo = await Repository.userScope(user).findById(id)
-    if (!repo) return Promise.reject(new Error(404))
-    repo.setJson('json.zapprEnabled', zapprEnabled)
-    return repo.save().then(repo => repo.flatten())
+    let repo = await Repository.userScope(user).findById(id)
+    if (!repo) throw 404
+
+    if (zapprEnabled) {
+      const check = await checkHandler.onCreateApprovalCheck(id)
+      repo = await check.getRepository({include: [Check]})
+      return repo.flatten()
+    } else {
+      await checkHandler.onDeleteApprovalCheck(id)
+      repo = await Repository.userScope(user).findById(id, {include: [Check]})
+      return repo.flatten()
+    }
   }
 
   /**
@@ -44,18 +54,19 @@ class RepositoryHandler {
    * @returns {Promise<Array.<Object>>}
    */
   async onGetAll(user, refresh) {
-    log('load repositories from database...')
-    const localRepos = await Repository.userScope(user).findAllSorted()
-
-    if (localRepos.length > 0 && !refresh) {
-      return localRepos.map(repo => repo.flatten())
+    if (!refresh) {
+      log('load repositories from database...')
+      const repos = await Repository.userScope(user).findAllSorted({include: [Check]})
+      if (repos.length > 0) {
+        return repos.map(repo => repo.flatten())
+      }
     }
 
     log('refresh repositories from Github API...')
     const remoteRepos = await this.githubService.fetchRepos(user.accessToken)
 
     log('update repositories in database...')
-    const mergedRepos = await db.transaction(t => {
+    await db.transaction(t => {
       return Promise.all(remoteRepos.map(remoteRepo =>
         Repository.findOrCreate({
           where: {id: remoteRepo.id},
@@ -65,15 +76,18 @@ class RepositoryHandler {
           },
           transaction: t
         }).
-        then(([localRepo]) => {
-          const json = localRepo.get('json')
-          localRepo.set('json', {...json, remoteRepo})
-          return localRepo.save({transaction: t})
-        })
+        then(([localRepo]) => localRepo.update({
+          json: {...localRepo.get('json'), ...remoteRepo}
+        }, {
+          transaction: t
+        }))
       ))
     })
 
-    return mergedRepos.map(repo => repo.flatten())
+    // The previously merged repos are not sorted correctly
+    // so we need to load them from the database again.
+    return Repository.userScope(user).findAllSorted({include: [Check]})
+      .then(repos => repos.map(repo => repo.flatten()))
   }
 }
 

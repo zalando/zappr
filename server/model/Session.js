@@ -1,8 +1,7 @@
 import Sequelize from 'sequelize'
-import Repository from './Repository'
 
-import { db } from './database'
-import { schema, deserializeJson, flattenToJson } from './properties'
+import { db } from './Database'
+import { deserializeJson, flattenToJson } from './properties'
 
 /**
  * PassportJS session.
@@ -18,11 +17,11 @@ export default db.define('session', {
   json: {
     type: Sequelize.JSONB,
     allowNull: false,
-    get: deserializeJson
+    get: deserializeJson('json')
   }
 }, {
   instanceMethods: {
     flatten: flattenToJson
   },
-  schema: schema
+  schema: db.schema
 })
