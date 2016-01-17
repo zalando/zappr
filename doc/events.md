@@ -9,14 +9,14 @@
 
 ### closed
 
-1. Delete all corresponding 'status' [entities](models.md#status) in the database
+do nothing (?)
 
 ## [PullRequestReviewCommentEvent][3]
 
 ### created
 
-1. Parse the comment for keywords
-2. Update the [status][2] on the Github API
+1. Apply [Approval](checks.md#approval) check
+2. Submit a new [status][2] to the Github API
   * Create a new status
     - `success` if all positive check requirements are met (approval)
     - `failure` if all negative check requirements are met (disapproval)

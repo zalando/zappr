@@ -1,6 +1,10 @@
 # API
 
-## Enable zappr for a repository
+## Client resources
+
+Called by the Zappr client.
+
+### Enable zappr for a repository
 
 **POST /api/repos/:id/checks**
 
@@ -29,7 +33,7 @@ For the repository with the given ID:
   - update an existing entity with the events required by this check
 3. Create a new [check](models.md#check) entity in the database
 
-## Disable zappr for a repository
+### Disable zappr for a repository
 
 **DELETE /api/repos/:id/checks/:check_id**
 
@@ -40,14 +44,18 @@ For the repository with the given ID:
 3. Delete the corresponding [check](models.md#check) entity in the database
 4. Delete all corresponding [status](models.md#status) entities in the database
 
-## Webhook event `pull_request`
+## Webhook endpoints
+
+Called by the Github service.
+
+### pull_request
 
 **POST /api/webhooks/pull_request**
 
 * [opened](events.md#opened)
 * [closed](events.md#closed)
 
-## Webhook event `pull_request_review_comment`
+### pull_request_review_comment
 
 **POST /api/webhooks/pull_request_review_comment**
 

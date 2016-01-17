@@ -21,19 +21,19 @@ Github repository.
 * belongsTo [User](#user)
 * hasMany [Checks](#check)
 * hasMany [Webhooks](#webhook)
+* hasMany [Statuses](#status)
 
 ## Check
 
-Zappr check.
+Zappr [check](checks.md).
 
 |name          |type   |
 |--------------|-------|
 |id            |BIGINT |
-|repository_id |BIGINT |
-|type          |STRING |
+|type          |ENUM   |
+|arguments     |JSONB  |
 
 * belongsTo [Repository](#repository)
-* hasMany [Statuses](#status)
 
 ## Webhook
 
@@ -42,7 +42,6 @@ Github web hook.
 |name          |type   |
 |--------------|-------|
 |id            |BIGINT |
-|repository_id |BIGINT |
 |json          |JSONB  |
 
 * belongsTo [Repository](#repository)
@@ -54,7 +53,7 @@ Github status.
 |name          |type   |
 |--------------|-------|
 |id            |BIGINT |
-|check_id      |BIGINT |
+|ref           |STRING |
 |json          |JSONB  |
 
-* belongsTo [Check](#check)
+* belongsTo [Repository](#repository)
