@@ -29,17 +29,15 @@ export default class MountebankClient {
         server.close(resolve)
       )
       return this
-    }).
-    catch(err => log('error starting mb server', err))
+    })
   }
 
   stop() {
     return this.shutdown().
     then(() => log('stopped mb server')).
     then(() => new Promise((resolve, reject) =>
-      rimraf(this.options.logfile, {}, err => err ? reject(err) : resolve(this))
-    )).
-    catch(err => log('error deleting mb logfile', err))
+      rimraf(this.options.logfile, {}, err => err ? reject(err) : resolve())
+    ))
   }
 
   imposter(port = null, protocol = 'http', name = null) {

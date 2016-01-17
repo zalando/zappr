@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { syncDB, User, Repository } from '../../server/model'
+import { db, User, Repository } from '../../server/model'
 
 import { logger } from '../../common/debug'
 const log = logger('test')
@@ -10,7 +10,7 @@ const userJson = require('../fixtures/github.user.json')
 
 describe('Model', () => {
 
-  before(done => syncDB().then(done).catch(done))
+  before(done => db.sync().then(done).catch(done))
 
   beforeEach(done => Promise.all([
     User.truncate(),
