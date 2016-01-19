@@ -54,6 +54,7 @@
     "nodemon": "1.8.x",
     "parallelshell": "2.0.x",
     "passport-strategy": "1.0.x",
+    "react-addons-test-utils": "0.14.x",
     "rimraf": "2.5.x",
     "style-loader": "0.13.x",
     "supertest": "1.1.x",

@@ -16,7 +16,8 @@ export default class Toggle extends React.Component {
 
   static defaultProps = {
     checked: false,
-    isUpdating: false
+    isUpdating: false,
+    className: ''
   };
 
   onToggle(event) {
@@ -29,14 +30,13 @@ export default class Toggle extends React.Component {
   render() {
     const { checked, isUpdating, className } = this.props
     const off = checked ? 'primary' : 'default off'
-    const disabled = isUpdating ? ' disabled' : ''
-
+    const disabled = isUpdating ? 'disabled' : ''
     const spinner = isUpdating
       ? (<span><i className="fa fa-refresh fa-spin"/>&nbsp;</span>)
       : null
 
     return (
-      <div className={`${className} toggle btn btn-${off} ${disabled}`}
+      <div className={`${className} toggle btn btn-${off} ${disabled}`.trim()}
            style={{width:'58px',height:'34px'}}
            onClick={this.onToggle.bind(this)}>
         <Input type="checkbox" checked={checked} disabled={!!disabled} readOnly/>
