@@ -30,7 +30,7 @@ class Login extends React.Component {
   render() {
     return (
       <Row>
-        <Col sm={4} md={4} mdPush={4}>
+        <Col sm={6} smPush={3} md={4} mdPush={4}>
           <div className="page-header">
             <img alt="ZAPPR"
                  src={logo}
