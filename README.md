@@ -1,6 +1,8 @@
-# zappr
+![zappr](https://cloud.githubusercontent.com/assets/1183636/12652806/eded78d0-c5ec-11e5-9736-0b2a75dfd8ab.png)
 
-Approvals for Github pull requests.
+*Approvals for Github pull requests.*
+
+***
 
 ## Development
 
