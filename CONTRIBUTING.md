@@ -3,7 +3,7 @@
 We are happy to accept your contributions to make Zappr better and more awesome!
 Here are the guidelines we would like you to follow:
 
-- [Coding style](/docs/style.md)
+- [Coding style](/doc/style.md)
 - [Commit Message Guidelines](#gitcommitguidelines)
 
 ## Git Commit Guidelines
