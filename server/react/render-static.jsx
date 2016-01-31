@@ -38,8 +38,8 @@ export function getStaticAssets() {
   return Promise.all([
     find(path.join(dir, '*.js')),
     find(path.join(dir, '*.css'))
-  ]).
-  then(([js, css]) => ({
+  ])
+  .then(([js, css]) => ({
     js,
     css
   }))
@@ -62,10 +62,11 @@ export default async function renderStatic(ctx, next) {
 
   const assets = await getStaticAssets()
   const user = filterUserObject(ctx.req.user)
+  const isAuthenticated = ctx.isAuthenticated()
 
   const store = configureStore({
     auth: {
-      isAuthenticated: !!user.id
+      isAuthenticated
     },
     router: {
       path: ctx.url
@@ -79,7 +80,9 @@ export default async function renderStatic(ctx, next) {
       ctx.throw(500, error.message)
     } else if (redirectLocation) {
       log('redirect', redirectLocation)
-      ctx.redirect(302, redirectLocation.pathname + redirectLocation.search)
+      ctx.redirect(redirectLocation.pathname + redirectLocation.search)
+    } else if (ctx.path === '/' && !isAuthenticated) {
+      ctx.redirect('/login')
     } else if (renderProps) {
       const props = {...assets, store, renderProps}
       ctx.body = ReactDOMServer.renderToStaticMarkup(<Index {...props}/>)

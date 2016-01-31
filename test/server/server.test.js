@@ -1,10 +1,21 @@
 import supertest from 'supertest'
-import { init as initApp } from '../../server/server'
 import MockStrategy from '../passport/MockStrategy'
+import { init as initApp } from '../../server/server'
+import { db } from '../../server/model'
 
 describe('Server', () => {
   const app = initApp({PassportStrategy: MockStrategy})
   const request = supertest.agent(app.listen())
+
+  before(async (done) => {
+    try {
+      await db.sync()
+      await request.get('/auth/github') // Initialize session
+      done()
+    } catch (err) {
+      done(err)
+    }
+  })
 
   describe('GET /health', () => {
     it('should respond with OK', done => {
