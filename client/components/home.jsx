@@ -18,7 +18,7 @@ export default class Home extends React.Component {
     const onRepoToggle = this.props.onRepoToggle
 
     return (
-      <Row>
+      <Row className="zpr-home">
         <Col md={8} mdPush={2}>
           <Optional if={isFetching}>
             <div className="text-center" style={style.spinner}>

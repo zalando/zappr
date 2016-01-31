@@ -29,7 +29,7 @@ class Login extends React.Component {
 
   render() {
     return (
-      <Row>
+      <Row className="zpr-login">
         <Col sm={6} smPush={3} md={4} mdPush={4}>
           <div className="page-header">
             <img alt="ZAPPR"

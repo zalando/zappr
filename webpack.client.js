@@ -1,4 +1,5 @@
 const path = require('path')
+const webpack = require('webpack')
 const CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
@@ -29,7 +30,10 @@ module.exports = {
   },
   plugins: [
     new ExtractTextPlugin('styles.min.css'),
-    new CommonsChunkPlugin('vendor', '0-vendor.min.js')
+    new CommonsChunkPlugin('vendor', '0-vendor.min.js'),
+    new webpack.DefinePlugin({
+      ZAPPR_HOST: "''" // leave empty to use the domain of the server
+    })
   ],
   devServer: {
     proxy: {

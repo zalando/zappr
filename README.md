@@ -43,9 +43,10 @@ window.DEBUG.enable('zappr:*')
 
 **Test:**
 
-```
-npm test
-```
+* `npm test` - run combined tests
+* `npm run test-client` - run only client tests
+* `npm run test-server` - run only server tests
+* `npm run test-karma` - run Karma (UI) tests
 
 **Docker image:**
 
