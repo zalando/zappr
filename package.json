@@ -37,6 +37,7 @@
   },
   "homepage": "https://github.com/zalando/zappr#readme",
   "devDependencies": {
+    "babel-cli": "6.5.x",
     "babel-core": "6.5.x",
     "babel-eslint": "5.0.x",
     "babel-loader": "6.2.x",

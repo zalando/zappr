@@ -10,5 +10,15 @@ before_script:
 script:
   - npm test
   - npm run test-karma
+compiler: clang-3.6
 env:
   - KARMA_BROWSER=Firefox
+  - CXX=clang-3.6
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-precise-3.6
+      - ubuntu-toolchain-r-test
+    packages:
+      - clang-3.6
+      - g++-4.8
