@@ -1,10 +1,13 @@
 const fs = require('fs')
 const webpack = require('webpack')
+const nconf = require('nconf').argv().env().defaults({
+  KARMA_BROWSER: 'Chrome'
+})
 
 module.exports = function (config) {
   config.set({
     urlRoot: '/karma/',
-    browsers: ['Chrome'],
+    browsers: [nconf.get('KARMA_BROWSER')],
     singleRun: true, // set false for debugging
     frameworks: ['mocha'],
     files: [
