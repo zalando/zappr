@@ -9,11 +9,10 @@ before_script:
   - sh -e /etc/init.d/xvfb start
 script:
   - npm test
-  - KARMA_BROWSER=Firefox npm run test-karma
+  - npm run test-karma
 compiler: clang-3.6
 env:
-  - KARMA_BROWSER=Firefox
-  - CXX=clang-3.6
+  - CXX=clang-3.6 KARMA_BROWSER=Firefox
 addons:
   apt:
     sources:

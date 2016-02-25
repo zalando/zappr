@@ -1,9 +1,6 @@
 import User from './User'
 import Repository from './Repository'
 import Check from './Check'
-import Session from './Session'
-
-import { db } from './Database'
 
 // Relations, see http://docs.sequelizejs.com/en/latest/docs/associations
 User.hasMany(Repository, {foreignKey: {allowNull: false}})
