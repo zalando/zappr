@@ -9,7 +9,7 @@ before_script:
   - sh -e /etc/init.d/xvfb start
 script:
   - npm test
-  - npm run test-karma
+  - KARMA_BROWSER=Firefox npm run test-karma
 compiler: clang-3.6
 env:
   - KARMA_BROWSER=Firefox
