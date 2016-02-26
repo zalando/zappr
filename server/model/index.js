@@ -8,7 +8,7 @@ Repository.belongsTo(User, {foreignKey: {allowNull: false}})
 Repository.hasMany(Check, {foreignKey: {allowNull: false}})
 Check.belongsTo(Repository, {foreignKey: {allowNull: false}})
 
-export { db } from './Database.js'
+export { db } from './Database'
 export { default as User } from './User'
 export { default as Repository } from './Repository'
 export { default as Check } from './Check'
