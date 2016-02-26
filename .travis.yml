@@ -14,6 +14,7 @@ compiler: clang-3.6
 env:
   - CXX=clang-3.6 KARMA_BROWSER=Firefox
 addons:
+  firefox: "latest-beta"
   apt:
     sources:
       - llvm-toolchain-precise-3.6
