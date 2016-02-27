@@ -1,0 +1,14 @@
+machine:
+  node:
+    # https://circleci.com/docs/environment#node-js
+    version: 5.1.0
+
+dependencies:
+  override:
+    - npm install
+    - npm install sqlite3
+
+test:
+  override:
+    - npm test
+    - npm run test-karma
