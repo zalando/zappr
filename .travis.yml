@@ -13,6 +13,7 @@ script:
 env:
   - CXX=g++-4.8 KARMA_BROWSER=Firefox
 addons:
+  firefox: "latest-beta"
   apt:
     sources:
       - ubuntu-toolchain-r-test
