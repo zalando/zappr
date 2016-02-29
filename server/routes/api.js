@@ -75,6 +75,18 @@ export function repo(router) {
       ctx.throw(e)
     }
   }).
+  patch('/api/repos/:id', requireAuth, async(ctx) => {
+    const user = ctx.req.user
+    const id = parseInt(ctx.params.id)
+    const repo = await repositoryHandler.onGetOne(id, user)
+    const enabledChecks = Object.keys(ctx.request.body)
+    try {
+      await hookHandler.onEnableHooks(user, repo.get('json'), enabledChecks)
+      ctx.response.status = 204
+    } catch (e) {
+      ctx.throw(e)
+    }
+  }).
   post('/api/hook', async (ctx) => {
     const hookResult = await hookHandler.onHandleHook(ctx.request.body)
     ctx.response.type = 'application/json'

@@ -24,11 +24,11 @@ class RepositoryHandler {
     if (!repo) throw 404
 
     if (zapprEnabled) {
-      const check = await checkHandler.onCreateApprovalCheck(id)
+      const check = await checkHandler.onCreateCheck(id, Approval.type)
       repo = await check.getRepository({include: [Check]})
       return repo.flatten()
     } else {
-      await checkHandler.onDeleteApprovalCheck(id)
+      await checkHandler.onDeleteCheck(id, Approval.type)
       repo = await Repository.userScope(user).findById(id, {include: [Check]})
       return repo.flatten()
     }
