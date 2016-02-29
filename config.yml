@@ -9,6 +9,7 @@ SESSION_SECRET: secret
 # own values as defined in your Github account.
 GITHUB_CLIENT_ID: id
 GITHUB_CLIENT_SECRET: secret
+GITHUB_ACCESS_TOKEN: also secret
 GITHUB_SCOPES:
   - user:email
   - repo:status

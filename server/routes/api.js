@@ -1,5 +1,6 @@
 import nconf from '../nconf'
 import { requireAuth } from './auth'
+import { hookHandler } from '../handler/HookHandler'
 import { repositoryHandler } from '../handler/RepositoryHandler'
 
 import { logger } from '../../common/debug'
@@ -73,5 +74,11 @@ export function repo(router) {
     } catch (e) {
       ctx.throw(e)
     }
+  }).
+  post('/api/hook', async (ctx) => {
+    const hookResult = await hookHandler.onHandleHook(ctx.request.body)
+    ctx.response.type = 'application/json'
+    ctx.response.status = 200
+    ctx.response.body = hookResult
   })
 }
