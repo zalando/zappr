@@ -1,5 +1,3 @@
-import { pushPath } from 'redux-simple-router'
-
 export const LOGIN_GITHUB_REQUEST = 'ZAPPR_LOGIN_GITHUB_REQUEST'
 function loginGithubRequest() {
   return {
@@ -31,19 +29,5 @@ function logoutGithubRequest() {
 export function loginGithub() {
   return (dispatch) => {
     dispatch(loginGithubRequest())
-  }
-}
-
-export function confirmLoginGithub() {
-  return (dispatch) => {
-    dispatch(loginGithubSuccess())
-    dispatch(pushPath('/'))
-  }
-}
-
-export function logoutGithub() {
-  return (dispatch) => {
-    dispatch(logoutGithubRequest())
-    dispatch(pushPath('/login'))
   }
 }

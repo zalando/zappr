@@ -2,7 +2,7 @@ import glob from 'glob'
 import path from 'path'
 import React from 'react'
 import ReactDOMServer from 'react-dom/server'
-import { match, RoutingContext } from 'react-router'
+import { match } from 'react-router'
 
 import nconf from '../nconf'
 import configureStore from '../../client/store/configureStore'
