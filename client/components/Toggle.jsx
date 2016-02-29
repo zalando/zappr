@@ -1,17 +1,17 @@
-import React from 'react'
+import React, { Component, PropTypes } from 'react'
 import { Input } from 'react-bootstrap'
 
-import Optional from './optional.jsx'
+import Optional from './Optional.jsx'
 
 /**
  * Based on http://www.bootstraptoggle.com
  */
-export default class Toggle extends React.Component {
+export default class Toggle extends Component {
   static propTypes = {
-    checked: React.PropTypes.bool.isRequired,
-    onToggle: React.PropTypes.func.isRequired,
-    isUpdating: React.PropTypes.bool.isRequired,
-    className: React.PropTypes.string
+    checked: PropTypes.bool.isRequired,
+    onToggle: PropTypes.func.isRequired,
+    isUpdating: PropTypes.bool.isRequired,
+    className: PropTypes.string
   };
 
   static defaultProps = {

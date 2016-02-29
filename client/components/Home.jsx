@@ -1,16 +1,18 @@
-import React from 'react'
+import React, { PropTypes } from 'react'
+import { connect } from 'react-redux'
 import { Row, Col, Button } from 'react-bootstrap'
 
-import Repo from './repo.jsx'
-import Optional from './optional.jsx'
+import Repo from './Repo.jsx'
+import Optional from './Optional.jsx'
+import NavHeaderComponent from './NavHeaderComponent.jsx'
 
-export default class Home extends React.Component {
+export default class Home extends NavHeaderComponent {
   static propTypes = {
-    githubRepos: React.PropTypes.object.isRequired,
-    onRepoToggle: React.PropTypes.func.isRequired
+    githubRepos: PropTypes.object.isRequired,
+    onRepoToggle: PropTypes.func.isRequired
   };
 
-  render() {
+  renderMe() {
     const style = {
       spinner: {padding: '100px', color: '#663931'}
     }

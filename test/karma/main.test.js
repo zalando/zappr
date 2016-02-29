@@ -4,8 +4,8 @@ import TestUtils from 'react/lib/ReactTestUtils'
 import { expect } from 'chai'
 import { browserHistory } from 'react-router'
 
-import Root from '../../client/containers/root.jsx'
-import Login from '../../client/components/login.jsx'
+import Root from '../../client/components/Root.jsx'
+import Login from '../../client/containers/Login.jsx'
 import configureStore from '../../client/store/configureStore'
 
 // Import styles as in client/main.js.

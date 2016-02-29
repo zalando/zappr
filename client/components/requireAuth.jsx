@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
 /**
@@ -12,12 +12,12 @@ export default function requireAuth(Component, redirect = '/login') {
     }
   }
 
-  class RequireAuthComponent extends React.Component {
+  class RequireAuthComponent extends Component {
     static propTypes = {
-      isAuthenticated: React.PropTypes.bool.isRequired
+      isAuthenticated: PropTypes.bool.isRequired
     };
     static contextTypes = {
-      router: React.PropTypes.object.isRequired
+      router: PropTypes.object.isRequired
     };
 
     componentWillMount() {
