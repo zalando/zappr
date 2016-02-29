@@ -4,9 +4,8 @@ import { connect } from 'react-redux'
 
 import { fetchReposIfNeeded } from '../actions/api'
 import { setEnabled as setRepoEnabled } from '../actions/repo'
-import Optional from '../components/optional.jsx'
-import ZapprNav from '../components/navbar.jsx'
 import { logger } from '../../common/debug'
+
 const log = logger('app')
 
 function mapStateToProps(state) {
@@ -19,8 +18,6 @@ function mapStateToProps(state) {
 
 class App extends React.Component {
   static propTypes = {
-    location: React.PropTypes.object.isRequired,
-    user: React.PropTypes.object.isRequired,
     children: React.PropTypes.node.isRequired
   };
 
@@ -38,20 +35,11 @@ class App extends React.Component {
 
   render() {
     const childrenProps = {
+      user: this.props.user,
       githubRepos: this.props.githubRepos,
       onRepoToggle: this.onRepoToggle.bind(this)
     }
-    return (
-      <div className="zpr-app">
-        <Optional if={this.props.location.pathname.search(/^\/login/) === -1}>
-          <ZapprNav path={this.props.location.pathname}
-                    user={this.props.user}/>
-        </Optional>
-        <div className="container">
-          {React.cloneElement(this.props.children, childrenProps)}
-        </div>
-      </div>
-    )
+    return (React.cloneElement(this.props.children, childrenProps))
   }
 }
 

@@ -3,14 +3,15 @@ import { Row, Col, Button } from 'react-bootstrap'
 
 import Repo from './repo.jsx'
 import Optional from './optional.jsx'
+import NavHeaderComponent from './NavHeaderComponent.jsx'
 
-export default class Home extends React.Component {
+export default class Home extends NavHeaderComponent {
   static propTypes = {
     githubRepos: React.PropTypes.object.isRequired,
     onRepoToggle: React.PropTypes.func.isRequired
   };
 
-  render() {
+  renderMe() {
     const style = {
       spinner: {padding: '100px', color: '#663931'}
     }

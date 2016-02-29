@@ -4,7 +4,7 @@ import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Image } from 'react-bootst
 
 import icon from '../img/icon.png'
 
-export default class ZapprNav extends React.Component {
+export default class NavHeader extends React.Component {
   static propTypes = {
     path: React.PropTypes.string.isRequired,
     user: React.PropTypes.object.isRequired

@@ -1,7 +1,9 @@
 import React from 'react'
 
-export default class Nav extends React.Component {
-  render() {
+import NavHeaderComponent from './NavHeaderComponent.jsx'
+
+export default class Nav extends NavHeaderComponent {
+  renderMe() {
     return (
       <p>Hello, settings</p>
     )
