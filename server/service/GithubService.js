@@ -37,7 +37,7 @@ export default class GithubService {
     else return body
   }
 
-  async readZapprFile(user, repo, accessToken) {
+  readZapprFile(user, repo, accessToken) {
     // fetch file info
     const path = ZAPPR_FILE_REPO_PATH.replace('${owner}', user).replace('${repo}', repo)
     let {content} = await this.fetchPath('GET', path, accessToken)
