@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 
 import { Provider } from 'react-redux'
-import { RoutingContext } from 'react-router'
+import { RouterContext } from 'react-router'
 
 export default class Index extends React.Component {
   static propTypes = {
@@ -15,7 +15,7 @@ export default class Index extends React.Component {
     return {
       __html: ReactDOMServer.renderToString(
         <Provider store={props.store}>
-          <RoutingContext {...props.renderProps}/>
+          <RouterContext {...props.renderProps}/>
         </Provider>
       )
     }
