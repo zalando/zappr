@@ -1,5 +1,4 @@
-import React from 'react'
-import { Link } from 'react-router'
+import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
 import { fetchReposIfNeeded } from '../actions/api'
@@ -16,9 +15,9 @@ function mapStateToProps(state) {
   }
 }
 
-class App extends React.Component {
+class App extends Component {
   static propTypes = {
-    children: React.PropTypes.node.isRequired
+    children: PropTypes.node.isRequired
   };
 
   componentDidMount() {

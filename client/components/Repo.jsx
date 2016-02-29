@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { Component, PropTypes } from 'react'
 import { Row, Col, Panel, Button } from 'react-bootstrap'
 import Toggle from './toggle.jsx'
 
-export default class Repo extends React.Component {
+export default class Repo extends Component {
   static propTypes = {
-    repo: React.PropTypes.object.isRequired,
-    onToggle: React.PropTypes.func.isRequired
+    repo: PropTypes.object.isRequired,
+    onToggle: PropTypes.func.isRequired
   };
 
   render() {

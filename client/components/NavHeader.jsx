@@ -1,13 +1,13 @@
-import React from 'react'
+import React, { Component, PropTypes } from 'react'
 import { Link } from 'react-router'
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Image } from 'react-bootstrap'
 
 import icon from '../img/icon.png'
 
-export default class NavHeader extends React.Component {
+export default class NavHeader extends Component {
   static propTypes = {
-    path: React.PropTypes.string.isRequired,
-    user: React.PropTypes.object.isRequired
+    path: PropTypes.string.isRequired,
+    user: PropTypes.object.isRequired
   };
 
   isActive(path) {

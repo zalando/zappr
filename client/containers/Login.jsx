@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { Row, Col } from 'react-bootstrap'
 
@@ -15,11 +15,12 @@ function mapStateToProps(state) {
   }
 }
 
-class Login extends React.Component {
+class Login extends Component {
   static propTypes = {
-    isAuthenticated: React.PropTypes.bool,
-    isAuthenticating: React.PropTypes.bool
+    isAuthenticated: PropTypes.bool,
+    isAuthenticating: PropTypes.bool
   };
+
   static contextTypes = {
     router: React.PropTypes.object.isRequired
   };
