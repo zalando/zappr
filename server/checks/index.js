@@ -1,5 +1,16 @@
 import Approval from './Approval'
 
-export const TYPES = [
-  Approval.type
-]
+let CHECKS = {}
+CHECKS[Approval.type] = Approval
+
+export const TYPES = Object.keys(CHECKS)
+
+function getCheckByType(type) {
+    return CHECKS[type]
+}
+
+export {
+    Approval,
+    getCheckByType
+}
+

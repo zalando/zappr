@@ -24,11 +24,11 @@ class RepositoryHandler {
     if (!repo) throw 404
 
     if (zapprEnabled) {
-      const check = await checkHandler.onCreateApprovalCheck(id)
+      const check = await checkHandler.onCreateCheck(id, Approval.type)
       repo = await check.getRepository({include: [Check]})
       return repo.flatten()
     } else {
-      await checkHandler.onDeleteApprovalCheck(id)
+      await checkHandler.onDeleteCheck(id, Approval.type)
       repo = await Repository.userScope(user).findById(id, {include: [Check]})
       return repo.flatten()
     }
@@ -42,7 +42,10 @@ class RepositoryHandler {
    * @returns {Promise.<Object|null>}
    */
   onGetOne(id, user) {
-    return Repository.userScope(user).findById(id)
+    if (user) {
+      return Repository.userScope(user).findById(id, {include: [Check]})
+    }
+    return Repository.findById(id, {include: [Check]})
   }
 
   /**
@@ -53,7 +56,7 @@ class RepositoryHandler {
    * @param {Boolean} [refresh = false] - Force reloading from Github
    * @returns {Promise<Array.<Object>>}
    */
-  async onGetAll(user, refresh) {
+  async onGetAll(user, refresh = false) {
     if (!refresh) {
       log('load repositories from database...')
       const repos = await Repository.userScope(user).findAllSorted({include: [Check]})

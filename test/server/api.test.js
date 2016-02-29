@@ -36,6 +36,35 @@ describe('API', () => {
         response().
           setStatusCode(200).
           setHeader('Content-Type', 'application/json').
+          setBody(require('../fixtures/github.repo.hooks.json')).
+        add().
+        predicate().
+          setPath('/repos/test/atomic-directive-demo/hooks').
+          setMethod('GET').
+        add().
+      add().
+      stub().
+        response().
+          setStatusCode(200).
+        add().
+        predicate().
+          setPath('/repos/test/atomic-directive-demo/hooks/123').
+          setMethod('PATCH').
+        add().
+      add().
+      stub().
+        response().
+          setStatusCode(200).
+        add().
+        predicate().
+          setPath('/repos/test/atomic-directive-demo/hooks/123').
+          setMethod('DELETE').
+        add().
+      add().
+      stub().
+        response().
+          setStatusCode(200).
+          setHeader('Content-Type', 'application/json').
           setBody(require('../fixtures/github.user.repos.json')).
         add().
         predicate().
@@ -53,7 +82,8 @@ describe('API', () => {
   })
 
   beforeEach(done => Promise.all([
-    Repository.truncate()
+    Repository.truncate(),
+    mountebank.reset()
   ]).then(() => done()).catch(done))
 
   after(done => mountebank.stop().then(done).catch(done))
@@ -111,6 +141,61 @@ describe('API', () => {
       } catch (err) {
         return done(err)
       }
+    })
+  })
+
+  describe('POST /api/hook', () => {
+    it('should return THANKS');
+  })
+
+  describe('DELETE /api/repos/:id/:type', () => {
+    it('should delete a check and the webhook', async(done) => {
+      // add check first
+      const repos = (await request.get('/api/repos').expect(200)).body
+      const id = repos[0].id
+      await request.
+              put(`/api/repos/${id}/approval`).
+              send().
+              expect(201)
+      // aaaand delete again
+      await request.
+              delete(`/api/repos/${id}/approval`).
+              send().
+              expect(200)
+
+      let repo = await Repository.findById(id, {include: [Check]})
+      expect(repo.checks.length).to.equal(0)
+
+      let calls = await mountebank.calls(imposter.port)
+      expect(calls.length).to.equal(5)
+      expect(calls[4].method).to.equal('DELETE')
+      expect(calls[4].path).to.equal('/repos/test/atomic-directive-demo/hooks/123')
+      done()
+    })
+  })
+
+  describe('PUT /api/repos/:id/:type', () => {
+    it('should update the existing hook and add a check', async(done) => {
+      const repos = (await request.get('/api/repos').expect(200)).body
+      const id = repos[0].id
+      // enable approval check
+      await request.
+              put(`/api/repos/${id}/approval`).
+              send().
+              expect(201)
+
+      let repo = await Repository.findById(id, {include: [Check]})
+      expect(repo.checks.length).to.equal(1)
+      expect(repo.checks[0].type).to.equal('approval')
+      let calls = await mountebank.calls(imposter.port)
+      expect(calls.length).to.equal(3)
+      expect(calls[0].method).to.equal('GET')
+      expect(calls[0].path).to.equal('/user/repos')
+      expect(calls[1].method).to.equal('GET')
+      expect(calls[1].path).to.equal('/repos/test/atomic-directive-demo/hooks')
+      expect(calls[2].method).to.equal('PATCH')
+      expect(calls[2].path).to.equal('/repos/test/atomic-directive-demo/hooks/123')
+      done()
     })
   })
 
