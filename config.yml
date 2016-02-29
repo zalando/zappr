@@ -36,3 +36,9 @@ SQLITE_FILE: ./zappr.sqlite
 # HTTP logging
 MORGAN_FORMAT: dev
 MORGAN_THRESH: 0
+
+# Zappr configuration
+# ===================
+
+# path to zapprfile in repository
+ZAPPR_FILE_PATH: "/.zappr.yml"

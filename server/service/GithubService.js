@@ -1,5 +1,8 @@
+import yaml from 'js-yaml'
 import request from 'request'
 import nconf from '../nconf'
+
+const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
 
 export default class GithubService {
 
@@ -32,6 +35,15 @@ export default class GithubService {
 
     if (statusCode !== 200) throw new Error(statusCode)
     else return body
+  }
+
+  async readZapprFile(user, repo, accessToken) {
+    // fetch file info
+    const path = ZAPPR_FILE_REPO_PATH.replace('${owner}', user).replace('${repo}', repo)
+    let {content} = await this.fetchPath('GET', path, accessToken)
+    // decode file content
+    let file = Buffer(content, 'base64').toString('utf8')
+    return yaml.safeLoad(file)
   }
 
   fetchRepos(accessToken) {
