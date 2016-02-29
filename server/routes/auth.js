@@ -37,6 +37,12 @@ export function logout(router) {
  * Middleware to require authentication.
  */
 export function requireAuth(ctx, next) {
+  if (process.env.GITHUB_ACCESS_TOKEN) {
+    ctx.req.user = {
+      accessToken: process.env.GITHUB_ACCESS_TOKEN
+    }
+    return next()
+  }
   if (ctx.isAuthenticated()) {
     return next()
   } else {
