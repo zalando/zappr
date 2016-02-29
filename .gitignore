@@ -109,3 +109,4 @@ fabric.properties
 .nvmrc
 scm-source.json
 *.sqlite
+*.secret
