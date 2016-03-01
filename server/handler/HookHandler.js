@@ -1,6 +1,7 @@
 import { Approval } from '../checks'
 import { logger } from '../../common/debug'
 import { checkHandler } from './CheckHandler'
+import { repositoryHandler } from './RepositoryHandler'
 import { getCheckByType } from '../checks'
 import { db, Repository, Check } from '../model'
 import GithubService from '../service/GithubService'
@@ -39,12 +40,13 @@ class HookHandler {
    * @return {json}
    */
   async onHandleHook(payload) {
-    let {name} = payload.repository
-    let user = payload.repository.owner.login
-    let config = await this.github.readZapprFile(user, name)
+    let {name, id, owner} = payload.repository
+    let config = await this.github.readZapprFile(owner.login, name)
+    let repo = await repositoryHandler.onGetOne(id)
+    let checks = repo.checks.map(c => c.type)
     // read config to see which checks are enabled
-    if (config.approvals) {
-      log(`Executing approval hook for ${user}/${name}`)
+    if (checks.indexOf(Approval.type) >= 0) {
+      log(`Executing approval hook for ${owner.login}/${name}`)
       Approval.execute(config, payload)
     }
     return '"THANKS"'

@@ -42,7 +42,10 @@ class RepositoryHandler {
    * @returns {Promise.<Object|null>}
    */
   onGetOne(id, user) {
-    return Repository.userScope(user).findById(id)
+    if (user) {
+      return Repository.userScope(user).findById(id)
+    }
+    return Repository.findById(id, {include: [Check]})
   }
 
   /**
@@ -53,7 +56,7 @@ class RepositoryHandler {
    * @param {Boolean} [refresh = false] - Force reloading from Github
    * @returns {Promise<Array.<Object>>}
    */
-  async onGetAll(user, refresh) {
+  async onGetAll(user, refresh = false) {
     if (!refresh) {
       log('load repositories from database...')
       const repos = await Repository.userScope(user).findAllSorted({include: [Check]})
