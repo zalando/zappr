@@ -6,6 +6,7 @@ import { logger } from '../../common/debug'
 const log = logger('github')
 const TOKEN = nconf.get('GITHUB_ACCESS_TOKEN')
 const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
+const STATUS_PATH = '/repos/${owner}/${repo}/statuses/${sha}'
 const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
 
 export default class GithubService {
@@ -35,10 +36,18 @@ export default class GithubService {
     else return body
   }
 
+  setCommitStatus(user, repo, sha, status, accessToken=TOKEN) {
+    let path = STATUS_PATH
+                .replace('${owner}', user)
+                .replace('${repo}', repo)
+                .replace('${sha}', sha)
+    return this.fetchPath('POST', path, status, accessToken)
+  }
+
   async readZapprFile(user, repo, accessToken=TOKEN) {
     // fetch file info
     const path = ZAPPR_FILE_REPO_PATH.replace('${owner}', user).replace('${repo}', repo)
-    let {content} = await this.fetchPath('GET', path, accessToken)
+    let {content} = await this.fetchPath('GET', path, null, accessToken)
     // short circuit if there is no such file
     if (!content) {
       return {}
@@ -77,6 +86,6 @@ export default class GithubService {
   }
 
   fetchRepos(accessToken=TOKEN) {
-    return this.fetchPath('GET', '/user/repos', accessToken)
+    return this.fetchPath('GET', '/user/repos', null, accessToken)
   }
 }
