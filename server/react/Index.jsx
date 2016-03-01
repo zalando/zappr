@@ -1,14 +1,14 @@
-import React from 'react'
+import React, { Component, PropTypes } from 'react'
 import ReactDOMServer from 'react-dom/server'
 
 import { Provider } from 'react-redux'
 import { RouterContext } from 'react-router'
 
-export default class Index extends React.Component {
+export default class Index extends Component {
   static propTypes = {
-    js: React.PropTypes.array.isRequired,
-    css: React.PropTypes.array.isRequired,
-    store: React.PropTypes.object.isRequired
+    js: PropTypes.array.isRequired,
+    css: PropTypes.array.isRequired,
+    store: PropTypes.object.isRequired
   };
 
   static createMarkup(props) {

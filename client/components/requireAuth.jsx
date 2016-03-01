@@ -1,10 +1,10 @@
-import React from 'react'
+import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
 /**
  * Based on https://github.com/joshgeller/react-redux-jwt-auth-example
  */
-export default function requireAuth(Component, redirect = '/login') {
+export default function requireAuth(WrappedComponent, redirect = '/login') {
 
   function mapStateToProps(state) {
     return {
@@ -12,12 +12,13 @@ export default function requireAuth(Component, redirect = '/login') {
     }
   }
 
-  class RequireAuthComponent extends React.Component {
+  class RequireAuthComponent extends Component {
     static propTypes = {
-      isAuthenticated: React.PropTypes.bool.isRequired
+      isAuthenticated: PropTypes.bool.isRequired
     };
+
     static contextTypes = {
-      router: React.PropTypes.object.isRequired
+      router: PropTypes.object.isRequired
     };
 
     componentWillMount() {
@@ -36,7 +37,7 @@ export default function requireAuth(Component, redirect = '/login') {
 
     render() {
       if (this.props.isAuthenticated) {
-        return (<Component {...this.props}/>)
+        return (<WrappedComponent {...this.props}/>)
       } else {
         return null
       }

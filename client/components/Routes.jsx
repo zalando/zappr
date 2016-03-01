@@ -1,11 +1,11 @@
 import React from 'react'
 import { IndexRoute, Route } from 'react-router'
 
-import App from './app.jsx'
+import App from '../containers/App.jsx'
+import Home from '../containers/Home.jsx'
+import Login from '../containers/Login.jsx'
+import Settings from '../components/Settings.jsx'
 import requireAuth from './requireAuth.jsx'
-import Home from '../components/home.jsx'
-import Login from '../components/login.jsx'
-import Settings from '../components/settings.jsx'
 
 export default (
   <Route path="/" component={App}>
