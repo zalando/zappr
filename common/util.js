@@ -1,3 +1,5 @@
+import requestFn from 'request'
+
 /**
  * Optional monoid.
  *
@@ -12,4 +14,16 @@ export function optional(v) {
     if (v) return optional(v[attr])
     else return optional()
   }
+}
+
+export function request(...args) {
+  return new Promise((resolve, reject) => {
+    requestFn(...args, (err, ...rest) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(rest)
+      }
+    })
+  })
 }

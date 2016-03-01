@@ -1,6 +1,6 @@
 import temp from 'temp'
 import rimraf from 'rimraf'
-import request from 'request'
+import {request} from '../common/util'
 import mountebank from 'mountebank'
 
 import { logger } from '../common/debug'
@@ -9,12 +9,14 @@ const log = logger('test')
 const defaultOptions = {
   port: 2525,
   logfile: temp.path({suffix: '.log'}),
-  loglevel: 'warn'
+  loglevel: 'warn',
+  mock: true
 }
 
 export default class MountebankClient {
   constructor(options = {}) {
     this.options = {...defaultOptions, ...options}
+    this.url = `http://localhost:${this.options.port}`
     this.shutdown = () => {
       log('mb server not running')
       return Promise.resolve(this)
@@ -30,6 +32,32 @@ export default class MountebankClient {
       )
       return this
     })
+  }
+
+  // removes all imposters and adds them again
+  async reset() {
+    var configs = {}
+    let [resp, imposters] = await request({method: 'GET', json: true, url: this.url + '/imposters'})
+    await Promise.all(imposters.imposters.map(async imp => {
+      let [resp, imposter] = await request({method: 'GET', json: true, url: imp['_links'].self.href})
+      configs[imp.port] = {
+        stubs: imposter.stubs,
+        name: imposter.name,
+        port: imposter.port,
+        protocol: imposter.protocol
+      }
+      return request({method: 'DELETE', url: imp['_links'].self.href})
+    }))
+    return Promise.all(Object.keys(configs).map(port => {
+      let body = configs[port]
+      return request({method: 'POST', json: true, url: `${this.url}/imposters`, body})
+    }))
+  }
+
+  calls(imposterPort) {
+    const url = `${this.url}/imposters/${imposterPort}`
+    return request({method: 'GET', url, json: true})
+            .then(([resp, body]) => body.requests)
   }
 
   stop() {
@@ -74,19 +102,11 @@ class Imposter {
     })
   }
 
-  create() {
+  async create() {
     const url = `${this.url}/imposters`
     const body = this.data
-
-    return new Promise((resolve, reject) =>
-      request.post({url, body, json: true}, (error, response, body) => {
-        const {statusCode, statusMessage} = response || {}
-        const message = `${statusMessage} ${this.url}`
-        if (error) reject(error)
-        else if (Math.floor(statusCode / 100) !== 2) reject(new Error(message))
-        else resolve(body)
-      })
-    )
+    const [resp, respBody] = await request({method: 'POST', url, body, json: true})
+    return respBody
   }
 }
 
