@@ -48,8 +48,17 @@ describe('API', () => {
           setStatusCode(200).
         add().
         predicate().
-          setPath('/repos/test/atomic-directive-demo/hooks').
-          setMethod('POST').
+          setPath('/repos/test/atomic-directive-demo/hooks/123').
+          setMethod('PATCH').
+        add().
+      add().
+      stub().
+        response().
+          setStatusCode(200).
+        add().
+        predicate().
+          setPath('/repos/test/atomic-directive-demo/hooks/123').
+          setMethod('DELETE').
         add().
       add().
       stub().
@@ -135,8 +144,38 @@ describe('API', () => {
     })
   })
 
+  describe('POST /api/hook', () => {
+    it('should return THANKS');
+  })
+
+  describe('DELETE /api/repos/:id/:type', () => {
+    it('should delete a check and the webhook', async(done) => {
+      // add check first
+      const repos = (await request.get('/api/repos').expect(200)).body
+      const id = repos[0].id
+      await request.
+              put(`/api/repos/${id}/approval`).
+              send().
+              expect(201)
+      // aaaand delete again
+      await request.
+              delete(`/api/repos/${id}/approval`).
+              send().
+              expect(200)
+
+      let repo = await Repository.findById(id, {include: [Check]})
+      expect(repo.checks.length).to.equal(0)
+
+      let calls = await mountebank.calls(imposter.port)
+      expect(calls.length).to.equal(5)
+      expect(calls[4].method).to.equal('DELETE')
+      expect(calls[4].path).to.equal('/repos/test/atomic-directive-demo/hooks/123')
+      done()
+    })
+  })
+
   describe('PUT /api/repos/:id/:type', () => {
-    it('should create a new check', async(done) => {
+    it('should update the existing hook and add a check', async(done) => {
       const repos = (await request.get('/api/repos').expect(200)).body
       const id = repos[0].id
       // enable approval check
@@ -154,8 +193,8 @@ describe('API', () => {
       expect(calls[0].path).to.equal('/user/repos')
       expect(calls[1].method).to.equal('GET')
       expect(calls[1].path).to.equal('/repos/test/atomic-directive-demo/hooks')
-      expect(calls[2].method).to.equal('POST')
-      expect(calls[2].path).to.equal('/repos/test/atomic-directive-demo/hooks')
+      expect(calls[2].method).to.equal('PATCH')
+      expect(calls[2].path).to.equal('/repos/test/atomic-directive-demo/hooks/123')
       done()
     })
   })
