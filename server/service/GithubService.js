@@ -4,27 +4,34 @@ import {request} from '../../common/util'
 import { logger } from '../../common/debug'
 
 const log = logger('github')
-const TOKEN = nconf.get('GITHUB_ACCESS_TOKEN')
+const CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
+const CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
 const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
 const STATUS_PATH = '/repos/${owner}/${repo}/statuses/${sha}'
 const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
 
 export default class GithubService {
 
-  getOptions(method, path, body, accessToken=TOKEN) {
+  getOptions(method, path, body, accessToken) {
+    let url = nconf.get('GITHUB_URL') + path
+    if (!accessToken) {
+      // if there is no access token we add client id and secret
+      // to the request
+      url += `?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}`
+    }
     return {
       json: true,
       method: method,
-      url: nconf.get('GITHUB_URL') + path,
+      url,
       headers: {
         'User-Agent': 'ZAPPR/1.0 (+https://zappr.hackweek.zalan.do)',
-        'Authorization': `token ${accessToken}`
+        'Authorization': accessToken ? `token ${accessToken}` : undefined
       },
       body: body
     }
   }
 
-  async fetchPath(method, path, payload, accessToken=TOKEN) {
+  async fetchPath(method, path, payload, accessToken) {
     const options = this.getOptions(method, path, payload, accessToken)
     const [response, body] = await request(options)
     const {statusCode} = response || {}
@@ -36,7 +43,7 @@ export default class GithubService {
     else return body
   }
 
-  setCommitStatus(user, repo, sha, status, accessToken=TOKEN) {
+  setCommitStatus(user, repo, sha, status, accessToken) {
     let path = STATUS_PATH
                 .replace('${owner}', user)
                 .replace('${repo}', repo)
@@ -44,7 +51,7 @@ export default class GithubService {
     return this.fetchPath('POST', path, status, accessToken)
   }
 
-  async readZapprFile(user, repo, accessToken=TOKEN) {
+  async readZapprFile(user, repo, accessToken) {
     // fetch file info
     const path = ZAPPR_FILE_REPO_PATH.replace('${owner}', user).replace('${repo}', repo)
     let {content} = await this.fetchPath('GET', path, null, accessToken)
@@ -57,7 +64,7 @@ export default class GithubService {
     return yaml.safeLoad(file)
   }
 
-  async updateWebhookFor(user, repo, events, accessToken=TOKEN) {
+  async updateWebhookFor(user, repo, events, accessToken) {
     log(`updating webhook for ${user}/${repo}`)
     let path = HOOK_PATH.replace('${owner}', user).replace('${repo}', repo)
     let hook_url = nconf.get('HOST_ADDR') + '/api/hook'
@@ -89,7 +96,7 @@ export default class GithubService {
     }
   }
 
-  fetchRepos(accessToken=TOKEN) {
+  fetchRepos(accessToken) {
     return this.fetchPath('GET', '/user/repos', null, accessToken)
   }
 }

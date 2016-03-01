@@ -75,7 +75,7 @@ export function repo(router) {
       ctx.throw(e)
     }
   }).
-  put('/api/repos/:id/:type', requireAuth, async(ctx) => {
+  put('/api/repos/:id/:type', requireAuth, async (ctx) => {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id)
     const type = ctx.params.type
@@ -87,7 +87,7 @@ export function repo(router) {
       ctx.throw(e)
     }
   }).
-  delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
+  delete('/api/repos/:id/:type', requireAuth, async (ctx) => {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id)
     const repo = await repositoryHandler.onGetOne(id, user)

@@ -27,19 +27,19 @@ class HookHandler {
   }
 
   async onEnableCheck(user, repository, type) {
-    let repo = repository.get('json')
-    let types = repository.checks.map(c => c.type)
+    const repo = repository.get('json')
+    const types = repository.checks.map(c => c.type)
     types.push(type)
-    let evts = findHookEventsFor(types)
+    const evts = findHookEventsFor(types)
 
     await checkHandler.onCreateCheck(repo.id, type)
     return this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
   }
 
   async onDisableCheck(user, repository, type) {
-    let repo = repository.get('json')
-    let types = repository.checks.map(c => c.type).filter(t => t !== type)
-    let evts = findHookEventsFor(types)
+    const repo = repository.get('json')
+    const types = repository.checks.map(c => c.type).filter(t => t !== type)
+    const evts = findHookEventsFor(types)
 
     await checkHandler.onDeleteCheck(repo.id, type)
     return this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
@@ -52,10 +52,10 @@ class HookHandler {
    * @return {json}
    */
   async onHandleHook(payload) {
-    let {name, id, owner} = payload.repository
-    let config = await this.github.readZapprFile(owner.login, name)
-    let repo = await repositoryHandler.onGetOne(id)
-    let checks = repo.checks.map(c => c.type)
+    const {name, id, owner} = payload.repository
+    const config = await this.github.readZapprFile(owner.login, name)
+    const repo = await repositoryHandler.onGetOne(id)
+    const checks = repo.checks.map(c => c.type)
     // read config to see which checks are enabled
     if (checks.indexOf(Approval.type) >= 0) {
       log(`Executing approval hook for ${owner.login}/${name}`)
