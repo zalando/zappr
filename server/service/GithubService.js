@@ -17,7 +17,7 @@ export default class GithubService {
     if (!accessToken) {
       // if there is no access token we add client id and secret
       // to the request
-      url += `?client_id=${GITHUB_CLIENT_ID}&client_secret=${GITHUB_CLIENT_SECRET}`
+      url += `?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`
     }
     return {
       json: true,

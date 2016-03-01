@@ -22,6 +22,8 @@ describe('API', () => {
   before(async (done) => {
     // Override config values
     nconf.set('GITHUB_URL', `http://localhost:${imposter.port}`)
+    nconf.set('GITHUB_CLIENT_ID', 'foo')
+    nconf.set('GITHUB_CLIENT_SECRET', 'bar')
 
     try {
       // Initialize database
