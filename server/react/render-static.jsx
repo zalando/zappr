@@ -6,11 +6,10 @@ import { match } from 'react-router'
 
 import nconf from '../nconf'
 import configureStore from '../../client/store/configureStore'
-import routes from '../../client/containers/routes.jsx'
-
-import Index from './index.jsx'
-
+import routes from '../../client/components/Routes.jsx'
+import Index from './Index.jsx'
 import { logger } from '../../common/debug'
+
 const log = logger('react')
 
 /**
@@ -67,9 +66,6 @@ export default async function renderStatic(ctx, next) {
   const store = configureStore({
     auth: {
       isAuthenticated
-    },
-    router: {
-      path: ctx.url
     },
     user
   })

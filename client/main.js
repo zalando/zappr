@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 
 import { bind as bindLogger } from '../common/debug'
 import configureStore from './store/configureStore'
-import Root from './containers/root.jsx'
+import Root from './components/Root.jsx'
 
 // The CSS will be extracted by webpack.
 import 'bootstrap/dist/css/bootstrap.css'

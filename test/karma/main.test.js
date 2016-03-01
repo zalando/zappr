@@ -4,8 +4,8 @@ import TestUtils from 'react/lib/ReactTestUtils'
 import { expect } from 'chai'
 import { browserHistory } from 'react-router'
 
-import Root from '../../client/containers/root.jsx'
-import Login from '../../client/components/login.jsx'
+import Root from '../../client/components/Root.jsx'
+import Login from '../../client/containers/Login.jsx'
 import configureStore from '../../client/store/configureStore'
 
 // Import styles as in client/main.js.
@@ -35,13 +35,12 @@ describe('Root', function () {
     const store = configureStore(initialState)
     const main = document.getElementById('main')
     const root = ReactDOM.render(<Root store={store}/>, document.getElementById('main'))
-    //const root = TestUtils.renderIntoDocument(<Root store={store}/>)
 
     return {root, state: store.getState(), store}
   }
 
   it('should render the login route when unauthenticated', () => {
-    const {root, state} = renderRootWithInitialState({
+    const {root} = renderRootWithInitialState({
       auth: {isAuthenticated: false}
     })
     expect(window.location.pathname).to.equal('/login')

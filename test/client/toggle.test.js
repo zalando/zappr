@@ -2,7 +2,7 @@ import React from 'react'
 import { createRenderer } from 'react-addons-test-utils'
 import { expect } from 'chai'
 
-import Toggle from '../../client/components/toggle.jsx'
+import Toggle from '../../client/components/Toggle.jsx'
 
 describe('Toggle', () => {
 

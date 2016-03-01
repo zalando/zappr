@@ -10,7 +10,7 @@ function updateRepo(id, action) {
 }
 
 export const REPO_SET_ENABLED = 'REPO_SET_ENABLED'
-export function setEnabled(id, enabled) {
+export function setRepoEnabled(id, enabled) {
   return dispatch => {
     //dispatch(updateRepo(id, {type: REPO_SET_ENABLED, enabled}))
     // TODO: zapprEnabled and updateRepo are deprecated. Create a new check resource instead.
