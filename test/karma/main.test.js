@@ -2,9 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import TestUtils from 'react/lib/ReactTestUtils'
 import { expect } from 'chai'
-
-import createBrowserHistory from 'history/lib/createBrowserHistory'
-import { syncReduxAndRouter } from 'redux-simple-router'
+import { browserHistory } from 'react-router'
 
 import Root from '../../client/containers/root.jsx'
 import Login from '../../client/components/login.jsx'
@@ -21,19 +19,23 @@ import '../../client/css/main.css'
 describe('Root', function () {
 
   beforeEach(() => {
+    // Create a named node to mount the React app on.
+    document.body.innerHTML = '<main id="main"></main>'
     // Manually set the URL, otherwise it would be karma's "/context.html"
     // and that is not a valid route.
-    history.pushState(null, '', '/')
+    browserHistory.replace('/')
+  })
+
+  afterEach(() => {
+    // Unmount the React app so that it doesn't leech into the next test.
+    ReactDOM.unmountComponentAtNode(document.getElementById('main'))
   })
 
   function renderRootWithInitialState(initialState) {
-    const history = createBrowserHistory()
     const store = configureStore(initialState)
-
-    syncReduxAndRouter(history, store, (state) => state.router)
-
     const main = document.getElementById('main')
-    const root = TestUtils.renderIntoDocument(<Root history={history} store={store}/>)
+    const root = ReactDOM.render(<Root store={store}/>, document.getElementById('main'))
+    //const root = TestUtils.renderIntoDocument(<Root store={store}/>)
 
     return {root, state: store.getState(), store}
   }
@@ -42,7 +44,7 @@ describe('Root', function () {
     const {root, state} = renderRootWithInitialState({
       auth: {isAuthenticated: false}
     })
-    expect(state).to.have.deep.property('router.path', '/login')
+    expect(window.location.pathname).to.equal('/login')
     const login = TestUtils.findRenderedDOMComponentWithClass(root, 'zpr-login')
     expect(TestUtils.isDOMComponent(login)).to.be.true
   })
@@ -51,7 +53,7 @@ describe('Root', function () {
     const {root, store} = renderRootWithInitialState({
       auth: {isAuthenticated: true}
     })
-    expect(store.getState()).to.have.deep.property('router.path', '/')
+    expect(window.location.pathname).to.equal('/')
     const home = TestUtils.findRenderedDOMComponentWithClass(root, 'zpr-home')
     expect(TestUtils.isDOMComponent(home)).to.be.true
     setTimeout(() => { // Wait for the frontend to load the mock data
