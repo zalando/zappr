@@ -75,15 +75,27 @@ export function repo(router) {
       ctx.throw(e)
     }
   }).
-  patch('/api/repos/:id', requireAuth, async(ctx) => {
+  put('/api/repos/:id/:type', requireAuth, async(ctx) => {
+    const user = ctx.req.user
+    const id = parseInt(ctx.params.id)
+    const type = ctx.params.type
+    const repo = await repositoryHandler.onGetOne(id, user)
+    try {
+      await hookHandler.onEnableCheck(user, repo, type)
+      ctx.response.status = 201
+    } catch (e) {
+      ctx.throw(e)
+    }
+  }).
+  delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id)
     const repo = await repositoryHandler.onGetOne(id, user)
-    const enabledChecks = Object.keys(ctx.request.body)
+    const type = ctx.params.type
     try {
-      await hookHandler.onEnableHooks(user, repo.get('json'), enabledChecks)
-      ctx.response.status = 204
-    } catch (e) {
+      await hookHandler.onDisableCheck(user, repo, type)
+      ctx.response.status = 200
+    } catch(e) {
       ctx.throw(e)
     }
   }).

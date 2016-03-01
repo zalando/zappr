@@ -57,30 +57,34 @@ export default class GithubService {
     return yaml.safeLoad(file)
   }
 
-  async updateWebhookFor(user, repo, check, accessToken=TOKEN) {
-    log(`updating webhook for ${check.type} in ${user}/${repo}`)
+  async updateWebhookFor(user, repo, events, accessToken=TOKEN) {
+    log(`updating webhook for ${user}/${repo}`)
     let path = HOOK_PATH.replace('${owner}', user).replace('${repo}', repo)
     let hook_url = nconf.get('HOST_ADDR') + '/api/hook'
     // payload for hook
     let payload = {
       name: 'web',
       active: true,
+      events,
       config: {
         url: hook_url,
         content_type: 'json'
       }
     }
     // check if it's there already
-    let hooks = await this.fetchPath('GET', path)
+    let hooks = await this.fetchPath('GET', path, null, accessToken)
     let existing = hooks.find(h => h.config.url === hook_url)
     if (!!existing) {
-      log(`updating existing hook ${existing.id}`)
       path += `/${existing.id}`
-      payload.add_events = check.hookEvents
-      return this.fetchPath('PATCH', path, payload, accessToken)
+      if (payload.events.length) {
+        log(`updating existing hook ${existing.id}`)
+        return this.fetchPath('PATCH', path, payload, accessToken)
+      } else {
+        log(`deleting webhook ${existing.id}`)
+        return this.fetchPath('DELETE', path)
+      }
     } else {
       log('creating new hook')
-      payload.events = check.hookEvents
       return this.fetchPath('POST', path, payload, accessToken)
     }
   }

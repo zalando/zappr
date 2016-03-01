@@ -43,7 +43,7 @@ class RepositoryHandler {
    */
   onGetOne(id, user) {
     if (user) {
-      return Repository.userScope(user).findById(id)
+      return Repository.userScope(user).findById(id, {include: [Check]})
     }
     return Repository.findById(id, {include: [Check]})
   }

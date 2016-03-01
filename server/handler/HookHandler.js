@@ -8,29 +8,41 @@ import GithubService from '../service/GithubService'
 
 const log = logger('hook')
 
+function findHookEventsFor(types) {
+  return types
+          .map(getCheckByType)
+          .map(c => c.hookEvents)
+          // flatten
+          .reduce((arr, evts) => {
+            Array.prototype.push.apply(arr, evts)
+            return arr
+          }, [])
+          // deduplicate
+          .filter((evt, i, arr) => i === arr.lastIndexOf(evt))
+}
+
 class HookHandler {
   constructor(github = new GithubService()) {
     this.github = github
   }
 
-  async onEnableHooks(user, repo, enabledCHecks) {
-    if (!enabledCHecks.length) {
-      return;
-    }
-    var that = this
-    // delete all first
-    await checkHandler.onDeleteChecks(repo.id)
-    // add those we want to have
-    await Promise.all(enabledCHecks.map(async checkType => {
-      let check = getCheckByType(checkType)
-      if (check) {
-        return Promise.all([
-          that.github.updateWebhookFor(user.username, repo.name, check, user.accessToken),
-          checkHandler.onCreateCheck(repo.id, checkType)
-        ])
-      }
-      return Promise.resolve()
-    }))
+  async onEnableCheck(user, repository, type) {
+    let repo = repository.get('json')
+    let types = repository.checks.map(c => c.type)
+    types.push(type)
+    let evts = findHookEventsFor(types)
+
+    await checkHandler.onCreateCheck(repo.id, type)
+    return this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
+  }
+
+  async onDisableCheck(user, repository, type) {
+    let repo = repository.get('json')
+    let types = repository.checks.map(c => c.type).filter(t => t !== type)
+    let evts = findHookEventsFor(types)
+
+    await checkHandler.onDeleteCheck(repo.id, type)
+    return this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
   }
 
   /**
