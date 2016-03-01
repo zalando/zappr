@@ -11,7 +11,6 @@ const log = logger('app')
 
 function mapStateToProps(state) {
   return {
-    path: state.router.path,
     user: state.user,
     githubRepos: state.githubRepos,
     isAuthenticated: state.auth.isAuthenticated
@@ -20,13 +19,13 @@ function mapStateToProps(state) {
 
 class App extends React.Component {
   static propTypes = {
-    path: React.PropTypes.string.isRequired,
+    location: React.PropTypes.object.isRequired,
     user: React.PropTypes.object.isRequired,
     children: React.PropTypes.node.isRequired
   };
 
   componentDidMount() {
-    log('componentDidMount', this.props)
+    log('app did mount', this.props)
     if (this.props.isAuthenticated) {
       this.props.fetchReposIfNeeded()
     }
@@ -43,9 +42,9 @@ class App extends React.Component {
       onRepoToggle: this.onRepoToggle.bind(this)
     }
     return (
-      <div>
-        <Optional if={this.props.path.search(/^\/login/) === -1}>
-          <ZapprNav path={this.props.path}
+      <div className="zpr-app">
+        <Optional if={this.props.location.pathname.search(/^\/login/) === -1}>
+          <ZapprNav path={this.props.location.pathname}
                     user={this.props.user}/>
         </Optional>
         <div className="container">

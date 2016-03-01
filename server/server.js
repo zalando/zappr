@@ -1,3 +1,5 @@
+import 'source-map-support/register'
+
 import Koa from 'koa'
 import Router from 'koa-router'
 import serve from 'koa-static'
@@ -10,10 +12,9 @@ import nconf from './nconf'
 import DatabaseStore from './session/database-store'
 import { db } from './model'
 import { init as initPassport } from './passport'
-
 import { logger } from '../common/debug'
-const log = logger('app')
 
+const log = logger('app')
 const app = new Koa()
 app.name = 'zappr'
 

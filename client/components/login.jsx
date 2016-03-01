@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { Row, Col } from 'react-bootstrap'
 
 import logo from '../img/zappr.png'
-import { loginGithub, confirmLoginGithub } from '../actions/auth'
+import { loginGithub } from '../actions/auth'
 
 import { logger } from '../../common/debug'
 const log = logger('login')
@@ -17,13 +17,17 @@ function mapStateToProps(state) {
 
 class Login extends React.Component {
   static propTypes = {
+    isAuthenticated: React.PropTypes.bool,
     isAuthenticating: React.PropTypes.bool
+  };
+  static contextTypes = {
+    router: React.PropTypes.object.isRequired
   };
 
   componentDidMount() {
     log('componentDidMount', this.props)
     if (this.props.isAuthenticated) {
-      this.props.confirmLoginGithub()
+      this.context.router.replace('/')
     }
   }
 
@@ -50,4 +54,4 @@ class Login extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, {loginGithub, confirmLoginGithub})(Login)
+export default connect(mapStateToProps, {loginGithub})(Login)
