@@ -1,11 +1,9 @@
 import yaml from 'js-yaml'
 import nconf from '../nconf'
-import {request} from '../../common/util'
+import { request } from '../../common/util'
 import { logger } from '../../common/debug'
 
 const log = logger('github')
-const CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
-const CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
 
 const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
 const PR_PATH = '/repos/${owner}/${repo}/pulls/${number}'
@@ -17,21 +15,27 @@ export default class GithubService {
 
   getOptions(method, path, body, accessToken) {
     let url = nconf.get('GITHUB_URL') + path
-    if (!accessToken) {
-      // if there is no access token we add client id and secret
-      // to the request
-      url += `?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`
-    }
+
     return {
       json: true,
       method: method,
       url,
       headers: {
         'User-Agent': 'ZAPPR/1.0 (+https://zappr.hackweek.zalan.do)',
-        'Authorization': accessToken ? `token ${accessToken}` : undefined
+        'Authorization': `token ${accessToken}`
       },
       body: body
     }
+  }
+
+  formatDate(date) {
+    const year = date.getUTCFullYear()
+    const month = date.getUTCMonth() + 1
+    const day = date.getUTCDate()
+    const hour = date.getUTCHours()
+    const minute = date.getUTCMinutes()
+    const second = date.getUTCSeconds()
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}Z`
   }
 
   async fetchPath(method, path, payload, accessToken) {
@@ -40,7 +44,7 @@ export default class GithubService {
     const {statusCode} = response || {}
 
     if ([200, 201, 202, 203, 204].indexOf(statusCode) < 0) {
-      log(response.body)
+      log(statusCode, method, path, response.body, options)
       throw new Error(statusCode)
     }
     else return body
@@ -54,9 +58,9 @@ export default class GithubService {
     return this.fetchPath('POST', path, status, accessToken)
   }
 
-  async getApprovals(user, repo, pr, approval_regex, accessToken) {
+  async getApprovals(user, repo, pr, pattern, accessToken) {
     const comments = await this.getComments(user, repo, pr.number, pr.updated_at, accessToken)
-    return comments.filter(c => c.body.search(approval_regex) !== -1).length
+    return comments.filter(c => (new RegExp(pattern)).test(c.body) !== -1).length
   }
 
   getComments(user, repo, number, since, accessToken) {

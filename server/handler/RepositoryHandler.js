@@ -74,6 +74,7 @@ class RepositoryHandler {
         Repository.findOrCreate({
           where: {id: remoteRepo.id},
           defaults: {
+            token: user.accessToken,  // !!!! :(
             userId: user.id,
             json: remoteRepo
           },

@@ -2,6 +2,7 @@ import { Approval } from '../checks'
 import { logger } from '../../common/debug'
 import { checkHandler } from './CheckHandler'
 import { repositoryHandler } from './RepositoryHandler'
+import { pullRequestHandler } from './PullRequestHandler'
 import { getCheckByType } from '../checks'
 import { db, Repository, Check } from '../model'
 import nconf from '../nconf'
@@ -55,14 +56,14 @@ class HookHandler {
    */
   async onHandleHook(payload) {
     const {name, id, owner} = payload.repository
-    const zapprFileContent = await this.github.readZapprFile(owner.login, name)
-    const config = Object.assign(DEFAULT_CONFIG, zapprFileContent)
     const repo = await repositoryHandler.onGetOne(id)
+    const zapprFileContent = await this.github.readZapprFile(owner.login, name, repo.token)
+    const config = Object.assign(DEFAULT_CONFIG, zapprFileContent)
     const checks = repo.checks.map(c => c.type)
     // read config to see which checks are enabled
     if (checks.indexOf(Approval.type) >= 0) {
       log(`Executing approval hook for ${owner.login}/${name}`)
-      Approval.execute(this.github, config, payload)
+      Approval.execute(this.github, config, payload, repo, pullRequestHandler)
     }
     return '"THANKS"'
   }

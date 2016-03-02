@@ -44,5 +44,5 @@ MORGAN_THRESH: 0
 ZAPPR_FILE_PATH: "/.zappr.yml"
 ZAPPR_DEFAULT_CONFIG:
   approvals:
-    min_required: 2
-    approval_regex: "^:\\+1:$"
+    minimum: 2
+    pattern: "^:\\+1:$"

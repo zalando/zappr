@@ -1,3 +1,6 @@
+import { logger } from '../../common/debug'
+const log = logger('approval')
+
 export default class Approval {
   static get type() {
     return 'approval'
@@ -11,7 +14,7 @@ export default class Approval {
     if (actual < needed) {
       return `This PR needs ${needed - actual} more approvals (${actual}/${needed} given).`
     }
-    return `This PR has the required ${actual}/${needed} approvals.`
+    return `This PR has ${actual}/${needed} approvals since the last commit.`
   }
 
   /**
@@ -28,13 +31,14 @@ export default class Approval {
    *   1. set status to fail (b/c there can't be comments afterwards already)
    */
 
-  static async execute(github, config, hookPayload) {
+  static async execute(github, config, hookPayload, dbRepo, pullRequestHandler) {
     const {action, repository, pull_request, number, issue} = hookPayload
     const repo = repository.name
+    const {token} = dbRepo
     const user = repository.owner.login
-    const {min_approvals, approval_regex} = config.approvals
+    const {minimum, pattern} = config.approvals
     const pendingPayload = {
-      status: 'pending',
+      state: 'pending',
       description: 'ZAPPR validation in progress.',
       context: 'zappr'
     }
@@ -43,43 +47,54 @@ export default class Approval {
       // if it was (re)opened
       if (action === 'opened' || action === 'reopened') {
         // set status to pending first
-        await github.setCommitStatus(user, repo, pull_request.head.sha, pendingPayload)
+        await github.setCommitStatus(user, repo, pull_request.head.sha, pendingPayload, token)
+        if (action === 'opened') {
+          try {
+            await pullRequestHandler.onCreatePullRequest(dbRepo.id, number)
+          } catch(e) {
+            console.log(e)
+          }
+        }
         // get approvals for pr
-        let approvals = await github.getApprovals(user, repo, pull_request, approval_regex)
+        let approvals = await github.getApprovals(user, repo, pull_request, pattern, token)
         let status = {
-          status: approvals < min_approvals ? 'failure' : 'success',
+          state: approvals < minimum ? 'failure' : 'success',
           context: 'zappr',
-          description: this.generateStatusMessage(approvals, min_approvals)
+          description: this.generateStatusMessage(approvals, minimum)
         }
         // update status
-        await github.setCommitStatus(user, repo, pull_request.head.sha, status)
+        await github.setCommitStatus(user, repo, pull_request.head.sha, status, token)
       // if it was synced, ie a commit added to it
       } else if (action === 'synchronize') {
+        // update db pr
+        await pullRequestHandler.onAddCommit(dbRepo.id, number)
         // set status to failure (has to be unlocked with further comments)
         await github.setCommitStatus(user, repo, pull_request.head.sha, {
-          status: 'failure',
-          description: this.generateStatusMessage(0, min_approvals),
+          state: 'failure',
+          description: this.generateStatusMessage(0, minimum),
           context: 'zappr'
-        })
+        }, token)
       }
     // on an issue comment
     } else if (!!issue) {
       // check it belongs to an open pr
-      const pr = await github.getPullRequest(user, repo, issue.number)
+      const pr = await github.getPullRequest(user, repo, issue.number, token)
       if (!pr || pr.state !== 'open') {
         return
       }
       // set status to pending first
-      await github.setCommitStatus(user, repo, pr.head.sha, pendingPayload)
+      await github.setCommitStatus(user, repo, pr.head.sha, pendingPayload, token)
       // get approvals for pr
-      let approvals = await github.getApprovals(user, repo, pr, approval_regex)
+      const dbPR = await pullRequestHandler.onGet(dbRepo.id, issue.number)
+      pr.updated_at = github.formatDate(dbPR.last_push)
+      let approvals = await github.getApprovals(user, repo, pr, pattern, token)
       let status = {
-        status: approvals < min_approvals ? 'failure' : 'success',
+        state: approvals < minimum ? 'failure' : 'success',
         context: 'zappr',
-        description: this.generateStatusMessage(approvals, min_approvals)
+        description: this.generateStatusMessage(approvals, minimum)
       }
       // update status
-      await github.setCommitStatus(user, repo, pr.head.sha, status)
+      await github.setCommitStatus(user, repo, pr.head.sha, status, token)
     }
   }
 }

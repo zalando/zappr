@@ -15,6 +15,10 @@ export default db.define('repository', {
     allowNull: false,
     autoIncrement: false
   },
+  token: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
   json: {
     type: Sequelize.JSONB,
     allowNull: false,
