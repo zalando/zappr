@@ -3,6 +3,7 @@
 *Approvals for Github pull requests.*
 
 [![Build Status](https://travis-ci.org/zalando/zappr.svg?branch=master)](https://travis-ci.org/zalando/zappr)
+[![Dependencies](https://david-dm.org/zalando/zappr.svg)](https://david-dm.org/zalando/zappr)
 
 ***
 
