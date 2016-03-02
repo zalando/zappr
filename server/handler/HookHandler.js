@@ -63,7 +63,7 @@ class HookHandler {
     // read config to see which checks are enabled
     if (checks.indexOf(Approval.type) >= 0) {
       log(`Executing approval hook for ${owner.login}/${name}`)
-      Approval.execute(this.github, config, payload, repo, pullRequestHandler)
+      Approval.execute(this.github, config, payload, repo.token, repo.id, pullRequestHandler)
     }
     return '"THANKS"'
   }

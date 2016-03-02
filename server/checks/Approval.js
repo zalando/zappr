@@ -31,10 +31,9 @@ export default class Approval {
    *   1. set status to fail (b/c there can't be comments afterwards already)
    */
 
-  static async execute(github, config, hookPayload, dbRepo, pullRequestHandler) {
+  static async execute(github, config, hookPayload, token, dbRepoId, pullRequestHandler) {
     const {action, repository, pull_request, number, issue} = hookPayload
     const repo = repository.name
-    const {token} = dbRepo
     const user = repository.owner.login
     const {minimum, pattern} = config.approvals
     const pendingPayload = {
@@ -50,7 +49,7 @@ export default class Approval {
         await github.setCommitStatus(user, repo, pull_request.head.sha, pendingPayload, token)
         if (action === 'opened') {
           try {
-            await pullRequestHandler.onCreatePullRequest(dbRepo.id, number)
+            await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
           } catch(e) {
             console.log(e)
           }
@@ -67,7 +66,7 @@ export default class Approval {
       // if it was synced, ie a commit added to it
       } else if (action === 'synchronize') {
         // update db pr
-        await pullRequestHandler.onAddCommit(dbRepo.id, number)
+        await pullRequestHandler.onAddCommit(dbRepoId, number)
         // set status to failure (has to be unlocked with further comments)
         await github.setCommitStatus(user, repo, pull_request.head.sha, {
           state: 'failure',
@@ -85,7 +84,7 @@ export default class Approval {
       // set status to pending first
       await github.setCommitStatus(user, repo, pr.head.sha, pendingPayload, token)
       // get approvals for pr
-      const dbPR = await pullRequestHandler.onGet(dbRepo.id, issue.number)
+      const dbPR = await pullRequestHandler.onGet(dbRepoId, issue.number)
       pr.updated_at = github.formatDate(dbPR.last_push)
       let approvals = await github.getApprovals(user, repo, pr, pattern, token)
       let status = {

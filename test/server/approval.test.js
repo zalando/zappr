@@ -4,13 +4,17 @@ import Approval from '../../server/checks/Approval'
 import Github from '../../server/service/GithubService'
 
 describe('Approval#execute', () => {
-  var github;
+  var github
+  var pullRequestHandler
+
   const DEFAULT_REPO = {
     name: 'hello-world',
     owner: {
       login: 'mfellner'
     }
   }
+  const TOKEN = 'abcd'
+  const DB_REPO_ID = 341
   const ISSUE_PAYLOAD = {
     action: 'create',
     repository: DEFAULT_REPO,
@@ -38,28 +42,34 @@ describe('Approval#execute', () => {
   }
   const DEFAULT_CONFIG = {
     approvals: {
-      min_approvals: 2,
-      approval_regex: 'awesome'
+      minimum: 2,
+      pattern: 'awesome'
     }
   }
   const SUCCESS_STATUS = {
-    status: 'success',
-    description: Approval.generateStatusMessage(2, DEFAULT_CONFIG.approvals.min_approvals),
+    state: 'success',
+    description: Approval.generateStatusMessage(2, DEFAULT_CONFIG.approvals.minimum),
     context: 'zappr'
   }
   const PENDING_STATUS = {
-    status: 'pending',
+    state: 'pending',
     description: 'ZAPPR validation in progress.',
     context: 'zappr'
   }
   const ZERO_APPROVALS_STATUS = {
-    status: 'failure',
+    state: 'failure',
     context: 'zappr',
-    description: Approval.generateStatusMessage(0, DEFAULT_CONFIG.approvals.min_approvals)
+    description: Approval.generateStatusMessage(0, DEFAULT_CONFIG.approvals.minimum)
   }
 
   beforeEach(() => {
+    pullRequestHandler = {
+      onGet: sinon.stub().returns({ last_push: new Date(), number: 3}),
+      onAddCommit: sinon.spy(),
+      onCreatePullRequest: sinon.spy()
+    }
     github = {
+      formatDate: sinon.stub().returns('2016-03-04T13:54:00Z'),
       setCommitStatus: sinon.spy(),
       getApprovals: sinon.spy(),
       getPullRequest: sinon.spy(),
@@ -82,41 +92,47 @@ describe('Approval#execute', () => {
       body: 'awesome'
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    try {
+      await Approval.execute(github, DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
 
-    await Approval.execute(github, DEFAULT_CONFIG, ISSUE_PAYLOAD)
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getComments.callCount).to.equal(1)
+      expect(github.getPullRequest.callCount).to.equal(1)
 
-    expect(github.setCommitStatus.callCount).to.equal(2)
-    expect(github.getComments.callCount).to.equal(1)
-    expect(github.getPullRequest.callCount).to.equal(1)
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      const commentCallArgs = github.getComments.args[0]
+      const prCallArgs = github.getPullRequest.args[0]
 
-    const successStatusCallArgs = github.setCommitStatus.args[1]
-    const commentCallArgs = github.getComments.args[0]
-    const prCallArgs = github.getPullRequest.args[0]
-
-    expect(prCallArgs).to.deep.equal([
-      'mfellner',
-      'hello-world',
-      2
-    ])
-    expect(commentCallArgs).to.deep.equal([
-      'mfellner',
-      'hello-world',
-      1,
-      PR_PAYLOAD.pull_request.updated_at,
-      undefined
-    ])
-    expect(successStatusCallArgs).to.deep.equal([
-      'mfellner',
-      'hello-world',
-      'abcd1234',
-      SUCCESS_STATUS
-    ])
-    done()
+      expect(prCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        2,
+        TOKEN
+      ])
+      expect(commentCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        1,
+        PR_PAYLOAD.pull_request.updated_at,
+        TOKEN
+      ])
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        SUCCESS_STATUS,
+        TOKEN
+      ])
+      done()
+    }
+    catch(e) {
+      done(e)
+    }
   })
 
   it('should do nothing on comment on non-open pull_request', async (done) => {
     github.getPullRequest = sinon.stub().returns(CLOSED_PR)
-    await Approval.execute(github, DEFAULT_CONFIG, ISSUE_PAYLOAD)
+    await Approval.execute(github, DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
     expect(github.setCommitStatus.callCount).to.equal(0)
     expect(github.getApprovals.callCount).to.equal(0)
     done()
@@ -125,31 +141,37 @@ describe('Approval#execute', () => {
   it('should set status to failure on PR:opened', async (done) => {
     PR_PAYLOAD.action = 'opened'
     github.getApprovals = sinon.stub().returns(0)
-    await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD)
+    await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
     expect(github.setCommitStatus.callCount).to.equal(2)
     expect(github.getApprovals.callCount).to.equal(1)
     const pendingCallArgs = github.setCommitStatus.args[0]
     const failureCallArgs = github.setCommitStatus.args[1]
 
-    expect(pendingCallArgs).to.deep.equal([
-      'mfellner',
-      'hello-world',
-      PR_PAYLOAD.pull_request.head.sha,
-      PENDING_STATUS
-    ])
-    expect(failureCallArgs).to.deep.equal([
-      'mfellner',
-      'hello-world',
-      PR_PAYLOAD.pull_request.head.sha,
-      ZERO_APPROVALS_STATUS
-    ])
-    done()
+    try {
+      expect(pendingCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        PR_PAYLOAD.pull_request.head.sha,
+        PENDING_STATUS,
+        TOKEN
+      ])
+      expect(failureCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        PR_PAYLOAD.pull_request.head.sha,
+        ZERO_APPROVALS_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch(e) {
+      done(e)
+    }
   })
 
   it('should set status to success on PR:reopened with all approvals', async (done) => {
     PR_PAYLOAD.action = 'reopened'
     github.getApprovals = sinon.stub().returns(4)
-    await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD)
+    await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
     expect(github.setCommitStatus.callCount).to.equal(2)
     expect(github.getApprovals.callCount).to.equal(1)
     const pendingCallArgs = github.setCommitStatus.args[0]
@@ -160,17 +182,19 @@ describe('Approval#execute', () => {
         'mfellner',
         'hello-world',
         PR_PAYLOAD.pull_request.head.sha,
-        PENDING_STATUS
+        PENDING_STATUS,
+        TOKEN
       ])
       expect(successCallArgs).to.deep.equal([
         'mfellner',
         'hello-world',
         PR_PAYLOAD.pull_request.head.sha,
         {
-          status: 'success',
+          state: 'success',
           description: Approval.generateStatusMessage(4, 2),
           context: 'zappr'
-        }
+        },
+        TOKEN
       ])
       done()
     } catch(e) {
@@ -180,13 +204,14 @@ describe('Approval#execute', () => {
 
   it('should set status to failure on PR:synchronize', async (done) => {
     PR_PAYLOAD.action = 'synchronize'
-    await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD)
+    await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
     expect(github.setCommitStatus.callCount).to.equal(1)
     expect(github.setCommitStatus.args[0]).to.deep.equal([
       'mfellner',
       'hello-world',
       PR_PAYLOAD.pull_request.head.sha,
-      ZERO_APPROVALS_STATUS
+      ZERO_APPROVALS_STATUS,
+      TOKEN
     ])
     done()
   })
