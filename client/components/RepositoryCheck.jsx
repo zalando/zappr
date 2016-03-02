@@ -26,7 +26,9 @@ export default class RepositoryCheck extends Component {
             <Toggle checked={check.isEnabled} isUpdating={check.isUpdating} onToggle={onToggle}/>
           </Col>
           <Col sm={4}>
-            <b>{check.name}</b>
+            <div style={{paddingLeft: '6px'}}>
+              <b>{check.type}</b> check is {check.isEnabled ? 'enabled' : 'disabled'}
+            </div>
           </Col>
         </Row>
       </Well>

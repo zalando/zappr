@@ -2,11 +2,13 @@ import React, { Component, PropTypes } from 'react'
 import { Panel, ListGroup } from 'react-bootstrap'
 
 import RepositoryListItem from './RepositoryListItem.jsx'
+import Spinner from './Spinner.jsx'
 
 export default class RepositoryList extends Component {
   static propTypes = {
     selected: PropTypes.string.isRequired,
-    repositories: PropTypes.array.isRequired
+    repositories: PropTypes.array.isRequired,
+    isUpdating: PropTypes.bool
   };
 
   static defaultProps = {
@@ -20,15 +22,13 @@ export default class RepositoryList extends Component {
         overflowY: 'scroll'
       }
     }
-    const {selected, repositories} = this.props
+    const {selected, repositories, isUpdating} = this.props
     return (
       <Panel collapsible defaultExpanded header="Repositories">
         <ListGroup componentClass="ul" fill style={style.list}>
           {(() => (
-            repositories.length === 0
-              ? (<span className="list-group-item text-center">
-                  <i className="fa fa-2x fa-spinner fa-pulse"/>
-                </span>)
+            isUpdating
+              ? (<Spinner size={2}/>)
               : repositories.map((repository, i) => ((
               <RepositoryListItem key={i} repository={repository}
                                   active={repository.name === selected}/>

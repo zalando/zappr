@@ -2,10 +2,10 @@ import { combineReducers } from 'redux'
 
 import auth from './auth'
 import user from './user'
-import { githubRepos } from './api'
+import repos from './repos'
 
 export default combineReducers({
   auth,
   user,
-  githubRepos
+  repos
 })

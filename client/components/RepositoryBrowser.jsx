@@ -7,26 +7,26 @@ import RepositoryDetail from './RepositoryDetail.jsx'
 export default class RepositoryBrowser extends Component {
   static propTypes = {
     selected: PropTypes.string.isRequired,
-    repositories: PropTypes.array.isRequired,
-    toggleRepoCheck: PropTypes.func.isRequired
+    repos: PropTypes.object.isRequired,
+    toggleCheck: PropTypes.func.isRequired
   };
 
   static defaultProps = {
     selected: '',
-    repositories: []
+    repos: {items: []}
   };
 
   render() {
-    const {selected, repositories, toggleRepoCheck} = this.props
-    const repository = repositories.find(r => r.name === selected)
+    const {selected, repos, toggleCheck} = this.props
+    const selectedRepo = repos.items.find(r => r.name === selected)
     return (
       <Row>
         <Col sm={3}>
-          <RepositoryList selected={selected} repositories={repositories}/>
+          <RepositoryList isUpdating={repos.isFetching} repositories={repos.items} selected={selected}/>
         </Col>
         <Col sm={9}>
-          <RepositoryDetail repository={repository}
-                            toggleRepoCheck={toggleRepoCheck}/>
+          <RepositoryDetail repository={selectedRepo}
+                            toggleCheck={toggleCheck}/>
         </Col>
       </Row>
     )

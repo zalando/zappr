@@ -2,31 +2,26 @@ import React, { Component, PropTypes } from 'react'
 import { Row, Col, Panel, Badge } from 'react-bootstrap'
 
 import RepositoryCheck from './RepositoryCheck.jsx'
+import { TYPES as CHECK_TYPES } from '../service/CheckService'
 
 export default class RepositoryDetail extends Component {
   static propTypes = {
     repository: PropTypes.object.isRequired,
-    repoChecks: PropTypes.array.isRequired,
-    toggleRepoCheck: PropTypes.func.isRequired
+    toggleCheck: PropTypes.func.isRequired
   };
 
   static defaultProps = {
-    repository: {},
-    repoChecks: [{
-      name: 'approval'
-    }]
+    repository: {checks: []}
   };
 
-  onToggleRepoCheck(check, isChecked) {
-    // TODO: check should be an object describing the check
-    console.log('onToggleRepoCheck', check, isChecked)
-    this.props.toggleRepoCheck(this.props.repository.id, isChecked);
+  onToggleCheck(check, isChecked) {
+    this.props.toggleCheck({...check, isEnabled: isChecked});
   }
 
   render() {
     if (!this.props.repository.name) return null
-    const {repository, repoChecks} = this.props
 
+    const {repository} = this.props
     const header = (
       <h3>
         <a href={repository.html_url}>{repository.name}</a>
@@ -39,16 +34,18 @@ export default class RepositoryDetail extends Component {
       <Panel header={header}>
         <Row>
           <Col md={12}>
-            {repoChecks.
-            map(check => ({ // TODO: remove
-              ...check,
-              isUpdating: repository.isUpdating,
-              isChecked: repository.checks.length > 0
-            })).
-            map((check, i) => (
-              <RepositoryCheck key={i} check={check}
-                               onToggle={this.onToggleRepoCheck.bind(this, check)}/>
-            ))}
+            {CHECK_TYPES.
+              map(type => ({
+                type,
+                repoId: repository.id,
+                isUpdating: repository.isUpdating,
+                isEnabled: repository.checks && repository.checks.
+                  findIndex(check => check.type === type) !== -1
+              })).
+              map((check, i) => (
+                <RepositoryCheck key={i} check={check}
+                                 onToggle={this.onToggleCheck.bind(this, check)}/>
+              ))}
           </Col>
         </Row>
       </Panel>

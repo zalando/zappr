@@ -61,9 +61,9 @@ describe('Root', function () {
     const home = TestUtils.findRenderedDOMComponentWithClass(root, 'zpr-home')
     expect(TestUtils.isDOMComponent(home)).to.be.true
     doTimeout(500, () => { // Wait for the frontend to load the mock data
-      expect(store.getState()).to.have.deep.property('githubRepos.repos.length', 2)
+      expect(store.getState()).to.have.deep.property('repos.items.length', 2)
     }).
-    then(done)
+      then(done)
   })
 
   it('should render the repository list', async(done) => {
@@ -74,9 +74,9 @@ describe('Root', function () {
     expect(TestUtils.isCompositeComponent(repositoryList)).to.be.true
     await doTimeout(500) // Wait for the frontend to load the mock data
     expect(repositoryList.props).to.have.
-    deep.property('repositories[0].name', 'angular-react')
+      deep.property('repositories[0].name', 'angular-react')
     expect(repositoryList.props).to.have.
-    deep.property('repositories[1].name', 'atomic-directive-demo')
+      deep.property('repositories[1].name', 'atomic-directive-demo')
     done()
   })
 
