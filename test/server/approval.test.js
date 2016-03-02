@@ -87,9 +87,11 @@ describe('Approval#execute', () => {
     github = new Github()
     github.setCommitStatus = sinon.spy()
     github.getComments = sinon.stub().returns([{
-      body: 'awesome'
+      body: 'awesome',
+      user: { login: 'foo'}
     }, {
-      body: 'awesome'
+      body: 'awesome',
+      user: { login: 'bar'}
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {

@@ -48,11 +48,8 @@ export default class Approval {
         // set status to pending first
         await github.setCommitStatus(user, repo, pull_request.head.sha, pendingPayload, token)
         if (action === 'opened') {
-          try {
-            await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
-          } catch(e) {
-            console.log(e)
-          }
+          // if it was opened, create pr in our db
+          await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
         }
         // get approvals for pr
         let approvals = await github.getApprovals(user, repo, pull_request, pattern, token)
@@ -65,7 +62,7 @@ export default class Approval {
         await github.setCommitStatus(user, repo, pull_request.head.sha, status, token)
       // if it was synced, ie a commit added to it
       } else if (action === 'synchronize') {
-        // update db pr
+        // update last push in db
         await pullRequestHandler.onAddCommit(dbRepoId, number)
         // set status to failure (has to be unlocked with further comments)
         await github.setCommitStatus(user, repo, pull_request.head.sha, {
@@ -83,9 +80,11 @@ export default class Approval {
       }
       // set status to pending first
       await github.setCommitStatus(user, repo, pr.head.sha, pendingPayload, token)
-      // get approvals for pr
+      // read last push date from db
       const dbPR = await pullRequestHandler.onGet(dbRepoId, issue.number)
+      // set it as updated field on github pr data
       pr.updated_at = github.formatDate(dbPR.last_push)
+      // get approval count
       let approvals = await github.getApprovals(user, repo, pr, pattern, token)
       let status = {
         state: approvals < minimum ? 'failure' : 'success',

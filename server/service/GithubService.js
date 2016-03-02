@@ -60,7 +60,12 @@ export default class GithubService {
 
   async getApprovals(user, repo, pr, pattern, accessToken) {
     const comments = await this.getComments(user, repo, pr.number, pr.updated_at, accessToken)
-    return comments.filter(c => (new RegExp(pattern)).test(c.body) !== -1).length
+    return comments
+            .filter(c => (new RegExp(pattern)).test(c.body) !== -1)
+            // slightly unperformant filtering here
+            // kicking out multiple approvals from same person
+            .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
+            .length
   }
 
   getComments(user, repo, number, since, accessToken) {
