@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 
 import Optional from '../components/Optional.jsx'
 import NavHeader from '../components/NavHeader.jsx'
-import { fetchReposIfNeeded } from '../actions/api'
+import { requestReposIfNeeded } from '../actions/repos'
 import { logger } from '../../common/debug'
 
 const log = logger('app')
@@ -19,18 +19,18 @@ class App extends Component {
   static propTypes = {
     location: PropTypes.object.isRequired,
     user: PropTypes.object.isRequired,
-    fetchReposIfNeeded: PropTypes.func.isRequired,
+    requestReposIfNeeded: PropTypes.func.isRequired,
     children: PropTypes.node.isRequired
   };
 
   componentDidMount() {
     log('componentDidMount', this.props)
     if (this.props.isAuthenticated) {
-      this.props.fetchReposIfNeeded()
+      this.props.requestReposIfNeeded()
     }
   }
 
-  render() {
+  render() {  
     return (
       <div className="zpr-app">
         <Optional if={this.props.location.pathname.search(/^\/login/) === -1}>
@@ -45,4 +45,4 @@ class App extends Component {
   }
 }
 
-export default connect(mapStateToProps, {fetchReposIfNeeded})(App)
+export default connect(mapStateToProps, {requestReposIfNeeded})(App)
