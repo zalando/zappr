@@ -6,8 +6,11 @@ import { logger } from '../../common/debug'
 const log = logger('github')
 const CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
 const CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
+
 const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
+const PR_PATH = '/repos/${owner}/${repo}/pulls/${number}'
 const STATUS_PATH = '/repos/${owner}/${repo}/statuses/${sha}'
+const COMMENT_PATH = '/repos/${owner}/${repo}/issues/${number}/comments'
 const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
 
 export default class GithubService {
@@ -49,6 +52,37 @@ export default class GithubService {
                 .replace('${repo}', repo)
                 .replace('${sha}', sha)
     return this.fetchPath('POST', path, status, accessToken)
+  }
+
+  async getApprovals(user, repo, pr, approval_regex, accessToken) {
+    const comments = await this.getComments(user, repo, pr.number, pr.updated_at, accessToken)
+    return comments.filter(c => c.body.search(approval_regex) !== -1).length
+  }
+
+  getComments(user, repo, number, since, accessToken) {
+    let path = COMMENT_PATH
+                  .replace('${owner}', user)
+                  .replace('${repo}', repo)
+                  .replace('${number}', number)
+    if (since) {
+      path += `?since=${since}`
+    }
+    return this.fetchPath('GET', path, null, accessToken)
+  }
+
+  async getPullRequest(user, repo, number, accessToken) {
+    const path = PR_PATH
+                  .replace('${owner}', user)
+                  .replace('${repo}', repo)
+                  .replace('${number}', number)
+    try {
+      const pr = await this.fetchPath('GET', path, null, accessToken)
+      log(`${user}/${repo}:${number} is a pull request`)
+      return pr
+    } catch(e) {
+      log(`${user}/${repo}:${number} is NOT a pull request`)
+      return false
+    }
   }
 
   async readZapprFile(user, repo, accessToken) {

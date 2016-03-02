@@ -4,9 +4,11 @@ import { checkHandler } from './CheckHandler'
 import { repositoryHandler } from './RepositoryHandler'
 import { getCheckByType } from '../checks'
 import { db, Repository, Check } from '../model'
+import nconf from '../nconf'
 import GithubService from '../service/GithubService'
 
 const log = logger('hook')
+const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 
 function findHookEventsFor(types) {
   return types
@@ -53,13 +55,14 @@ class HookHandler {
    */
   async onHandleHook(payload) {
     const {name, id, owner} = payload.repository
-    const config = await this.github.readZapprFile(owner.login, name)
+    const zapprFileContent = await this.github.readZapprFile(owner.login, name)
+    const config = Object.assign(DEFAULT_CONFIG, zapprFileContent)
     const repo = await repositoryHandler.onGetOne(id)
     const checks = repo.checks.map(c => c.type)
     // read config to see which checks are enabled
     if (checks.indexOf(Approval.type) >= 0) {
       log(`Executing approval hook for ${owner.login}/${name}`)
-      Approval.execute(config, payload)
+      Approval.execute(this.github, config, payload)
     }
     return '"THANKS"'
   }
