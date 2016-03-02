@@ -12,7 +12,7 @@ GITHUB_CLIENT_SECRET: secret
 GITHUB_SCOPES:
   - user:email
   - repo:status
-  - write:repo_hook
+  - admin:repo_hook
 GITHUB_URL: https://api.github.com
 
 # Address of the web application host
