@@ -88,7 +88,7 @@ export default class GithubService {
         return this.fetchPath('PATCH', path, payload, accessToken)
       } else {
         log(`deleting webhook ${existing.id}`)
-        return this.fetchPath('DELETE', path)
+        return this.fetchPath('DELETE', path, null, accessToken)
       }
     } else {
       log('creating new hook')
