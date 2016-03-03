@@ -46,3 +46,11 @@ ZAPPR_DEFAULT_CONFIG:
   approvals:
     minimum: 2
     pattern: "^:\\+1:$"
+    # from:
+    #   orgs:
+    #     - zalando
+    #   teams:
+    #     - 1516469
+    #   users:
+    #     - prayerslayer
+    #     - mfellner

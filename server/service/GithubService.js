@@ -7,7 +7,9 @@ const log = logger('github')
 
 const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
 const PR_PATH = '/repos/${owner}/${repo}/pulls/${number}'
+const ORG_MEMBER_PATH = '/orgs/${org}/public_members/${user}'
 const STATUS_PATH = '/repos/${owner}/${repo}/statuses/${sha}'
+const TEAM_MEMBER_PATH = '/teams/${team}/memberships/${user}'
 const COMMENT_PATH = '/repos/${owner}/${repo}/issues/${number}/comments'
 const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
 
@@ -43,9 +45,10 @@ export default class GithubService {
     const [response, body] = await request(options)
     const {statusCode} = response || {}
 
-    if ([200, 201, 202, 203, 204].indexOf(statusCode) < 0) {
+    // 300 codes are for github membership checks
+    if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
       log(statusCode, method, path, response.body, options)
-      throw new Error(statusCode)
+      throw new Error(response.body ? response.body.message : statusCode)
     }
     else return body
   }
@@ -58,14 +61,28 @@ export default class GithubService {
     return this.fetchPath('POST', path, status, accessToken)
   }
 
-  async getApprovals(user, repo, pr, pattern, accessToken) {
-    const comments = await this.getComments(user, repo, pr.number, pr.updated_at, accessToken)
-    return comments
-            .filter(c => (new RegExp(pattern)).test(c.body) !== -1)
-            // slightly unperformant filtering here
-            // kicking out multiple approvals from same person
-            .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
-            .length
+  async isMemberOfTeam(team, user, accessToken) {
+    let path = TEAM_MEMBER_PATH
+                .replace('${team}', team)
+                .replace('${user}', user)
+    try {
+      await this.fetchPath('GET', path, null, accessToken)
+      return true
+    } catch(e) {
+      return false
+    }
+  }
+
+  async isMemberOfOrg(org, user, accessToken) {
+    let path = ORG_MEMBER_PATH
+                .replace('${org}', org)
+                .replace('${user}', user)
+    try {
+      await this.fetchPath('GET', path, null, accessToken)
+      return true
+    } catch(e) {
+      return false
+    }
   }
 
   getComments(user, repo, number, since, accessToken) {
