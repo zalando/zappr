@@ -8,7 +8,8 @@ export default class RepositoryBrowser extends Component {
   static propTypes = {
     selected: PropTypes.string.isRequired,
     repos: PropTypes.object.isRequired,
-    toggleCheck: PropTypes.func.isRequired
+    toggleCheck: PropTypes.func.isRequired,
+    fetchAll: PropTypes.func.isRequired
   };
 
   static defaultProps = {
@@ -17,14 +18,17 @@ export default class RepositoryBrowser extends Component {
   };
 
   render() {
-    const {selected, repos, toggleCheck} = this.props
+    const {selected, repos, fetchAll, toggleCheck} = this.props
     const selectedRepo = repos.items.find(r => r.full_name === selected)
     return (
       <Row>
-        <Col sm={3}>
-          <RepositoryList isUpdating={repos.isFetching} repositories={repos.items} selected={selected}/>
+        <Col sm={4}>
+          <RepositoryList isUpdating={repos.isFetching}
+                          repositories={repos.items}
+                          fetchAll={fetchAll}
+                          selected={selected}/>
         </Col>
-        <Col sm={9}>
+        <Col sm={8}>
           <RepositoryDetail repository={selectedRepo}
                             toggleCheck={toggleCheck}/>
         </Col>

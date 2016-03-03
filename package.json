@@ -86,6 +86,7 @@
     "debug": "2.2.0",
     "dottie": "1.1.1",
     "font-awesome": "4.5.0",
+    "fuzzysearch": "1.0.3",
     "glob": "7.0.0",
     "isomorphic-fetch": "2.2.1",
     "js-yaml": "3.5.3",

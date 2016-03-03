@@ -30,7 +30,7 @@ class App extends Component {
     }
   }
 
-  render() {  
+  render() {
     return (
       <div className="zpr-app">
         <Optional if={this.props.location.pathname.search(/^\/login/) === -1}>

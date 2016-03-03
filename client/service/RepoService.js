@@ -3,8 +3,8 @@ import Service from './Service'
 
 export default class RepoService extends Service {
 
-  static fetchAll() {
-    return fetch(Service.url('/api/repos'), {
+  static fetchAll(includeUpstream) {
+    return fetch(Service.url(`/api/repos${includeUpstream ? '?all=true' : ''}`), {
       credentials: 'same-origin'
     }).then(response => response.json())
   }

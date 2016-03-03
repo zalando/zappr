@@ -1,1 +1,5 @@
 @import "fonts/minecraft.css";
+
+.zpr-home .badge {
+    cursor: default;
+}
