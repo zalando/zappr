@@ -20,7 +20,7 @@ class Home extends Component {
 
   render() {
     const {repos, toggleCheck} = this.props
-    const selectedRepo = this.props.params.repository
+    const selectedRepo = `${this.props.params.owner}/${this.props.params.repository}`
 
     return (
       <Row className="zpr-home">

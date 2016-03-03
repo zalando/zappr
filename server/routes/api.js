@@ -54,6 +54,7 @@ export function repo(router) {
       await hookHandler.onEnableCheck(user, repo, type)
       ctx.response.status = 201
     } catch (e) {
+      log(e)
       ctx.throw(e)
     }
   }).
@@ -66,6 +67,7 @@ export function repo(router) {
       await hookHandler.onDisableCheck(user, repo, type)
       ctx.response.status = 200
     } catch(e) {
+      log(e)
       ctx.throw(e)
     }
   }).

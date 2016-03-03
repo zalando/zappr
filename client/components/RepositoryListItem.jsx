@@ -15,8 +15,8 @@ export default class RepositoryListItem extends Component {
     const active = this.props.active ? ' active' : ''
     return (
       <Link className={`zpr-repository-list-item list-group-item${active}`}
-            to={`/repository/${this.props.repository.name}`}>
-        {this.props.repository.name}
+            to={`/repository/${this.props.repository.full_name}`}>
+        {this.props.repository.full_name}
       </Link>
     )
   }

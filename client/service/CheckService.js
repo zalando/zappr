@@ -3,8 +3,8 @@ import fetch from 'isomorphic-fetch'
 import Service from './Service'
 import { logger } from '../../common/debug'
 
-export { TYPES } from '../../server/checks'
-
+// TODO make this dynamic
+const TYPES = ['approval']
 const log = logger('CheckService')
 
 class CheckError extends Error {
@@ -14,6 +14,7 @@ class CheckError extends Error {
   }
 }
 
+export {TYPES}
 export default class RepoService extends Service {
 
   static enableCheck(check) {
