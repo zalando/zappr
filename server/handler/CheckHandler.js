@@ -2,11 +2,11 @@ import Approval from '../checks/Approval'
 import { Check } from '../model'
 
 import { logger } from '../../common/debug'
-const log = logger('handler')
+const debug = logger('check-handler')
 
 class CheckHandler {
   onCreateCheck(repoId, type, token) {
-    log(`create check ${type} for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'}`)
+    debug(`create check ${type} for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'}`)
     return Check.create({
       repositoryId: repoId,
       type,
@@ -22,7 +22,7 @@ class CheckHandler {
   }
 
   onDeleteCheck(repoId, type) {
-    log(`delete check ${type} for repo ${repoId}`)
+    debug(`delete check ${type} for repo ${repoId}`)
     return Check.destroy({
       where: {
         repositoryId: repoId,

@@ -1,5 +1,8 @@
-import { logger } from '../../common/debug'
-const log = logger('approval')
+import { logger, formatDate } from '../../common/debug'
+const context = 'zappr'
+const info = logger('approval', 'info')
+const debug = logger('approval')
+const error = logger('approval', 'error')
 
 export default class Approval {
   static get type() {
@@ -19,6 +22,7 @@ export default class Approval {
 
   static async countApprovals(github, repository, comments, config, token) {
     const {pattern} = config
+    const fullName = `${repository.full_name}`
     let filtered = comments
                     // get comments that match specified approval pattern
                     .filter(c => (new RegExp(pattern)).test(c.body) !== -1)
@@ -40,12 +44,14 @@ export default class Approval {
         const username = comment.user.login
         // first do the quick username check
         if (users && users.indexOf(username) >= 0) {
+          debug(`${fullName}: ${username} is listed explicitly`)
           return Promise.resolve(comment)
         }
         // now collaborators
         if (collaborators) {
           const isCollaborator = await github.isCollaborator(repository.owner.login, repository.name, username, token)
           if (isCollaborator) {
+            debug(`${fullName}: ${username} is collaborator`)
             return Promise.resolve(comment)
           }
         }
@@ -53,9 +59,11 @@ export default class Approval {
         if (orgs) {
           const orgMember = await Promise.all(orgs.map(o => github.isMemberOfOrg(o, username, token)))
           if (orgMember.indexOf(true) >= 0) {
+            debug(`${fullName}: ${username} is org member`)
             return Promise.resolve(comment)
           }
         }
+        debug(`${fullName}: ${username}'s approval does not count`)
         // okay, no member of anything
         return Promise.resolve(null)
       }))
@@ -89,8 +97,9 @@ export default class Approval {
     const pendingPayload = {
       state: 'pending',
       description: 'Approval validation in progress.',
-      context: 'zappr'
+      context
     }
+    debug(`${repository.full_name}: Got hook`)
     try {
       // on an open pull request
       if (!!pull_request && pull_request.state === 'open') {
@@ -105,20 +114,23 @@ export default class Approval {
             await github.setCommitStatus(user, repo, pull_request.head.sha, {
               state: 'failure',
               description: this.generateStatusMessage(0, minimum),
-              context: 'zappr'
+              context
             }, token)
+            info(`${repository.full_name}#${number}: PR was opened, set state to failure`)
             return
           }
           // get approvals for pr
           const comments = await github.getComments(user, repo, number, null, token)
           const approvals = await this.countApprovals(github, repository, comments, config.approvals, token)
+          const state = approvals < minimum ? 'failure' : 'success'
           let status = {
-            state: approvals < minimum ? 'failure' : 'success',
-            context: 'zappr',
+            state,
+            context,
             description: this.generateStatusMessage(approvals, minimum)
           }
           // update status
           await github.setCommitStatus(user, repo, pull_request.head.sha, status, token)
+          info(`${repository.full_name}#${number}: PR was reopened, set state to ${state}`)
         // if it was synced, ie a commit added to it
         } else if (action === 'synchronize') {
           // update last push in db
@@ -127,14 +139,16 @@ export default class Approval {
           await github.setCommitStatus(user, repo, pull_request.head.sha, {
             state: 'failure',
             description: this.generateStatusMessage(0, minimum),
-            context: 'zappr'
+            context
           }, token)
+          info(`${repository.full_name}#${number}: PR was synced, set state to failure`)
         }
       // on an issue comment
       } else if (!!issue) {
         // check it belongs to an open pr
         const pr = await github.getPullRequest(user, repo, issue.number, token)
         if (!pr || pr.state !== 'open') {
+          debug(`${repository.full_name}#${issue.number}: Ignoring comment, not a PR`)
           return
         }
         sha = pr.head.sha
@@ -143,24 +157,27 @@ export default class Approval {
         // read last push date from db
         const dbPR = await pullRequestHandler.onGet(dbRepoId, issue.number)
         // get approval count
-        const comments = await github.getComments(user, repo, issue.number, github.formatDate(dbPR.last_push), token)
+        const comments = await github.getComments(user, repo, issue.number, formatDate(dbPR.last_push), token)
         const approvals = await this.countApprovals(github, repository, comments, config.approvals, token)
+        const state = approvals < minimum ? 'failure' : 'success'
         let status = {
-          state: approvals < minimum ? 'failure' : 'success',
-          context: 'zappr',
+          state,
+          context,
           description: this.generateStatusMessage(approvals, minimum)
         }
         // update status
         await github.setCommitStatus(user, repo, pr.head.sha, status, token)
+        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${state}`)
       }
     }
     catch(e) {
-      log(e)
+      error(e)
       await github.setCommitStatus(user, repo, sha, {
         state: 'error',
-        context: 'zappr',
+        context,
         description: e.message
       }, token)
+
     }
   }
 }

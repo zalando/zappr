@@ -4,7 +4,7 @@ import { hookHandler } from '../handler/HookHandler'
 import { repositoryHandler } from '../handler/RepositoryHandler'
 
 import { logger } from '../../common/debug'
-const log = logger('api')
+const error = logger('api', 'error')
 
 /**
  * Environment variables endpoint.
@@ -54,7 +54,7 @@ export function repo(router) {
       await hookHandler.onEnableCheck(user, repo, type)
       ctx.response.status = 201
     } catch (e) {
-      log(e)
+      error(e)
       ctx.throw(e)
     }
   }).
@@ -67,7 +67,7 @@ export function repo(router) {
       await hookHandler.onDisableCheck(user, repo, type)
       ctx.response.status = 200
     } catch(e) {
-      log(e)
+      error(e)
       ctx.throw(e)
     }
   }).

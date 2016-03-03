@@ -2,9 +2,9 @@ import GithubService from '../service/GithubService'
 import Approval from '../checks/Approval'
 import { db, Repository, Check } from '../model'
 import { checkHandler } from './CheckHandler'
-
 import { logger } from '../../common/debug'
-const log = logger('handler')
+
+const debug = logger('repo-handler')
 
 class RepositoryHandler {
   constructor(githubService = new GithubService()) {
@@ -35,17 +35,15 @@ class RepositoryHandler {
    */
   async onGetAll(user, refresh = false) {
     if (!refresh) {
-      log('load repositories from database...')
       const repos = await Repository.userScope(user).findAllSorted({include: [Check]})
       if (repos.length > 0) {
         return repos.map(repo => repo.flatten())
       }
     }
 
-    log('refresh repositories from Github API...')
+    debug('refresh repositories from Github API...')
     const remoteRepos = await this.githubService.fetchRepos(user.accessToken)
 
-    log('update repositories in database...')
     await db.transaction(t => {
       return Promise.all(remoteRepos.map(remoteRepo =>
         Repository.findOrCreate({
