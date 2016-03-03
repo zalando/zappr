@@ -25,6 +25,26 @@ class RepositoryHandler {
     return Repository.findById(id, {include: [Check]})
   }
 
+  upsertRepos(db, user, remoteRepos) {
+    return db.transaction(t => {
+              return Promise.all(remoteRepos.map(remoteRepo =>
+                Repository.findOrCreate({
+                  where: {id: remoteRepo.id},
+                  defaults: {
+                    userId: user.id,
+                    json: remoteRepo
+                  },
+                  transaction: t
+                }).
+                then(([localRepo]) => localRepo.update({
+                  json: {...localRepo.get('json'), ...remoteRepo}
+                }, {
+                  transaction: t
+                }))
+              ))
+            })
+  }
+
   /**
    * Load all repositories of a user.
    * Fetch and save repositories from Github if necessary.
@@ -33,42 +53,30 @@ class RepositoryHandler {
    * @param {Boolean} [refresh = false] - Force reloading from Github
    * @returns {Promise<Array.<Object>>}
    */
-  async onGetAll(user, refresh = false) {
-    if (!refresh) {
-      log('load repositories from database...')
-      const repos = await Repository.userScope(user).findAllSorted({include: [Check]})
-      if (repos.length > 0) {
-        return repos.map(repo => repo.flatten())
-      }
+  async onGetAll(user, all = false) {
+    // load repos
+    // if no repos, fetch first page, save and return
+    // if repos and all=false, return repos
+    // if repos and all=true, fetch all from github, save and return
+
+    log('load repositories from database...')
+    const repos = await Repository.userScope(user).findAllSorted({include: [Check]})
+    if (repos.length === 0) {
+      const firstPage = await this.githubService.fetchRepos(0, false, user.accessToken)
+      await this.upsertRepos(db, user, firstPage)
+    } else if (all) {
+      const allPages = await this.githubService.fetchRepos(0, true, user.accessToken)
+      await this.upsertRepos(db, user, allPages)
+    } else {
+      return repos.map(repo => repo.flatten())
     }
-
-    log('refresh repositories from Github API...')
-    const remoteRepos = await this.githubService.fetchRepos(user.accessToken)
-
-    log('update repositories in database...')
-    await db.transaction(t => {
-      return Promise.all(remoteRepos.map(remoteRepo =>
-        Repository.findOrCreate({
-          where: {id: remoteRepo.id},
-          defaults: {
-            token: user.accessToken,  // !!!! :(
-            userId: user.id,
-            json: remoteRepo
-          },
-          transaction: t
-        }).
-        then(([localRepo]) => localRepo.update({
-          json: {...localRepo.get('json'), ...remoteRepo}
-        }, {
-          transaction: t
-        }))
-      ))
-    })
 
     // The previously merged repos are not sorted correctly
     // so we need to load them from the database again.
-    return Repository.userScope(user).findAllSorted({include: [Check]})
-      .then(repos => repos.map(repo => repo.flatten()))
+    return Repository
+              .userScope(user)
+              .findAllSorted({include: [Check]})
+              .then(repos => repos.map(repo => repo.flatten()))
   }
 }
 
