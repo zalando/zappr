@@ -3,7 +3,9 @@ import nconf from '../nconf'
 import { request } from '../../common/util'
 import { logger } from '../../common/debug'
 
-const log = logger('github')
+const debug = logger('github')
+const info = logger('github', 'info')
+const error = logger('github', 'error')
 
 const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
 const PR_PATH = '/repos/${owner}/${repo}/pulls/${number}'
@@ -37,7 +39,7 @@ export default class GithubService {
 
     // 300 codes are for github membership checks
     if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
-      log(statusCode, method, path, response.body, options)
+      error(statusCode, method, path, response.body, options)
       throw new Error(response.body ? response.body.message : statusCode)
     }
     else return body
@@ -94,10 +96,10 @@ export default class GithubService {
                   .replace('${number}', number)
     try {
       const pr = await this.fetchPath('GET', path, null, accessToken)
-      log(`${user}/${repo}:${number} is a pull request`)
+      debug(`${user}/${repo}:${number} is a pull request`)
       return pr
     } catch(e) {
-      log(`${user}/${repo}:${number} is NOT a pull request`)
+      debug(`${user}/${repo}:${number} is NOT a pull request`)
       return false
     }
   }
@@ -116,7 +118,7 @@ export default class GithubService {
   }
 
   async updateWebhookFor(user, repo, events, accessToken) {
-    log(`updating webhook for ${user}/${repo}`)
+    debug(`${user}/${repo}: updating webhook with events: ${events.join(", ")}`)
     let path = HOOK_PATH.replace('${owner}', user).replace('${repo}', repo)
     let hook_url = nconf.get('HOST_ADDR') + '/api/hook'
     // payload for hook
@@ -135,15 +137,15 @@ export default class GithubService {
     if (!!existing) {
       path += `/${existing.id}`
       if (payload.events.length) {
-        log(`updating existing hook ${existing.id}`)
-        return this.fetchPath('PATCH', path, payload, accessToken)
+        await this.fetchPath('PATCH', path, payload, accessToken)
+        info(`${user}/${repo}: updated existing webhook ${existing.id}`)
       } else {
-        log(`deleting webhook ${existing.id}`)
-        return this.fetchPath('DELETE', path, null, accessToken)
+        await this.fetchPath('DELETE', path, null, accessToken)
+        info(`${user}/${repo}: deleted existing webhook ${existing.id}`)
       }
     } else {
-      log('creating new hook')
-      return this.fetchPath('POST', path, payload, accessToken)
+      await this.fetchPath('POST', path, payload, accessToken)
+      info(`${user}/${repo}: created new webhook`)
     }
   }
 

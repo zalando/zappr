@@ -8,7 +8,7 @@ import { db, Repository, Check } from '../model'
 import nconf from '../nconf'
 import GithubService from '../service/GithubService'
 
-const log = logger('hook')
+const info = logger('hook', 'info')
 const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 
 function findHookEventsFor(types) {
@@ -35,8 +35,9 @@ class HookHandler {
     types.push(type)
     const evts = findHookEventsFor(types)
 
+    await this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
     await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
-    return this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
+    info('${repo.full_name}: enabled check ${type}')
   }
 
   async onDisableCheck(user, repository, type) {
@@ -44,8 +45,9 @@ class HookHandler {
     const types = repository.checks.map(c => c.type).filter(t => t !== type)
     const evts = findHookEventsFor(types)
 
+    await this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
     await checkHandler.onDeleteCheck(repo.id, type)
-    return this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
+    info('${repo.full_name}: disabled check ${type}')
   }
 
   /**
@@ -63,8 +65,8 @@ class HookHandler {
       const zapprFileContent = await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
       const config = Object.assign(DEFAULT_CONFIG, zapprFileContent)
       if (checks[Approval.type] && checks[Approval.type].token) {
-        log(`Executing approval hook for ${owner.login}/${name}`)
         Approval.execute(this.github, config, payload, checks[Approval.type].token, repo.id, pullRequestHandler)
+        info(`Executed approval hook for ${owner.login}/${name}`)
       }
     }
     return '"THANKS"'
