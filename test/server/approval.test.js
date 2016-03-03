@@ -1,6 +1,6 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { formatDate } from '../../common/util'
+import { formatDate } from '../../common/debug'
 import Approval from '../../server/checks/Approval'
 
 describe('Approval#execute', () => {
