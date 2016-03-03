@@ -32,21 +32,6 @@ export function repos(router) {
 }
 
 /**
- * Middleware to validate repo data structure.
- */
-export function validateRepo(ctx, next) {
-  const { body } = ctx.request
-  if (typeof body === 'object'
-    && Object.keys(body).length > 0
-    && typeof body.zapprEnabled !== 'undefined') {
-    return next()
-  } else {
-    log('validation error for', body)
-    ctx.throw(406)
-  }
-}
-
-/**
  * Single repository.
  */
 export function repo(router) {
@@ -59,21 +44,6 @@ export function repo(router) {
     if (!repo) ctx.throw(404)
     ctx.response.type = 'application/json'
     ctx.body = repo
-  }).
-  put('/api/repos/:id', requireAuth, validateRepo, async (ctx) => {
-    // TODO: replace full update with specific actionable resources
-    const user = ctx.req.user
-    const id = parseInt(ctx.params.id)
-    const zapprEnabled = ctx.request.body.zapprEnabled
-
-    try {
-      const repo = await repositoryHandler.onToggleZapprEnabled(id, user, zapprEnabled)
-      ctx.response.type = 'application/json'
-      ctx.response.status = 202
-      ctx.response.body = repo
-    } catch (e) {
-      ctx.throw(e)
-    }
   }).
   put('/api/repos/:id/:type', requireAuth, async (ctx) => {
     const user = ctx.req.user

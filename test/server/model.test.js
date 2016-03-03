@@ -44,7 +44,7 @@ describe('Model', () => {
 
       try {
         await User.create({id: userId, json: userJson})
-        await Repository.create({id: repoId, userId, json: repoJson})
+        await Repository.create({id: repoId, token: 'abcd', userId, json: repoJson})
         const repo = await Repository.userScope(userJson).findById(repoId)
 
         expect(repo.get('json')).to.be.an('object')

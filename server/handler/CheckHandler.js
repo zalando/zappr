@@ -5,22 +5,20 @@ import { logger } from '../../common/debug'
 const log = logger('handler')
 
 class CheckHandler {
-  onCreateCheck(repoId, type) {
-    log(`create check ${type} for repo ${repoId}`)
+  onCreateCheck(repoId, type, token) {
+    log(`create check ${type} for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'}`)
     return Check.create({
       repositoryId: repoId,
       type,
+      token,
       arguments: {}
     })
   }
 
-  onDeleteChecks(repoId) {
-    log(`delete all checks for repo ${repoId}`)
-    return Check.destroy({
-      where: {
-        repositoryId: repoId
-      }
-    })
+  onRefreshTokens(repoIds, token) {
+    // noop for now
+    // implement this when we fucked up
+    return Promise.resolve()
   }
 
   onDeleteCheck(repoId, type) {
