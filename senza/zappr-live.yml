@@ -1,0 +1,48 @@
+SenzaInfo:
+  StackName: zappr
+  Parameters:
+    - ImageVersion:
+        Description: "Docker image version of zappr."
+
+SenzaComponents:
+  - Configuration:
+      Type: Senza::StupsAutoConfiguration
+
+  - AppServer:
+      Type: Senza::TaupageAutoScalingGroup
+      InstanceType: t2.micro
+      SecurityGroups:
+        - app-zappr-opensource
+      IamRoles:
+        - app-zappr-opensource
+      ElasticLoadBalancer: AppLoadBalancer
+      AssociatePublicIpAddress: false
+      TaupageConfig:
+        root: true
+        application_id: zappr-opensource
+        application_version: "{{Arguments.ImageVersion}}"
+        runtime: Docker
+        source: "registry.opensource.zalan.do/opensource/zappr:{{Arguments.ImageVersion}}"
+        health_check_path: /health
+        ports:
+          3000: 3000
+        mint_bucket: "zalando-stups-mint-082194939997-eu-west-1"
+        scalyr_account_key: aws:kms:CiA1wrtM1zFZvo2zlXed6Q3HTMMXEQ8SrDTNKDxXNNZamxK1AQEBAgB4NcK7TNcxWb6Ns5V3nekNx0zDFxEPEqw0zSg8VzTWWpsAAACMMIGJBgkqhkiG9w0BBwagfDB6AgEAMHUGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMJEFo/LF4oPzLLAF/AgEQgEhkzH9dMA5GzTzVEN4XfJMITjVPsKgyb5e3j3WFRcwfg3VqKOJFB0ucc5CpMuuoziEzIcUyE9Sa6eZPERbRz/GdNSi5oauv8S4=
+        environment:
+          GITHUB_CLIENT_ID: aws:kms:CiA1wrtM1zFZvo2zlXed6Q3HTMMXEQ8SrDTNKDxXNNZamxKbAQEBAgB4NcK7TNcxWb6Ns5V3nekNx0zDFxEPEqw0zSg8VzTWWpsAAAByMHAGCSqGSIb3DQEHBqBjMGECAQAwXAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAy3PHUuaeF95WGqQBoCARCALxV9wh/1X2FkPHFh9Bm12dXIev5BrWNOs32Pkjag0xKwhgS4gIrYx0oCspQU22jA
+          GITHUB_CLIENT_SECRET: aws:kms:CiA1wrtM1zFZvo2zlXed6Q3HTMMXEQ8SrDTNKDxXNNZamxKwAQEBAgB4NcK7TNcxWb6Ns5V3nekNx0zDFxEPEqw0zSg8VzTWWpsAAACHMIGEBgkqhkiG9w0BBwagdzB1AgEAMHAGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM2yCBmasYq35Bg56SAgEQgEPPXYz7HMqwcsvXbiMbW9dAEsVOiDXW5Lckbvmvg9ZWYXpDYuEw52zQCnWm367Nynu6uDEJ5SEiExxQ9/Sb+ILeexnX
+          SESSION_SECRET: aws:kms:CiA1wrtM1zFZvo2zlXed6Q3HTMMXEQ8SrDTNKDxXNNZamxKnAQEBAgB4NcK7TNcxWb6Ns5V3nekNx0zDFxEPEqw0zSg8VzTWWpsAAAB+MHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAw9thbsYlYpZRGUjqUCARCAO8WFiWy2vSTw8E8GyFNei5kTRqZxaxHNTYk1S6luk4kdtmYf3cqWbdsd1vDr7xoVUbiZzvqKigRdArQh
+          DB_PASS: aws:kms:CiA1wrtM1zFZvo2zlXed6Q3HTMMXEQ8SrDTNKDxXNNZamxKdAQEBAgB4NcK7TNcxWb6Ns5V3nekNx0zDFxEPEqw0zSg8VzTWWpsAAAB0MHIGCSqGSIb3DQEHBqBlMGMCAQAwXgYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAxIHhIrh9GFx0XehsICARCAMQuwiejmjTCutq6erqrCPOurhLAYFQ7PuL2ElzlMLRtRGNcFYhTwa7VzC9ZARBuWLyY=
+          DB_HOST: zappr.cqu6e27qwq1u.eu-west-1.rds.amazonaws.com
+          DEBUG: zappr:*
+          NODE_ENV: production
+          HOST_ADDR: https://zappr.opensource.zalan.do
+          ENCRYPTION_ENGINE: kms
+
+  - AppLoadBalancer:
+      Type: Senza::WeightedDnsElasticLoadBalancer
+      HTTPPort: 3000
+      HealthCheckPath: /health
+      SecurityGroups:
+        - app-zappr-opensource-lb
+      Scheme: internet-facing

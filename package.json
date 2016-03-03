@@ -8,7 +8,7 @@
     "test-client": "DEBUG='zappr:test' BABEL_ENV=test BABEL_DISABLE_CACHE=1 mocha --recursive --compilers js:babel-register test/client/",
     "test-server": "DEBUG='zappr:test' MORGAN_THRESH=999 NODE_ENV=test BABEL_ENV=test BABEL_DISABLE_CACHE=1 SQLITE_FILE=':memory:' mocha --recursive --compilers js:babel-register test/server/",
     "test-karma": "DEBUG='zappr:test' BABEL_ENV=test BABEL_DISABLE_CACHE=1 babel-node ./test/karma/karma.run.js",
-    "dist": "npm run clean && parallelshell 'npm run build-client -- -p' 'npm run build-server'",
+    "dist": "export NODE_ENV='production' npm run clean && parallelshell 'npm run build-client -- -p' 'npm run build-server'",
     "build": "parallelshell 'npm run build-client -- -d' 'npm run build-server'",
     "build-client": "webpack --config webpack.client.js",
     "build-server": "webpack --config webpack.server.js",
