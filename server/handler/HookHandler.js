@@ -2,11 +2,14 @@ import { Approval } from '../checks'
 import { logger } from '../../common/debug'
 import { checkHandler } from './CheckHandler'
 import { repositoryHandler } from './RepositoryHandler'
+import { pullRequestHandler } from './PullRequestHandler'
 import { getCheckByType } from '../checks'
 import { db, Repository, Check } from '../model'
+import nconf from '../nconf'
 import GithubService from '../service/GithubService'
 
 const log = logger('hook')
+const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 
 function findHookEventsFor(types) {
   return types
@@ -32,7 +35,7 @@ class HookHandler {
     types.push(type)
     const evts = findHookEventsFor(types)
 
-    await checkHandler.onCreateCheck(repo.id, type)
+    await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
     return this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
   }
 
@@ -53,13 +56,16 @@ class HookHandler {
    */
   async onHandleHook(payload) {
     const {name, id, owner} = payload.repository
-    const config = await this.github.readZapprFile(owner.login, name)
     const repo = await repositoryHandler.onGetOne(id)
-    const checks = repo.checks.map(c => c.type)
-    // read config to see which checks are enabled
-    if (checks.indexOf(Approval.type) >= 0) {
-      log(`Executing approval hook for ${owner.login}/${name}`)
-      Approval.execute(config, payload)
+    if (repo.checks.length) {
+      const checks = repo.checks.reduce((m, c) => {m[c.type] = c; return m;}, {})
+      // read config
+      const zapprFileContent = await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
+      const config = Object.assign(DEFAULT_CONFIG, zapprFileContent)
+      if (checks[Approval.type] && checks[Approval.type].token) {
+        log(`Executing approval hook for ${owner.login}/${name}`)
+        Approval.execute(this.github, config, payload, checks[Approval.type].token, repo.id, pullRequestHandler)
+      }
     }
     return '"THANKS"'
   }

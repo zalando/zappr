@@ -54,10 +54,10 @@ export default class MountebankClient {
     }))
   }
 
-  calls(imposterPort) {
+  async calls(imposterPort) {
     const url = `${this.url}/imposters/${imposterPort}`
-    return request({method: 'GET', url, json: true})
-            .then(([resp, body]) => body.requests)
+    const [resp, body] = await request({method: 'GET', url, json: true})
+    return body.requests
   }
 
   stop() {

@@ -5,10 +5,11 @@ import Strategy from 'passport-strategy'
  */
 export default class MockStrategy extends Strategy {
   static props = {
-    accessToken: null,
+    accessToken: 'abcd',
     refreshToken: null,
     user: {
       id: 1,
+      accessToken: 'abcd',
       username: 'test',
       _json: {
         id: 1

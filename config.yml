@@ -11,7 +11,7 @@ GITHUB_CLIENT_ID: id
 GITHUB_CLIENT_SECRET: secret
 GITHUB_SCOPES:
   - user:email
-  - repo:status
+  - public_repo
   - admin:repo_hook
 GITHUB_URL: https://api.github.com
 
@@ -42,3 +42,14 @@ MORGAN_THRESH: 0
 
 # path to zapprfile in repository
 ZAPPR_FILE_PATH: "/.zappr.yml"
+ZAPPR_DEFAULT_CONFIG:
+  approvals:
+    minimum: 2
+    pattern: "^:\\+1:$"
+    # from:
+    #   orgs:
+    #     - zalando
+    #   collaborators: true
+    #   users:
+    #     - prayerslayer
+    #     - mfellner

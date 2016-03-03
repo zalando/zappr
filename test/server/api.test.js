@@ -22,8 +22,7 @@ describe('API', () => {
   before(async (done) => {
     // Override config values
     nconf.set('GITHUB_URL', `http://localhost:${imposter.port}`)
-    nconf.set('GITHUB_CLIENT_ID', 'foo')
-    nconf.set('GITHUB_CLIENT_SECRET', 'bar')
+    nconf.set('HOST_ADDR', 'http://127.0.0.1:8080')
 
     try {
       // Initialize database
@@ -198,46 +197,6 @@ describe('API', () => {
       expect(calls[2].method).to.equal('PATCH')
       expect(calls[2].path).to.equal('/repos/test/atomic-directive-demo/hooks/123')
       done()
-    })
-  })
-
-  describe('PUT /api/repos/:id', () => {
-    it('should create a new check and enable Zappr', async (done) => {
-      try {
-        // Fetch repositories
-        const repos = (await request.get('/api/repos').expect(200)).body
-        const id = repos[0].id
-
-        // Enable Zappr
-        const repo0 = (await request
-          .put(`/api/repos/${id}`)
-          .send({zapprEnabled: true})
-          .expect(202)
-          .expect('Content-Type', /json/))
-          .body
-
-        expect(repo0).to.be.an('object')
-        expect(repo0).to.have.property('checks')
-          .and.to.be.an('Array')
-          .and.to.have.property('length', 1)
-
-        // Disable Zappr
-        const repo1 = (await request
-          .put(`/api/repos/${id}`)
-          .send({zapprEnabled: false})
-          .expect(202)
-          .expect('Content-Type', /json/))
-          .body
-
-        expect(repo1).to.be.an('object')
-        expect(repo1).to.have.property('checks')
-          .and.to.be.an('Array')
-          .and.to.have.property('length', 0)
-
-        done()
-      } catch (e) {
-        done(e)
-      }
     })
   })
 })

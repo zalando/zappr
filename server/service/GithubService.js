@@ -1,34 +1,62 @@
 import yaml from 'js-yaml'
 import nconf from '../nconf'
-import {request} from '../../common/util'
+import { request } from '../../common/util'
 import { logger } from '../../common/debug'
 
 const log = logger('github')
-const CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
-const CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
+
 const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
+const PR_PATH = '/repos/${owner}/${repo}/pulls/${number}'
+const ORG_MEMBER_PATH = '/orgs/${org}/public_members/${user}'
 const STATUS_PATH = '/repos/${owner}/${repo}/statuses/${sha}'
+const COMMENT_PATH = '/repos/${owner}/${repo}/issues/${number}/comments'
+const COLLABORATOR_PATH = '/repos/${owner}/${repo}/collaborators/${user}'
 const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
+
+function padLeading(digit, number, totalLength) {
+  let strNumber = number.toString()
+  if (strNumber.length >= totalLength) {
+    return strNumber
+  }
+  let padding = totalLength - strNumber.length
+  while(padding) {
+    strNumber = digit + strNumber
+    padding -= 1
+  }
+  return strNumber
+}
 
 export default class GithubService {
 
   getOptions(method, path, body, accessToken) {
     let url = nconf.get('GITHUB_URL') + path
-    if (!accessToken) {
-      // if there is no access token we add client id and secret
-      // to the request
-      url += `?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`
-    }
+
     return {
       json: true,
       method: method,
       url,
       headers: {
         'User-Agent': 'ZAPPR/1.0 (+https://zappr.hackweek.zalan.do)',
-        'Authorization': accessToken ? `token ${accessToken}` : undefined
+        'Authorization': `token ${accessToken}`
       },
       body: body
     }
+  }
+
+  formatDate(date) {
+    let year = date.getUTCFullYear()
+    let month = date.getUTCMonth() + 1
+    let day = date.getUTCDate()
+    let hour = date.getUTCHours()
+    let minute = date.getUTCMinutes()
+    let second = date.getUTCSeconds()
+
+    month = padLeading(0, month, 2)
+    day = padLeading(0, day, 2)
+    hour = padLeading(0, hour, 2)
+    minute = padLeading(0, minute, 2)
+    second = padLeading(0, second, 2)
+    return `${year}-${month}-${day}T${hour}:${minute}:${second}Z`
   }
 
   async fetchPath(method, path, payload, accessToken) {
@@ -36,9 +64,10 @@ export default class GithubService {
     const [response, body] = await request(options)
     const {statusCode} = response || {}
 
-    if ([200, 201, 202, 203, 204].indexOf(statusCode) < 0) {
-      log(response.body)
-      throw new Error(statusCode)
+    // 300 codes are for github membership checks
+    if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
+      log(statusCode, method, path, response.body, options)
+      throw new Error(response.body ? response.body.message : statusCode)
     }
     else return body
   }
@@ -49,6 +78,57 @@ export default class GithubService {
                 .replace('${repo}', repo)
                 .replace('${sha}', sha)
     return this.fetchPath('POST', path, status, accessToken)
+  }
+
+  async isCollaborator(owner, repo, user, accessToken) {
+    let path = COLLABORATOR_PATH
+                .replace('${owner}', owner)
+                .replace('${repo}', repo)
+                .replace('${user}', user)
+    try {
+      await this.fetchPath('GET', path, null, accessToken)
+      return true
+    } catch(e) {
+      return false
+    }
+  }
+
+  async isMemberOfOrg(org, user, accessToken) {
+    let path = ORG_MEMBER_PATH
+                .replace('${org}', org)
+                .replace('${user}', user)
+    try {
+      await this.fetchPath('GET', path, null, accessToken)
+      return true
+    } catch(e) {
+      return false
+    }
+  }
+
+  getComments(user, repo, number, since, accessToken) {
+    let path = COMMENT_PATH
+                  .replace('${owner}', user)
+                  .replace('${repo}', repo)
+                  .replace('${number}', number)
+    if (since) {
+      path += `?since=${since}`
+    }
+    return this.fetchPath('GET', path, null, accessToken)
+  }
+
+  async getPullRequest(user, repo, number, accessToken) {
+    const path = PR_PATH
+                  .replace('${owner}', user)
+                  .replace('${repo}', repo)
+                  .replace('${number}', number)
+    try {
+      const pr = await this.fetchPath('GET', path, null, accessToken)
+      log(`${user}/${repo}:${number} is a pull request`)
+      return pr
+    } catch(e) {
+      log(`${user}/${repo}:${number} is NOT a pull request`)
+      return false
+    }
   }
 
   async readZapprFile(user, repo, accessToken) {
