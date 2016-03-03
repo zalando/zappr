@@ -10,8 +10,8 @@ SESSION_SECRET: secret
 GITHUB_CLIENT_ID: id
 GITHUB_CLIENT_SECRET: secret
 GITHUB_SCOPES:
-  - repo
   - user:email
+  - public_repo
   - admin:repo_hook
 GITHUB_URL: https://api.github.com
 
