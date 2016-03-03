@@ -13,19 +13,6 @@ const COMMENT_PATH = '/repos/${owner}/${repo}/issues/${number}/comments'
 const COLLABORATOR_PATH = '/repos/${owner}/${repo}/collaborators/${user}'
 const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
 
-function padLeading(digit, number, totalLength) {
-  let strNumber = number.toString()
-  if (strNumber.length >= totalLength) {
-    return strNumber
-  }
-  let padding = totalLength - strNumber.length
-  while(padding) {
-    strNumber = digit + strNumber
-    padding -= 1
-  }
-  return strNumber
-}
-
 export default class GithubService {
 
   getOptions(method, path, body, accessToken) {
@@ -41,22 +28,6 @@ export default class GithubService {
       },
       body: body
     }
-  }
-
-  formatDate(date) {
-    let year = date.getUTCFullYear()
-    let month = date.getUTCMonth() + 1
-    let day = date.getUTCDate()
-    let hour = date.getUTCHours()
-    let minute = date.getUTCMinutes()
-    let second = date.getUTCSeconds()
-
-    month = padLeading(0, month, 2)
-    day = padLeading(0, day, 2)
-    hour = padLeading(0, hour, 2)
-    minute = padLeading(0, minute, 2)
-    second = padLeading(0, second, 2)
-    return `${year}-${month}-${day}T${hour}:${minute}:${second}Z`
   }
 
   async fetchPath(method, path, payload, accessToken) {

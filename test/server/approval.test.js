@@ -1,5 +1,6 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
+import { formatDate } from '../../common/util'
 import Approval from '../../server/checks/Approval'
 
 describe('Approval#execute', () => {
@@ -74,7 +75,6 @@ describe('Approval#execute', () => {
     }
     approval = Approval
     github = {
-      formatDate: sinon.stub().returns('2016-03-04T13:54:00Z'),
       setCommitStatus: sinon.spy(),
       getApprovals: sinon.spy(),
       getPullRequest: sinon.spy(),
@@ -119,7 +119,7 @@ describe('Approval#execute', () => {
         'mfellner',
         'hello-world',
         2,
-        github.formatDate(DB_PR.last_push),
+        formatDate(DB_PR.last_push),
         TOKEN
       ])
       expect(successStatusCallArgs).to.deep.equal([
