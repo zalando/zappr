@@ -53,7 +53,7 @@ describe('Approval#execute', () => {
   }
   const PENDING_STATUS = {
     state: 'pending',
-    description: 'ZAPPR validation in progress.',
+    description: 'Approval validation in progress.',
     context: 'zappr'
   }
   const ZERO_APPROVALS_STATUS = {

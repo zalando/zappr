@@ -12,29 +12,6 @@ class RepositoryHandler {
   }
 
   /**
-   * TODO: implement check, hook and status logic
-   * @deprecated Add or remove checks in the model
-   * @param {Number} id - Id of the repository
-   * @param {Object} user - Current user object
-   * @param {Boolean} zapprEnabled
-   * @returns {Promise.<Object>}
-   */
-  async onToggleZapprEnabled(id, user, zapprEnabled) {
-    let repo = await Repository.userScope(user).findById(id)
-    if (!repo) throw 404
-
-    if (zapprEnabled) {
-      const check = await checkHandler.onCreateCheck(id, Approval.type)
-      repo = await check.getRepository({include: [Check]})
-      return repo.flatten()
-    } else {
-      await checkHandler.onDeleteCheck(id, Approval.type)
-      repo = await Repository.userScope(user).findById(id, {include: [Check]})
-      return repo.flatten()
-    }
-  }
-
-  /**
    * Load one repository of a user if it exists in the local database.
    *
    * @param {Number} id - Id of the repository

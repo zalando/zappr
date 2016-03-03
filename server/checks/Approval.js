@@ -88,7 +88,7 @@ export default class Approval {
     let sha = ''
     const pendingPayload = {
       state: 'pending',
-      description: 'ZAPPR validation in progress.',
+      description: 'Approval validation in progress.',
       context: 'zappr'
     }
     try {

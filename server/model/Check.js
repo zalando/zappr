@@ -15,6 +15,9 @@ export default db.define('check', {
     allowNull: false,
     autoIncrement: true
   },
+  token: {
+    type: Sequelize.STRING
+  },
   type: {
     type: Sequelize.ENUM(...TYPES),
     allowNull: false
