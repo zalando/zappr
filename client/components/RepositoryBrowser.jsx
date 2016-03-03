@@ -18,7 +18,7 @@ export default class RepositoryBrowser extends Component {
 
   render() {
     const {selected, repos, toggleCheck} = this.props
-    const selectedRepo = repos.items.find(r => r.name === selected)
+    const selectedRepo = repos.items.find(r => r.full_name === selected)
     return (
       <Row>
         <Col sm={3}>
