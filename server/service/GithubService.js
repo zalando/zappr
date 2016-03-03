@@ -14,11 +14,11 @@ const COLLABORATOR_PATH = '/repos/${owner}/${repo}/collaborators/${user}'
 const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
 
 function padLeading(digit, number, totalLength) {
-  const strNumber = number.toString()
+  let strNumber = number.toString()
   if (strNumber.length >= totalLength) {
     return strNumber
   }
-  const padding = totalLength - strNumber.length
+  let padding = totalLength - strNumber.length
   while(padding) {
     strNumber = digit + strNumber
     padding -= 1
