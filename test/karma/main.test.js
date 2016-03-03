@@ -103,7 +103,7 @@ describe('Root', function () {
     for (let i = 0, detail; i < 2; i += 1) {
       detail = clickOnDetail(i)
       expect(TestUtils.isCompositeComponent(detail)).to.be.true
-      expect(window.location.pathname).to.equal('/repository/' + detail.props.repository.name)
+      expect(window.location.pathname).to.equal('/repository/' + detail.props.repository.full_name)
     }
     done()
   })
