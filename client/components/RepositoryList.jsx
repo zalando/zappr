@@ -31,7 +31,7 @@ export default class RepositoryList extends Component {
               ? (<Spinner size={2}/>)
               : repositories.map((repository, i) => ((
               <RepositoryListItem key={i} repository={repository}
-                                  active={repository.name === selected}/>
+                                  active={repository.full_name === selected}/>
             )))
           ))()}
         </ListGroup>
