@@ -17,33 +17,35 @@ export default class Approval {
     return `This PR has ${actual}/${needed} approvals since the last commit.`
   }
 
-  static async countApprovals(github, comments, config, token) {
+  static async countApprovals(github, repository, comments, config, token) {
     const {pattern} = config
     let filtered = comments
+                    // get comments that match specified approval pattern
                     .filter(c => (new RegExp(pattern)).test(c.body) !== -1)
-                    // slightly unperformant filtering here
+                    // slightly unperformant filtering here:
                     // kicking out multiple approvals from same person
                     .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
+    // don't proceed if nothing is left
     if (filtered.length === 0) {
       return 0
     }
     // we now have approvals from a set of persons
     // check membership requirements
     if (config.from) {
-      const {orgs, teams, users} = config.from
+      const {orgs, collaborators, users} = config.from
       // persons must either be listed explicitly in users OR
-      // member of at least one of listed orgs / teams
-      // this is fucking time-consuming, consider caching this info somewhere
+      // be a collaborator OR
+      // member of at least one of listed orgs
       filtered = await Promise.all(filtered.map(async (comment) => {
         const username = comment.user.login
         // first do the quick username check
         if (users && users.indexOf(username) >= 0) {
           return Promise.resolve(comment)
         }
-        // now teams
-        if (teams) {
-          const teamMember = await Promise.all(teams.map(t => github.isMemberOfTeam(t, username, token)))
-          if (teamMember.indexOf(true) >= 0) {
+        // now collaborators
+        if (collaborators) {
+          const isCollaborator = await github.isCollaborator(repository.owner.login, repository.name, username, token)
+          if (isCollaborator) {
             return Promise.resolve(comment)
           }
         }
@@ -97,13 +99,19 @@ export default class Approval {
           // set status to pending first
           sha = pull_request.head.sha
           await github.setCommitStatus(user, repo, pull_request.head.sha, pendingPayload, token)
-          if (action === 'opened') {
-            // if it was opened, create pr in our db
+          if (action === 'opened' && minimum > 0) {
+            // if it was opened, create pr in our db and set to fail
             await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
+            await github.setCommitStatus(user, repo, pull_request.head.sha, {
+              state: 'failure',
+              description: this.generateStatusMessage(0, minimum),
+              context: 'zappr'
+            }, token)
+            return
           }
           // get approvals for pr
           const comments = await github.getComments(user, repo, number, null, token)
-          const approvals = await this.countApprovals(github, comments, config.approvals, token)
+          const approvals = await this.countApprovals(github, repository, comments, config.approvals, token)
           let status = {
             state: approvals < minimum ? 'failure' : 'success',
             context: 'zappr',
@@ -136,7 +144,7 @@ export default class Approval {
         const dbPR = await pullRequestHandler.onGet(dbRepoId, issue.number)
         // get approval count
         const comments = await github.getComments(user, repo, issue.number, github.formatDate(dbPR.last_push), token)
-        const approvals = await this.countApprovals(github, comments, config.approvals, token)
+        const approvals = await this.countApprovals(github, repository, comments, config.approvals, token)
         let status = {
           state: approvals < minimum ? 'failure' : 'success',
           context: 'zappr',

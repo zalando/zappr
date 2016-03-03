@@ -11,8 +11,8 @@ GITHUB_CLIENT_ID: id
 GITHUB_CLIENT_SECRET: secret
 GITHUB_SCOPES:
   - user:email
-  - repo:status
   - write:repo_hook
+  - repo
 GITHUB_URL: https://api.github.com
 
 # Address of the web application host
@@ -49,8 +49,7 @@ ZAPPR_DEFAULT_CONFIG:
     # from:
     #   orgs:
     #     - zalando
-    #   teams:
-    #     - 1516469
+    #   collaborators: true
     #   users:
     #     - prayerslayer
     #     - mfellner

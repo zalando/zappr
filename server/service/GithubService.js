@@ -9,9 +9,22 @@ const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
 const PR_PATH = '/repos/${owner}/${repo}/pulls/${number}'
 const ORG_MEMBER_PATH = '/orgs/${org}/public_members/${user}'
 const STATUS_PATH = '/repos/${owner}/${repo}/statuses/${sha}'
-const TEAM_MEMBER_PATH = '/teams/${team}/memberships/${user}'
 const COMMENT_PATH = '/repos/${owner}/${repo}/issues/${number}/comments'
+const COLLABORATOR_PATH = '/repos/${owner}/${repo}/collaborators/${user}'
 const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
+
+function padLeading(digit, number, totalLength) {
+  const strNumber = number.toString()
+  if (strNumber.length >= totalLength) {
+    return strNumber
+  }
+  const padding = totalLength - strNumber.length
+  while(padding) {
+    strNumber = digit + strNumber
+    padding -= 1
+  }
+  return strNumber
+}
 
 export default class GithubService {
 
@@ -31,12 +44,18 @@ export default class GithubService {
   }
 
   formatDate(date) {
-    const year = date.getUTCFullYear()
-    const month = date.getUTCMonth() + 1
-    const day = date.getUTCDate()
-    const hour = date.getUTCHours()
-    const minute = date.getUTCMinutes()
-    const second = date.getUTCSeconds()
+    let year = date.getUTCFullYear()
+    let month = date.getUTCMonth() + 1
+    let day = date.getUTCDate()
+    let hour = date.getUTCHours()
+    let minute = date.getUTCMinutes()
+    let second = date.getUTCSeconds()
+
+    month = padLeading(0, month, 2)
+    day = padLeading(0, day, 2)
+    hour = padLeading(0, hour, 2)
+    minute = padLeading(0, minute, 2)
+    second = padLeading(0, second, 2)
     return `${year}-${month}-${day}T${hour}:${minute}:${second}Z`
   }
 
@@ -61,9 +80,10 @@ export default class GithubService {
     return this.fetchPath('POST', path, status, accessToken)
   }
 
-  async isMemberOfTeam(team, user, accessToken) {
-    let path = TEAM_MEMBER_PATH
-                .replace('${team}', team)
+  async isCollaborator(owner, repo, user, accessToken) {
+    let path = COLLABORATOR_PATH
+                .replace('${owner}', owner)
+                .replace('${repo}', repo)
                 .replace('${user}', user)
     try {
       await this.fetchPath('GET', path, null, accessToken)
