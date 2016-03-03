@@ -136,7 +136,7 @@ describe('API', () => {
         const repos1 = (await request.get('/api/repos')).body
         expect(repos1).to.have.property('length', 1)
 
-        const repos2 = (await request.get('/api/repos?refresh=true')).body
+        const repos2 = (await request.get('/api/repos?all=true')).body
         expect(repos2).to.have.property('length', 2)
         done()
       } catch (err) {
