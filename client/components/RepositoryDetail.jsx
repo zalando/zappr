@@ -19,12 +19,12 @@ export default class RepositoryDetail extends Component {
   }
 
   render() {
-    if (!this.props.repository.name) return null
+    if (!this.props.repository.full_name) return null
 
     const {repository} = this.props
     const header = (
       <h3>
-        <a href={repository.html_url}>{repository.name}</a>
+        <a href={repository.html_url}>{repository.full_name}</a>
         &nbsp;<Badge><i className="fa fa-star">&nbsp;</i>{repository.stargazers_count}</Badge>
         &nbsp;<Badge><i className="fa fa-code-fork">&nbsp;</i>{repository.forks_count}</Badge>
         &nbsp;<Badge><i className="fa fa-exclamation-circle">&nbsp;</i>{repository.open_issues}</Badge>
