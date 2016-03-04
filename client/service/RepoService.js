@@ -6,7 +6,14 @@ export default class RepoService extends Service {
   static fetchAll(includeUpstream) {
     return fetch(Service.url(`/api/repos${includeUpstream ? '?all=true' : ''}`), {
       credentials: 'same-origin'
-    }).then(response => response.json())
+    }).then(response => {
+      return new Promise((resolve, reject) => {
+        if (response.ok) {
+          return response.json().then(resolve)
+        }
+        response.text().then(reject)
+      })
+    })
   }
 
   /**
@@ -21,6 +28,13 @@ export default class RepoService extends Service {
       },
       body: JSON.stringify(repo),
       credentials: 'same-origin'
-    }).then(response => response.json())
+    }).then(response => {
+      return new Promise((resolve, reject) => {
+        if (response.ok) {
+          return response.json().then(resolve)
+        }
+        response.text().then(reject)
+      })
+    })
   }
 }

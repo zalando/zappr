@@ -38,6 +38,7 @@ export default class RepositoryDetail extends Component {
               map(type => ({
                 type,
                 repoId: repository.id,
+                error: repository.error,
                 isUpdating: repository.isUpdating,
                 isEnabled: repository.checks && repository.checks.
                   findIndex(check => check.type === type) !== -1

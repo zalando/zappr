@@ -59,7 +59,7 @@ export default class RepositoryList extends Component {
             disabled={isUpdating}
             onClick={this.onFetchAll.bind(this)}
             bsStyle='primary' lg>
-            <i className='fa fa-refresh' />&nbsp;Load all
+            <i className='fa fa-refresh' />&nbsp;Load all from Github
         </Button>
       </Panel>
     )
