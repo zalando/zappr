@@ -57,7 +57,7 @@ class HookHandler {
    */
   async onHandleHook(payload) {
     const {name, id, owner} = payload.repository
-    const repo = await repositoryHandler.onGetOne(id)
+    const repo = await repositoryHandler.onGetOne(id, null, true)
     if (repo.checks.length) {
       const checks = repo.checks.reduce((m, c) => {m[c.type] = c; return m;}, {})
       // read config

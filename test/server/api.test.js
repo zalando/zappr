@@ -18,6 +18,7 @@ describe('API', () => {
 
   const fixtures = {
     repos: [],
+    repo: null,
     repoName: null
   }
 
@@ -32,6 +33,7 @@ describe('API', () => {
 
       // Load fixtures
       fixtures.repos = require('../fixtures/github.user.a.repos.json')
+      fixtures.repo = fixtures.repos[0]
       fixtures.repoName = fixtures.repos[0].name
 
       // Configure mountebank
@@ -109,6 +111,32 @@ describe('API', () => {
           expect(body).to.have.deep.property('[0].checks').that.is.a('array')
         })
         .end(done)
+    })
+
+    it('should exclude the github token from the checks', async(done)=> {
+      try {
+        // Reload repositories
+        await request.get('/api/repos')
+        // Enable a check
+        await request.put(`/api/repos/${fixtures.repo.id}/approval`)
+
+        const repos = (await request.get('/api/repos')).body
+        const repo = repos.find(repo => repo.id === fixtures.repo.id)
+        let check = repo.checks[0]
+
+        expect(check).to.be.an('object')
+        expect(check).to.not.have.property('token')
+
+        // Fetch a single repository
+        const {body} = await request.get(`/api/repos/${fixtures.repo.id}`)
+        check = body.checks[0]
+        expect(check).to.be.an('object')
+        expect(check).to.not.have.property('token')
+
+        done()
+      } catch (e) {
+        return done(e)
+      }
     })
 
     it('should cache the response in the database', async (done) => {
