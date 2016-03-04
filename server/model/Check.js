@@ -7,7 +7,6 @@ import { TYPES } from '../checks'
 import { logger } from '../../common/debug'
 
 const debug = logger('check')
-const info = logger('check', 'info')
 const encryptionService = EncryptionService.create()
 
 /**
@@ -43,7 +42,7 @@ export default db.define('check', {
 })
 
 async function encryptTokenHook(check) {
-  info('encrypt token hook')
+  debug('encrypt token hook')
   if (check.token) {
     const cipher = await encryptionService.encrypt(check.token)
     check.set('token', cipher)
