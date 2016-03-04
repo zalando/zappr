@@ -1,6 +1,6 @@
 export default class RepoService {
   /**
-   * ZAPPR_HOST is a global defined by webpack.
+   * HOST_ADDR is defined by webpack.DefinePlugin.
    */
   static url(path) {
     return HOST_ADDR + path

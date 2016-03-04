@@ -33,7 +33,7 @@ module.exports = function (config) {
       },
       plugins: [
         new webpack.DefinePlugin({
-          ZAPPR_HOST: "'http://localhost:4242'" // use mountebank imposter
+          HOST_ADDR: "'http://localhost:4242'" // use mountebank imposter
         })
       ]
     },

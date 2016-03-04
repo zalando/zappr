@@ -40,7 +40,7 @@ module.exports = {
     new CommonsChunkPlugin('vendor', '0-vendor.min.js'),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(nconf.get('NODE_ENV')),
-      'HOST_ADDR': JSON.stringify(nconf.get('HOST_ADDR'))
+      'HOST_ADDR': "''" // always use the the relative server path
     })
   ],
   devServer: {
