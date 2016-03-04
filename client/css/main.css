@@ -11,7 +11,25 @@
     justify-content: center;
     flex-direction: column;
     min-height: 100%;
+}
+
+.zpr-login img {
+    max-width: 100%;
+}
+
+.zpr-login footer {
+    flex: 0 0 auto;
     width: 100%;
-    position: absolute;
-    margin-bottom: 3em;
+    height: 80px;
+    margin-top: 30px;
+    background: #ebebeb;
+    text-align: center;
+    font-size: 1.5rem;
+    padding-top: 15px;
+}
+
+@media(max-width: 600px) {
+    .zpr-login > *:not(:first-child) {
+        padding: 15px;
+    }
 }

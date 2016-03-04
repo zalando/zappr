@@ -54,7 +54,7 @@ class Login extends Component {
             {loginButton}
           </div>
         </div>
-        <div style={{flex: '0 0 auto'}}>
+        <div style={{flex: '0 0 auto', maxWidth: '100%'}}>
           <div className='page-header'>
             <h1>Protect your <code>master</code> branch!</h1>
           </div>
@@ -64,6 +64,10 @@ class Login extends Component {
           </p>
           <img src='http://baconmockup.com/600/400/' />
         </div>
+        <footer>
+          Made with ♥︎ by <a href='https://zalando.com'>Zalando</a>.<br/>
+          <a href='https://tech.zalando.com'>Zalando Tech</a> is <a href='https://tech.zalando.com/jobs'>hiring</a>!
+        </footer>
       </section>
     )
   }
