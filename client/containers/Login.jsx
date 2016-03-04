@@ -6,7 +6,7 @@ import { Row, Col, Image, Navbar } from 'react-bootstrap'
 import logo from '../img/zappr@2x.png'
 import { loginGithub } from '../actions/auth'
 import { logger } from '../../common/debug'
-import zappr from '../img/zappr.png'
+import zappr from '../img/zappr@2x.png'
 
 const log = logger('login')
 
@@ -47,7 +47,9 @@ class Login extends Component {
     return (
       <section className='zpr-login'>
         <div style={{flex: '0 0 auto', width: '100%', background: '#ebebeb'}}>
-          <h1 style={{color: '#f16a21', textAlign: 'center', fontFamily: 'minecraftmedium', fontSize: '6rem'}}>ZAPPR</h1>
+          <div style={{textAlign: 'center', marginTop: 15}}>
+            <img style={{marginLeft: -40}} src={zappr} />
+          </div>
           <div style={{margin: '30 0', textAlign: 'center'}}>
             {loginButton}
           </div>
