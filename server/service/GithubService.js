@@ -149,7 +149,44 @@ export default class GithubService {
     }
   }
 
-  fetchRepos(accessToken) {
-    return this.fetchPath('GET', '/user/repos', null, accessToken)
+  parseLinkHeader(header) {
+    if (!header || !header.length) {
+      return {}
+    }
+    return header
+            .split(',')
+            .map(link => link.trim())
+            .map(link => link.match(/<(?:.+?)\?page=([0-9]+)(?:.+?)>; rel="([a-z]+)"/))
+            .reduce((links, matches) => {
+              if (!matches || matches.length !== 3) {
+                return links
+              }
+              links[matches[2]] = parseInt(matches[1], 10)
+              return links
+            }, {})
+
+  }
+
+  async fetchRepoPage(page, accessToken) {
+    let links = {}
+    const [resp, body] = await request(this.getOptions('GET', `/user/repos?page=${page}&visibility=public`, null, accessToken))
+    if (resp.headers && resp.headers.link) {
+      links = this.parseLinkHeader(resp.headers.link)
+    }
+    return {body, links, page}
+  }
+
+  // loads from {{page}} to last page
+  async fetchRepos(page = 0, loadAll = false, accessToken) {
+    let repos = []
+    var that = this
+    const firstPage = await this.fetchRepoPage(page, accessToken)
+    Array.prototype.push.apply(repos, firstPage.body)
+    if (loadAll && firstPage.links.last > page) {
+      const pageDefs = Array(firstPage.links.last - page).fill(0).map((p, i) => i + page + 1)
+      const pages = await Promise.all(pageDefs.map(async (page) => await that.fetchRepoPage(page, accessToken)))
+      pages.forEach(p => Array.prototype.push.apply(repos, p.body))
+    }
+    return repos
   }
 }

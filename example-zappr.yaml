@@ -1,0 +1,15 @@
+approvals:
+  # PR needs at least 4 approvals
+  minimum: 4
+  # approval = comment that matches this regex
+  pattern: "^:\\+1:$"
+  from:
+    # commenter must be either one of:
+    # a public zalando org member
+    orgs:
+      - zalando
+    # a collaborator of the repo
+    collaborators: true
+    # this guy
+    users:
+      - mfellner

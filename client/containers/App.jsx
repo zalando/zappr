@@ -30,14 +30,14 @@ class App extends Component {
     }
   }
 
-  render() {  
+  render() {
     return (
       <div className="zpr-app">
         <Optional if={this.props.location.pathname.search(/^\/login/) === -1}>
           <NavHeader path={this.props.location.pathname}
                      user={this.props.user}/>
         </Optional>
-        <div className="container">
+        <div className="container-fluid">
           {this.props.children}
         </div>
       </div>

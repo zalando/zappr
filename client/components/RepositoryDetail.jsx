@@ -24,10 +24,10 @@ export default class RepositoryDetail extends Component {
     const {repository} = this.props
     const header = (
       <h3>
+        <Badge><i className="fa fa-star">&nbsp;</i>{repository.stargazers_count}</Badge>&nbsp;
+        <Badge><i className="fa fa-code-fork">&nbsp;</i>{repository.forks_count}</Badge>&nbsp;
+        <Badge><i className="fa fa-exclamation-circle">&nbsp;</i>{repository.open_issues}</Badge>&nbsp;
         <a href={repository.html_url}>{repository.full_name}</a>
-        &nbsp;<Badge><i className="fa fa-star">&nbsp;</i>{repository.stargazers_count}</Badge>
-        &nbsp;<Badge><i className="fa fa-code-fork">&nbsp;</i>{repository.forks_count}</Badge>
-        &nbsp;<Badge><i className="fa fa-exclamation-circle">&nbsp;</i>{repository.open_issues}</Badge>
       </h3>
     )
     return (
@@ -38,6 +38,7 @@ export default class RepositoryDetail extends Component {
               map(type => ({
                 type,
                 repoId: repository.id,
+                error: repository.error,
                 isUpdating: repository.isUpdating,
                 isEnabled: repository.checks && repository.checks.
                   findIndex(check => check.type === type) !== -1

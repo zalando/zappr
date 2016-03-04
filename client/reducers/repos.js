@@ -8,6 +8,7 @@ const log = logger('repos')
 
 function repo(state = {
   isUpdating: false,
+  error: false,
   checks: []
 }, action) {
   switch (action.type) {
@@ -15,17 +16,20 @@ function repo(state = {
       switch (action.status) {
         case PENDING:
           return Object.assign({}, state, {
-            isUpdating: true
+            isUpdating: true,
+            error: false
           })
         case SUCCESS:
           return Object.assign({}, state, {
             isUpdating: false,
-            checks: checks(state.checks, action)
+            checks: checks(state.checks, action),
+            error: false
           })
         case ERROR:
           log(action.payload)
           return Object.assign({}, state, {
-            isUpdating: false
+            isUpdating: false,
+            error: action.payload
           })
           return state
       }
@@ -34,17 +38,20 @@ function repo(state = {
       switch (action.status) {
         case PENDING:
           return Object.assign({}, state, {
-            isUpdating: true
+            isUpdating: true,
+            error: false
           })
         case SUCCESS:
           return Object.assign({}, state, {
             isUpdating: false,
+            error: false,
             checks: checks(state.checks, action)
           })
         case ERROR:
           log(action.payload)
           return Object.assign({}, state, {
-            isUpdating: false
+            isUpdating: false,
+            error: action.payload
           })
           return state
       }
@@ -56,6 +63,7 @@ function repo(state = {
 
 export default function repos(state = {
   isFetching: false,
+  error: false,
   items: []
 }, action) {
   switch (action.type) {
@@ -63,18 +71,21 @@ export default function repos(state = {
       switch (action.status) {
         case PENDING:
           return Object.assign({}, state, {
-            isFetching: true
+            isFetching: true,
+            error: false
           })
         case SUCCESS:
           return Object.assign({}, state, {
             isFetching: false,
+            error: false,
             items: action.payload.items,
             lastUpdated: action.payload.receivedAt
           })
         case ERROR:
           log(action.payload)
           return Object.assign({}, state, {
-            isFetching: false
+            isFetching: false,
+            error: action.payload
           })
           return state
       }
@@ -84,8 +95,9 @@ export default function repos(state = {
       log(action)
       const i = state.items.findIndex(repo => repo.id === action.payload.repoId)
       if (i === -1) {
-        log('ERROR no repo for id %d', action.payload.repoId)
-        return state
+        const msg = `ERROR no repo for id ${action.payload.repoId}`
+        log(msg)
+        return Object.assign({}, state, { error: msg })
       }
       return Object.assign({}, state, {
         items: [
