@@ -1,5 +1,5 @@
 import GithubService from '../service/GithubService'
-import { db, Repository, Check } from '../model'
+import { db, Repository, UserRepository, Check } from '../model'
 import { logger } from '../../common/debug'
 
 const info = logger('repo-handler', 'info')
@@ -47,7 +47,16 @@ class RepositoryHandler {
             },
             transaction: t
           })
-          await repo.addUser(user.id, {
+          // HACK: workaround for https://github.com/sequelize/sequelize/issues/3220
+          await UserRepository.findOrCreate({
+            where: {
+              userId: user.id,
+              repositoryId: repo.id
+            },
+            defaults: {
+              userId: user.id,
+              repositoryId: repo.id
+            },
             transaction: t
           })
         })

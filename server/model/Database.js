@@ -3,7 +3,10 @@ import nconf from '../nconf'
 import EncryptionService from '../service/EncryptionService'
 import { logger } from '../../common/debug'
 
+import { User, Repository, UserRepository, Check, PullRequest, Session } from './'
+
 const log = logger('model')
+const error = logger('model', 'error')
 const encryptionService = EncryptionService.create()
 
 async function decryptToken(check) {
@@ -15,7 +18,7 @@ async function decryptToken(check) {
 async function decryptTokenHook(thing) {
   if (thing && Array.isArray(thing.checks)) {
     log('decrypt token hook')
-    const decryptedChecks = await Promise.all(thing.checks.map(async c => await decryptToken(c)))
+    await Promise.all(thing.checks.map(async(c) => await decryptToken(c)))
   }
   return thing
 }
@@ -78,14 +81,22 @@ class Database extends Sequelize {
     const schemas = await db.showAllSchemas()
 
     if (schemas.indexOf(this.schema) === -1) {
-      await db.createSchema(this.schema).
-      then(result => log('created schema %o', result))
+      const result = await db.createSchema(this.schema)
+      log('created schema' + result)
+      console.log('created schema' + result)
     }
 
-    const values = obj => Object.keys(obj).map(k => obj[k])
-
-    return Promise.all(values(this.models).map(m => m.sync())).
-    then(models => log('synced models %o', models))
+    try {
+      await User.sync()
+      await Repository.sync()
+      await UserRepository.sync()
+      await Check.sync()
+      await PullRequest.sync()
+      await Session.sync()
+      log('synced models')
+    } catch (e) {
+      error(e)
+    }
   }
 }
 
