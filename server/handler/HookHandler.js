@@ -4,7 +4,6 @@ import { checkHandler } from './CheckHandler'
 import { repositoryHandler } from './RepositoryHandler'
 import { pullRequestHandler } from './PullRequestHandler'
 import { getCheckByType } from '../checks'
-import { db, Repository, Check } from '../model'
 import nconf from '../nconf'
 import GithubService from '../service/GithubService'
 

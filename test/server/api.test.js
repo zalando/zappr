@@ -7,9 +7,6 @@ import MockStrategy from '../passport/MockStrategy'
 import { init as initApp } from '../../server/server'
 import { db, Repository, Check } from '../../server/model'
 
-import { logger } from '../../common/debug'
-const log = logger('test')
-
 describe('API', () => {
   const app = initApp({PassportStrategy: MockStrategy})
   const mountebank = new MountebankClient()
@@ -17,6 +14,11 @@ describe('API', () => {
   const imposter = {
     port: 4242,
     name: 'github'
+  }
+
+  const fixtures = {
+    repos: [],
+    repoName: null
   }
 
   before(async (done) => {
@@ -27,6 +29,10 @@ describe('API', () => {
     try {
       // Initialize database
       await db.sync()
+
+      // Load fixtures
+      fixtures.repos = require('../fixtures/github.user.a.repos.json')
+      fixtures.repoName = fixtures.repos[0].name
 
       // Configure mountebank
       const mb = await mountebank.start()
@@ -40,7 +46,7 @@ describe('API', () => {
           setBody(require('../fixtures/github.repo.hooks.json')).
         add().
         predicate().
-          setPath('/repos/test/atomic-directive-demo/hooks').
+          setPath(`/repos/test/${fixtures.repoName}/hooks`).
           setMethod('GET').
         add().
       add().
@@ -49,7 +55,7 @@ describe('API', () => {
           setStatusCode(200).
         add().
         predicate().
-          setPath('/repos/test/atomic-directive-demo/hooks/123').
+          setPath(`/repos/test/${fixtures.repoName}/hooks/123`).
           setMethod('PATCH').
         add().
       add().
@@ -58,7 +64,7 @@ describe('API', () => {
           setStatusCode(200).
         add().
         predicate().
-          setPath('/repos/test/atomic-directive-demo/hooks/123').
+          setPath(`/repos/test/${fixtures.repoName}/hooks/123`).
           setMethod('DELETE').
         add().
       add().
@@ -66,7 +72,7 @@ describe('API', () => {
         response().
           setStatusCode(200).
           setHeader('Content-Type', 'application/json').
-          setBody(require('../fixtures/github.user.repos.json')).
+          setBody(fixtures.repos).
         add().
         predicate().
           setPath('/user/repos').
@@ -120,27 +126,29 @@ describe('API', () => {
         expect(repos).to.have.length.above(0)
         expect(body).to.have.length.above(0)
         expect(repos).to.deep.include.members(body)
+
         done()
-      } catch (err) {
-        return done(err)
+      } catch (e) {
+        return done(e)
       }
     })
 
     it('should refresh github repos', async (done) => {
       try {
         const repos0 = (await request.get('/api/repos')).body
-        expect(repos0).to.have.property('length', 2)
+        expect(repos0).to.have.property('length', 4)
 
         await Repository.destroy({where: {id: repos0[0].id}})
 
         const repos1 = (await request.get('/api/repos')).body
-        expect(repos1).to.have.property('length', 1)
+        expect(repos1).to.have.property('length', 3)
 
         const repos2 = (await request.get('/api/repos?all=true')).body
-        expect(repos2).to.have.property('length', 2)
+        expect(repos2).to.have.property('length', 4)
+
         done()
-      } catch (err) {
-        return done(err)
+      } catch (e) {
+        return done(e)
       }
     })
   })
@@ -151,52 +159,62 @@ describe('API', () => {
 
   describe('DELETE /api/repos/:id/:type', () => {
     it('should delete a check and the webhook', async(done) => {
-      // add check first
-      const repos = (await request.get('/api/repos').expect(200)).body
-      const id = repos[0].id
-      await request.
-              put(`/api/repos/${id}/approval`).
-              send().
-              expect(201)
-      // aaaand delete again
-      await request.
-              delete(`/api/repos/${id}/approval`).
-              send().
-              expect(200)
+      try {
+        // add check first
+        const repos = (await request.get('/api/repos').expect(200)).body
+        const id = repos[0].id
+        await request.
+          put(`/api/repos/${id}/approval`).
+          send().
+          expect(201)
+        // aaaand delete again
+        await request.
+          delete(`/api/repos/${id}/approval`).
+          send().
+          expect(200)
 
-      let repo = await Repository.findById(id, {include: [Check]})
-      expect(repo.checks.length).to.equal(0)
+        const repo = await Repository.findById(id, {include: [Check]})
+        expect(repo.checks.length).to.equal(0)
 
-      let calls = await mountebank.calls(imposter.port)
-      expect(calls.length).to.equal(5)
-      expect(calls[4].method).to.equal('DELETE')
-      expect(calls[4].path).to.equal('/repos/test/atomic-directive-demo/hooks/123')
-      done()
+        const calls = await mountebank.calls(imposter.port)
+        expect(calls.length).to.equal(5)
+        expect(calls[4].method).to.equal('DELETE')
+        expect(calls[4].path).to.equal(`/repos/test/${fixtures.repoName}/hooks/123`)
+
+        done()
+      } catch (e) {
+        done(e)
+      }
     })
   })
 
   describe('PUT /api/repos/:id/:type', () => {
     it('should update the existing hook and add a check', async(done) => {
-      const repos = (await request.get('/api/repos').expect(200)).body
-      const id = repos[0].id
-      // enable approval check
-      await request.
-              put(`/api/repos/${id}/approval`).
-              send().
-              expect(201)
+      try {
+        const repos = (await request.get('/api/repos').expect(200)).body
+        const id = repos[0].id
+        // enable approval check
+        await request.
+          put(`/api/repos/${id}/approval`).
+          send().
+          expect(201)
 
-      let repo = await Repository.findById(id, {include: [Check]})
-      expect(repo.checks.length).to.equal(1)
-      expect(repo.checks[0].type).to.equal('approval')
-      let calls = await mountebank.calls(imposter.port)
-      expect(calls.length).to.equal(3)
-      expect(calls[0].method).to.equal('GET')
-      expect(calls[0].path).to.equal('/user/repos')
-      expect(calls[1].method).to.equal('GET')
-      expect(calls[1].path).to.equal('/repos/test/atomic-directive-demo/hooks')
-      expect(calls[2].method).to.equal('PATCH')
-      expect(calls[2].path).to.equal('/repos/test/atomic-directive-demo/hooks/123')
-      done()
+        const repo = await Repository.findById(id, {include: [Check]})
+        expect(repo.checks.length).to.equal(1)
+        expect(repo.checks[0].type).to.equal('approval')
+        const calls = await mountebank.calls(imposter.port)
+        expect(calls.length).to.equal(3)
+        expect(calls[0].method).to.equal('GET')
+        expect(calls[0].path).to.equal('/user/repos')
+        expect(calls[1].method).to.equal('GET')
+        expect(calls[1].path).to.equal(`/repos/test/${fixtures.repoName}/hooks`)
+        expect(calls[2].method).to.equal('PATCH')
+        expect(calls[2].path).to.equal(`/repos/test/${fixtures.repoName}/hooks/123`)
+
+        done()
+      } catch (e) {
+        done(e)
+      }
     })
   })
 })

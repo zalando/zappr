@@ -1,7 +1,5 @@
 import GithubService from '../service/GithubService'
-import Approval from '../checks/Approval'
 import { db, Repository, Check } from '../model'
-import { checkHandler } from './CheckHandler'
 import { logger } from '../../common/debug'
 
 const info = logger('repo-handler', 'info')
@@ -27,23 +25,23 @@ class RepositoryHandler {
   }
 
   upsertRepos(db, user, remoteRepos) {
-    return db.transaction(t => {
-              return Promise.all(remoteRepos.map(remoteRepo =>
-                Repository.findOrCreate({
-                  where: {id: remoteRepo.id},
-                  defaults: {
-                    userId: user.id,
-                    json: remoteRepo
-                  },
-                  transaction: t
-                }).
-                then(([localRepo]) => localRepo.update({
-                  json: {...localRepo.get('json'), ...remoteRepo}
-                }, {
-                  transaction: t
-                }))
-              ))
-            })
+    return db.transaction(t =>
+      Promise.all(
+        remoteRepos.map(async(remoteRepo) => {
+          const [repo] = await Repository.findOrCreate({
+            where: {id: remoteRepo.id},
+            defaults: {
+              id: remoteRepo.id,
+              json: remoteRepo
+            },
+            transaction: t
+          })
+          await repo.addUser(user.id, {
+            transaction: t
+          })
+        })
+      )
+    )
   }
 
   /**
