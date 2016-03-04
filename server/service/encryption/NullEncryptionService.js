@@ -1,10 +1,10 @@
 export default class NullEncryptionService  {
 
-  async encrypt(string) {
+  encrypt(string) {
     return Promise.resolve(string)
   }
 
-  async decrypt(string) {
+  decrypt(string) {
     return Promise.resolve(string)
   }
 }

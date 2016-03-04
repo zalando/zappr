@@ -1,8 +1,9 @@
 import nconf from '../nconf'
 import NullEncryptionService from './encryption/NullEncryptionService'
-
+import KMSEncryptionService from './encryption/KMSEncryptionService'
 import { logger } from '../../common/debug'
 
+const warn = logger('encryption', 'warn')
 const log = logger('encryption')
 
 export default class EncryptionService {
@@ -10,9 +11,11 @@ export default class EncryptionService {
   static create() {
     switch (nconf.get('ENCRYPTION_ENGINE')) {
       case 'kms':
-        throw new Error('unsupported encryption engine')
+        const KEY_ID = nconf.get('ENCRYPTION_KEY')
+        const REGION = nconf.get('KMS_REGION')
+        return new KMSEncryptionService(KEY_ID, REGION)
       default:
-        log('WARNING: token encryption disabled')
+        warn('token encryption disabled')
         return new NullEncryptionService()
     }
   }

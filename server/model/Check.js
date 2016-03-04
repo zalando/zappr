@@ -21,7 +21,7 @@ export default db.define('check', {
     autoIncrement: true
   },
   token: {
-    type: Sequelize.STRING,
+    type: Sequelize.TEXT,
     allowNull: false
   },
   type: {
