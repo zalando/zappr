@@ -31,13 +31,14 @@ class App extends Component {
   }
 
   render() {
+    const showLogin = this.props.location.pathname.search(/^\/login/) !== -1
     return (
-      <div className="zpr-app">
-        <Optional if={this.props.location.pathname.search(/^\/login/) === -1}>
+      <div className='zpr-app'>
+        <Optional if={!showLogin}>
           <NavHeader path={this.props.location.pathname}
                      user={this.props.user}/>
         </Optional>
-        <div className="container-fluid">
+        <div className={showLogin ? '' : 'container-fluid'}>
           {this.props.children}
         </div>
       </div>

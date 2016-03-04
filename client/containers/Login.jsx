@@ -1,10 +1,12 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import { Row, Col } from 'react-bootstrap'
+import { Link } from 'react-router'
+import { Row, Col, Image, Navbar } from 'react-bootstrap'
 
-import logo from '../img/zappr.png'
+import logo from '../img/zappr@2x.png'
 import { loginGithub } from '../actions/auth'
 import { logger } from '../../common/debug'
+import zappr from '../img/zappr.png'
 
 const log = logger('login')
 
@@ -33,24 +35,34 @@ class Login extends Component {
   }
 
   render() {
+    const loginButton = <a type='button'
+                           className='btn btn-social btn-github'
+                           disabled={this.props.isAuthenticating}
+                           href='/auth/github'
+                           onClick={this.props.loginGithub}>
+                          <span className='fa fa-github'/>
+                          Sign in with GitHub
+                        </a>
+
     return (
-      <Row className="zpr-login">
-        <Col sm={6} smPush={3} md={4} mdPush={4}>
-          <div className="page-header">
-            <img alt="ZAPPR"
-                 src={logo}
-                 className="img-responsive center-block"/>
+      <section className='zpr-login'>
+        <div style={{flex: '0 0 auto', width: '100%', background: '#ebebeb'}}>
+          <h1 style={{color: '#f16a21', textAlign: 'center', fontFamily: 'minecraftmedium', fontSize: '6rem'}}>ZAPPR</h1>
+          <div style={{margin: '30 0', textAlign: 'center'}}>
+            {loginButton}
           </div>
-          <a type="button"
-             className="btn btn-block btn-social btn-github"
-             disabled={this.props.isAuthenticating}
-             href="/auth/github"
-             onClick={this.props.loginGithub}>
-            <span className="fa fa-github"/>
-            Sign in with GitHub
-          </a>
-        </Col>
-      </Row>
+        </div>
+        <div style={{flex: '0 0 auto'}}>
+          <div className='page-header'>
+            <h1>Protect your <code>master</code> branch!</h1>
+          </div>
+          <p style={{maxWidth: 600, marginBottom: 60, fontSize: '2rem'}}>
+            With ZAPPR you can block merges into any protected branch
+            unless the pull request has all required approvals from colleagues.
+          </p>
+          <img src='http://baconmockup.com/600/400/' />
+        </div>
+      </section>
     )
   }
 }
