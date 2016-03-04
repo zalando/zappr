@@ -24,7 +24,7 @@ export default class RepositoryCheck extends Component {
     }
     const {check, onToggle} = this.props
     const header = (<Row style={style}>
-      <Col sm={1}>
+      <Col sm={2}>
         <Toggle checked={check.isEnabled} isUpdating={check.isUpdating} onToggle={onToggle}/>
       </Col>
       <Col sm={4} style={{marginLeft: 15}}>

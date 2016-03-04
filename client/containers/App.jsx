@@ -37,7 +37,7 @@ class App extends Component {
           <NavHeader path={this.props.location.pathname}
                      user={this.props.user}/>
         </Optional>
-        <div className="container">
+        <div className="container-fluid">
           {this.props.children}
         </div>
       </div>

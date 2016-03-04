@@ -56,6 +56,7 @@ export default class RepositoryList extends Component {
         </ListGroup>
         <Button
             style={{width: '100%'}}
+            disabled={isUpdating}
             onClick={this.onFetchAll.bind(this)}
             bsStyle='primary' lg>
             <i className='fa fa-refresh' />&nbsp;Load all

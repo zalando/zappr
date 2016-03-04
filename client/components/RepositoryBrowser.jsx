@@ -22,15 +22,15 @@ export default class RepositoryBrowser extends Component {
     const selectedRepo = repos.items.find(r => r.full_name === selected)
     return (
       <Row>
-        <Col sm={4}>
+        <Col sm={8} className='col-sm-push-4'>
+          <RepositoryDetail repository={selectedRepo}
+                            toggleCheck={toggleCheck}/>
+        </Col>
+        <Col sm={4} className='col-sm-pull-8'>
           <RepositoryList isUpdating={repos.isFetching}
                           repositories={repos.items}
                           fetchAll={fetchAll}
                           selected={selected}/>
-        </Col>
-        <Col sm={8}>
-          <RepositoryDetail repository={selectedRepo}
-                            toggleCheck={toggleCheck}/>
         </Col>
       </Row>
     )
