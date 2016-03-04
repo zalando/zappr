@@ -1,6 +1,7 @@
 import Sequelize from 'sequelize'
 import dottie from 'dottie'
 
+import User from './User'
 import { db } from './Database'
 import { deserializeJson, flattenToJson } from './properties'
 
@@ -22,7 +23,11 @@ export default db.define('repository', {
   }
 }, {
   scopes: {
-    userId: userId => ({where: {userId}})
+    userId: userId => ({
+      include: [
+        {model: User, where: {id: userId}}
+      ]
+    })
   },
   instanceMethods: {
     setJson: function (path, value) {

@@ -1,7 +1,5 @@
 import GithubService from '../service/GithubService'
-import Approval from '../checks/Approval'
 import { db, Repository, Check } from '../model'
-import { checkHandler } from './CheckHandler'
 import { logger } from '../../common/debug'
 
 const info = logger('repo-handler', 'info')
@@ -17,33 +15,44 @@ class RepositoryHandler {
    *
    * @param {Number} id - Id of the repository
    * @param {Object} user - Current user object
+   * @param {boolean} includeToken
    * @returns {Promise.<Object|null>}
    */
-  onGetOne(id, user) {
+  onGetOne(id, user = null, includeToken = false) {
     if (user) {
-      return Repository.userScope(user).findById(id, {include: [Check]})
+      return Repository.userScope(user).findById(id, {
+        include: [{
+          model: Check,
+          attributes: {exclude: includeToken ? [] : ['token']}
+        }]
+      })
     }
-    return Repository.findById(id, {include: [Check]})
+    return Repository.findById(id, {
+      include: [{
+        model: Check,
+        attributes: {exclude: includeToken ? [] : ['token']}
+      }]
+    })
   }
 
   upsertRepos(db, user, remoteRepos) {
-    return db.transaction(t => {
-              return Promise.all(remoteRepos.map(remoteRepo =>
-                Repository.findOrCreate({
-                  where: {id: remoteRepo.id},
-                  defaults: {
-                    userId: user.id,
-                    json: remoteRepo
-                  },
-                  transaction: t
-                }).
-                then(([localRepo]) => localRepo.update({
-                  json: {...localRepo.get('json'), ...remoteRepo}
-                }, {
-                  transaction: t
-                }))
-              ))
-            })
+    return db.transaction(t =>
+      Promise.all(
+        remoteRepos.map(async(remoteRepo) => {
+          const [repo] = await Repository.findOrCreate({
+            where: {id: remoteRepo.id},
+            defaults: {
+              id: remoteRepo.id,
+              json: remoteRepo
+            },
+            transaction: t
+          })
+          await repo.addUser(user.id, {
+            transaction: t
+          })
+        })
+      )
+    )
   }
 
   /**
@@ -54,14 +63,19 @@ class RepositoryHandler {
    * @param {Boolean} [refresh = false] - Force reloading from Github
    * @returns {Promise<Array.<Object>>}
    */
-  async onGetAll(user, all = false) {
+  async onGetAll(user, all = false, includeToken = false) {
     // load repos
     // if no repos, fetch first page, save and return
     // if repos and all=false, return repos
     // if repos and all=true, fetch all from github, save and return
 
     debug('load repositories from database...')
-    const repos = await Repository.userScope(user).findAllSorted({include: [Check]})
+    const repos = await Repository.userScope(user).findAllSorted({
+      include: [{
+        model: Check,
+        attributes: {exclude: includeToken ? [] : ['token']}
+      }]
+    })
     if (repos.length === 0) {
       const firstPage = await this.githubService.fetchRepos(0, false, user.accessToken)
       info(`${user.username}: Loaded first page from Github`)
@@ -76,10 +90,14 @@ class RepositoryHandler {
 
     // The previously merged repos are not sorted correctly
     // so we need to load them from the database again.
-    return Repository
-              .userScope(user)
-              .findAllSorted({include: [Check]})
-              .then(repos => repos.map(repo => repo.flatten()))
+    return Repository.userScope(user).
+      findAllSorted({
+        include: [{
+          model: Check,
+          attributes: {exclude: includeToken ? [] : ['token']}
+        }]
+      }).
+      then(repos => repos.map(repo => repo.flatten()))
   }
 }
 

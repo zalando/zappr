@@ -4,7 +4,6 @@ import { checkHandler } from './CheckHandler'
 import { repositoryHandler } from './RepositoryHandler'
 import { pullRequestHandler } from './PullRequestHandler'
 import { getCheckByType } from '../checks'
-import { db, Repository, Check } from '../model'
 import nconf from '../nconf'
 import GithubService from '../service/GithubService'
 
@@ -58,7 +57,7 @@ class HookHandler {
    */
   async onHandleHook(payload) {
     const {name, id, owner} = payload.repository
-    const repo = await repositoryHandler.onGetOne(id)
+    const repo = await repositoryHandler.onGetOne(id, null, true)
     if (repo.checks.length) {
       const checks = repo.checks.reduce((m, c) => {m[c.type] = c; return m;}, {})
       // read config
