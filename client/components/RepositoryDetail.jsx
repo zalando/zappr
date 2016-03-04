@@ -23,16 +23,22 @@ export default class RepositoryDetail extends Component {
 
     const {repository} = this.props
     const header = (
-      <h3>
-        <Badge><i className="fa fa-star">&nbsp;</i>{repository.stargazers_count}</Badge>&nbsp;
-        <Badge><i className="fa fa-code-fork">&nbsp;</i>{repository.forks_count}</Badge>&nbsp;
-        <Badge><i className="fa fa-exclamation-circle">&nbsp;</i>{repository.open_issues}</Badge>&nbsp;
-        <a href={repository.html_url}>{repository.full_name}</a>
-      </h3>
+      <h2>
+        {repository.full_name}
+      </h2>
     )
     return (
-      <Panel header={header}>
         <Row>
+          <Col md={12}>
+            {header}
+            <div style={{marginBottom: 30}}>
+              <a href={repository.html_url}><Badge><i style={{color: 'white'}} className="fa fa-github"></i></Badge></a>&nbsp;
+              <Badge><i className="fa fa-star">&nbsp;</i>{repository.stargazers_count}</Badge>&nbsp;
+              <Badge><i className="fa fa-code-fork">&nbsp;</i>{repository.forks_count}</Badge>&nbsp;
+              <Badge><i className="fa fa-exclamation-circle">&nbsp;</i>{repository.open_issues}</Badge>&nbsp;
+            </div>
+          </Col>
+
           <Col md={12}>
             {CHECK_TYPES.
               map(type => ({
@@ -49,7 +55,6 @@ export default class RepositoryDetail extends Component {
               ))}
           </Col>
         </Row>
-      </Panel>
     )
   }
 }
