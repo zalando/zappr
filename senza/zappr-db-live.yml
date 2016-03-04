@@ -1,0 +1,40 @@
+SenzaInfo:
+  StackName: db-zappr
+  Parameters:
+    - DBPassword:
+        Description: "Database password"
+        NoEcho: true
+
+# http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html
+Resources:
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Retain # resource continues to exist after stack deletion
+    Properties:
+      DBInstanceIdentifier: zappr
+      Engine: postgres
+      # http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_PostgreSQL.html#PostgreSQL.Concepts.General.DBVersions
+      EngineVersion: 9.4.5
+      MasterUsername: postgres
+      MasterUserPassword: "{{Arguments.DBPassword}}"
+      # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/t2-instances.html
+      DBInstanceClass: db.t2.small
+      DBParameterGroupName: default.postgres9.4
+      Port: 5432                # ATTENTION: must match DBSecurityGroup
+      MultiAZ: true             # multiple availability zones
+      PubliclyAccessible: false
+      StorageType: standard     # magnetic storage
+      AllocatedStorage: 10      # GB
+      BackupRetentionPeriod: 7  # days
+      PreferredBackupWindow: 01:00-03:00              # hh24:mi-hh24:mi UTC
+      PreferredMaintenanceWindow: sat:04:00-sat:6:00 # ddd:hh24:mi-ddd:hh24:mi UTC
+      AutoMinorVersionUpgrade: true
+      VPCSecurityGroups:
+        - sg-96043df2 # Existing database security group "db-zappr-opensource"
+
+Outputs:
+  DBAddress:
+    Value: { "Fn::Join": [ "", [{"Fn::GetAtt": [DBInstance, Endpoint.Address]},
+                                ":",
+                                {"Fn::GetAtt": [DBInstance, Endpoint.Port]}] ] }
+    Description: "Database Address"

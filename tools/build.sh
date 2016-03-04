@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-readonly DOCKER_REGISTRY="pierone.stups.zalan.do"
-readonly DOCKER_USER="hackweek"
+readonly DOCKER_REGISTRY="registry-write.opensource.zalan.do"
+readonly DOCKER_USER="opensource"
 readonly DOCKER_REPO="zappr"
 readonly DOCKER_IMG=${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_REPO}
 
@@ -45,7 +45,7 @@ npm_build() {
   if [ ! -d "node_modules" ]; then
     npm install
   fi
-  npm run clean && npm run build
+  npm run dist
 }
 
 ########################################
