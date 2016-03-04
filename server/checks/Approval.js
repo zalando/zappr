@@ -155,9 +155,9 @@ export default class Approval {
         // set status to pending first
         await github.setCommitStatus(user, repo, pr.head.sha, pendingPayload, token)
         // read last push date from db
-        const dbPR = await pullRequestHandler.onGet(dbRepoId, issue.number)
+        let dbPR = await pullRequestHandler.onGet(dbRepoId, issue.number)
         if (!dbPR) {
-          throw new Error(`${repository.full_name}#${issue.number}: PR unknown to DB!`)
+          dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, issue.number)
         }
         // get approval count
         const comments = await github.getComments(user, repo, issue.number, formatDate(dbPR.last_push), token)
