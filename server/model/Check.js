@@ -6,7 +6,8 @@ import { deserializeJson } from './properties'
 import { TYPES } from '../checks'
 import { logger } from '../../common/debug'
 
-const log = logger('check')
+const debug = logger('check')
+const info = logger('check', 'info')
 const encryptionService = EncryptionService.create()
 
 /**
@@ -37,17 +38,14 @@ export default db.define('check', {
   schema: db.schema,
   hooks: {
     beforeUpdate: encryptTokenHook,
-    beforeCreate: encryptTokenHook,
-    afterRestore: decryptTokenHook
+    beforeCreate: encryptTokenHook
   }
 })
 
 async function encryptTokenHook(check) {
-  log('encrypt token hook %s', check.token)
-  return await encryptionService.encrypt(check.token)
-}
-
-async function decryptTokenHook(check) {
-  log('decrypt token hook %s', check.token)
-  return await encryptionService.encrypt(check.token)
+  info('encrypt token hook')
+  if (check.token) {
+    const cipher = await encryptionService.encrypt(check.token)
+    check.set('token', cipher)
+  }
 }

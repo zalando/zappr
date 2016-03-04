@@ -1,12 +1,31 @@
 import Sequelize from 'sequelize'
 import nconf from '../nconf'
-
+import EncryptionService from '../service/EncryptionService'
 import { logger } from '../../common/debug'
+
 const log = logger('model')
+const encryptionService = EncryptionService.create()
+
+async function decryptToken(check) {
+  const plain = await encryptionService.decrypt(check.token)
+  check.set('token', plain)
+  return check
+}
+
+async function decryptTokenHook(thing) {
+  if (thing && Array.isArray(thing.checks)) {
+    log('decrypt token hook')
+    const decryptedChecks = await Promise.all(thing.checks.map(async c => await decryptToken(c)))
+  }
+  return thing
+}
 
 function getParameters(driver = nconf.get('DB_DRIVER')) {
   const options = {
     logging: log,
+    hooks: {
+      afterFind: decryptTokenHook
+    },
     typeValidation: true
   }
   switch (driver) {
