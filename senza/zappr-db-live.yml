@@ -23,8 +23,8 @@ Resources:
       Port: 5432                # ATTENTION: must match DBSecurityGroup
       MultiAZ: true             # multiple availability zones
       PubliclyAccessible: false
-      StorageType: standard     # magnetic storage
-      AllocatedStorage: 10      # GB
+      StorageType: gp2          # SSD storage
+      AllocatedStorage: 5       # GB
       BackupRetentionPeriod: 7  # days
       PreferredBackupWindow: 01:00-03:00              # hh24:mi-hh24:mi UTC
       PreferredMaintenanceWindow: sat:04:00-sat:6:00 # ddd:hh24:mi-ddd:hh24:mi UTC
