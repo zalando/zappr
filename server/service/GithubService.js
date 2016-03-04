@@ -107,14 +107,19 @@ export default class GithubService {
   async readZapprFile(user, repo, accessToken) {
     // fetch file info
     const path = ZAPPR_FILE_REPO_PATH.replace('${owner}', user).replace('${repo}', repo)
-    let {content} = await this.fetchPath('GET', path, null, accessToken)
-    // short circuit if there is no such file
-    if (!content) {
+    try {
+      let {content} = await this.fetchPath('GET', path, null, accessToken)
+      // short circuit if there is no such file
+      if (!content) {
+        return {}
+      }
+      // decode file content
+      let file = Buffer(content, 'base64').toString('utf8')
+      return yaml.safeLoad(file)
+    } catch (e) {
+      // No .zappr file found, fall back to default configuration.
       return {}
     }
-    // decode file content
-    let file = Buffer(content, 'base64').toString('utf8')
-    return yaml.safeLoad(file)
   }
 
   async updateWebhookFor(user, repo, events, accessToken) {
