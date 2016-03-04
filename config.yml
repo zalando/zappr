@@ -35,9 +35,9 @@ SQLITE_FILE: ./zappr.sqlite
 
 # Token encryption
 # Options: [~, kms]
-ENCRYPTION_ENGINE: kms
-ENCRYPTION_KEY: arn:aws:kms:eu-west-1:082194939997:key/913dc389-7399-436d-94b8-16ed31d88be7
-KMS_REGION: eu-west-1
+ENCRYPTION_ENGINE: ~
+# ENCRYPTION_KEY: arn:aws:kms:eu-west-1:082194939997:key/913dc389-7399-436d-94b8-16ed31d88be7
+# KMS_REGION: eu-west-1
 
 # HTTP logging
 MORGAN_FORMAT: dev
