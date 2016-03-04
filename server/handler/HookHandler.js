@@ -37,7 +37,7 @@ class HookHandler {
 
     await this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
     await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
-    info('${repo.full_name}: enabled check ${type}')
+    info(`${repo.full_name}: enabled check ${type}`)
   }
 
   async onDisableCheck(user, repository, type) {
@@ -47,7 +47,7 @@ class HookHandler {
 
     await this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
     await checkHandler.onDeleteCheck(repo.id, type)
-    info('${repo.full_name}: disabled check ${type}')
+    info(`${repo.full_name}: disabled check ${type}`)
   }
 
   /**
