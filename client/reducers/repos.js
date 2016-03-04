@@ -1,6 +1,6 @@
 import checks from './checks'
 import { PENDING, SUCCESS, ERROR } from '../actions/status'
-import { GET_REPOS } from '../actions/repos'
+import { GET_REPOS, FILTER_REPOS } from '../actions/repos'
 import { PUT_CHECK, DELETE_CHECK } from '../actions/checks'
 import { logger } from '../../common/debug'
 
@@ -64,9 +64,14 @@ function repo(state = {
 export default function repos(state = {
   isFetching: false,
   error: false,
+  filterBy: '',
   items: []
 }, action) {
   switch (action.type) {
+    case FILTER_REPOS:
+      return Object.assign({}, state, {
+        filterBy: action.payload
+      })
     case GET_REPOS:
       switch (action.status) {
         case PENDING:

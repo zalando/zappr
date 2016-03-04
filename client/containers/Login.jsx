@@ -3,10 +3,10 @@ import { connect } from 'react-redux'
 import { Link } from 'react-router'
 import { Row, Col, Image, Navbar } from 'react-bootstrap'
 
-import logo from '../img/zappr@2x.png'
 import { loginGithub } from '../actions/auth'
 import { logger } from '../../common/debug'
-import zappr from '../img/zappr@2x.png'
+import example from '../img/example.png'
+import logo from '../img/zappr@2x.png'
 
 const log = logger('login')
 
@@ -48,7 +48,7 @@ class Login extends Component {
       <section className='zpr-login'>
         <div style={{flex: '0 0 auto', width: '100%', background: '#ebebeb'}}>
           <div style={{textAlign: 'center', marginTop: 15}}>
-            <img style={{marginLeft: -40}} src={zappr} />
+            <img style={{marginLeft: -40}} src={logo} />
           </div>
           <div style={{margin: '30 0', textAlign: 'center'}}>
             {loginButton}
@@ -61,8 +61,8 @@ class Login extends Component {
           <p style={{maxWidth: 600, marginBottom: 60, fontSize: '2rem'}}>
             With ZAPPR you can block merges into any protected branch
             unless the pull request has all required approvals from colleagues.
+            <img style={{marginTop: 30}} src={example} />
           </p>
-          <img src='http://baconmockup.com/600/400/' />
         </div>
         <footer>
           Made with ♥︎ by <a href='https://zalando.com'>Zalando</a>.<br/>
