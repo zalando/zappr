@@ -1,5 +1,5 @@
 import React, { Component, PropTypes } from 'react'
-import { Panel, Well, Row, Col } from 'react-bootstrap'
+import { Panel, Well } from 'react-bootstrap'
 
 import Toggle from './Toggle.jsx'
 
@@ -19,18 +19,15 @@ export default class RepositoryCheck extends Component {
 
   render() {
     const style = {
-      display: 'flex',
-      alignItems: 'center'
+      marginLeft: 15
     }
     const {check, onToggle} = this.props
-    const header = (<Row style={style}>
-      <Col sm={2}>
+    const header = (
+      <div>
         <Toggle checked={check.isEnabled} isUpdating={check.isUpdating} onToggle={onToggle}/>
-      </Col>
-      <Col sm={4} style={{marginLeft: 15}}>
-        <b>{check.type}</b> check is {check.isEnabled ? 'enabled' : 'disabled'}
-      </Col>
-    </Row>)
+        <b style={style}>{check.type}</b> check is {check.isEnabled ? 'enabled' : 'disabled'}
+      </div>
+    )
     return (
       <Panel header={header}>
         {INFO_TEXT[check.type]}
