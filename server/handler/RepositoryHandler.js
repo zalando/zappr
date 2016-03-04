@@ -2,9 +2,10 @@ import GithubService from '../service/GithubService'
 import Approval from '../checks/Approval'
 import { db, Repository, Check } from '../model'
 import { checkHandler } from './CheckHandler'
-
 import { logger } from '../../common/debug'
-const log = logger('handler')
+
+const info = logger('repo-handler', 'info')
+const debug = logger('repo-handler')
 
 class RepositoryHandler {
   constructor(githubService = new GithubService()) {
@@ -59,13 +60,15 @@ class RepositoryHandler {
     // if repos and all=false, return repos
     // if repos and all=true, fetch all from github, save and return
 
-    log('load repositories from database...')
+    debug('load repositories from database...')
     const repos = await Repository.userScope(user).findAllSorted({include: [Check]})
     if (repos.length === 0) {
       const firstPage = await this.githubService.fetchRepos(0, false, user.accessToken)
+      info(`${user.username}: Loaded first page from Github`)
       await this.upsertRepos(db, user, firstPage)
     } else if (all) {
       const allPages = await this.githubService.fetchRepos(0, true, user.accessToken)
+      info(`${user.username}: Reloaded from Github`)
       await this.upsertRepos(db, user, allPages)
     } else {
       return repos.map(repo => repo.flatten())

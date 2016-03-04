@@ -33,6 +33,10 @@ DB_DRIVER: sqlite
 #DB_SCHEMA: zappr
 SQLITE_FILE: ./zappr.sqlite
 
+# Token encryption
+# Options: [~, kms]
+ENCRYPTION_ENGINE: ~
+
 # HTTP logging
 MORGAN_FORMAT: dev
 MORGAN_THRESH: 0

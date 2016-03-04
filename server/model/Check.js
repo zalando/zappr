@@ -1,8 +1,13 @@
 import Sequelize from 'sequelize'
 
+import EncryptionService from '../service/EncryptionService'
 import { db } from './Database'
 import { deserializeJson } from './properties'
 import { TYPES } from '../checks'
+import { logger } from '../../common/debug'
+
+const log = logger('check')
+const encryptionService = EncryptionService.create()
 
 /**
  * Zappr check. Belongs to a {@link Repository}.
@@ -16,7 +21,8 @@ export default db.define('check', {
     autoIncrement: true
   },
   token: {
-    type: Sequelize.STRING
+    type: Sequelize.STRING,
+    allowNull: false
   },
   type: {
     type: Sequelize.ENUM(...TYPES),
@@ -28,5 +34,20 @@ export default db.define('check', {
     get: deserializeJson('arguments')
   }
 }, {
-  schema: db.schema
+  schema: db.schema,
+  hooks: {
+    beforeUpdate: encryptTokenHook,
+    beforeCreate: encryptTokenHook,
+    afterRestore: decryptTokenHook
+  }
 })
+
+async function encryptTokenHook(check) {
+  log('encrypt token hook %s', check.token)
+  return await encryptionService.encrypt(check.token)
+}
+
+async function decryptTokenHook(check) {
+  log('decrypt token hook %s', check.token)
+  return await encryptionService.encrypt(check.token)
+}

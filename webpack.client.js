@@ -1,7 +1,14 @@
+const fs = require('fs')
 const path = require('path')
+const nconf = require('nconf')
+const yaml = require('js-yaml')
 const webpack = require('webpack')
 const CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+
+nconf.
+  env().
+  defaults(yaml.safeLoad(fs.readFileSync('./config.yml', 'utf8')))
 
 module.exports = {
   entry: {
@@ -32,7 +39,8 @@ module.exports = {
     new ExtractTextPlugin('styles.min.css'),
     new CommonsChunkPlugin('vendor', '0-vendor.min.js'),
     new webpack.DefinePlugin({
-      ZAPPR_HOST: "''" // leave empty to use the domain of the server
+      'process.env.NODE_ENV': JSON.stringify(nconf.get('NODE_ENV')),
+      'HOST_ADDR': "''" // always use the the relative server path
     })
   ],
   devServer: {
