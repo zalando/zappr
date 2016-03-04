@@ -39,7 +39,7 @@ export default class GithubService {
 
     // 300 codes are for github membership checks
     if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
-      error(statusCode, method, path, response.body, options)
+      error(`${statusCode} ${method} ${path}`, response.body)
       throw new Error(response.body ? response.body.message : statusCode)
     }
     else return body
