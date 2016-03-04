@@ -9,12 +9,13 @@ export default class RepositoryBrowser extends Component {
     selected: PropTypes.string.isRequired,
     repos: PropTypes.object.isRequired,
     toggleCheck: PropTypes.func.isRequired,
-    fetchAll: PropTypes.func.isRequired
+    fetchAll: PropTypes.func.isRequired,
+    filterRepos: PropTypes.func.isRequired
   };
 
   static defaultProps = {
     selected: '',
-    repos: {items: []}
+    repos: {items: [], filterBy: ''}
   };
 
   onFetchAll() {
@@ -22,7 +23,7 @@ export default class RepositoryBrowser extends Component {
   }
 
   render() {
-    const {selected, repos, fetchAll, toggleCheck} = this.props
+    const {selected, repos, fetchAll, filterRepos, toggleCheck} = this.props
     const selectedRepo = repos.items.find(r => r.full_name === selected)
     let content = null
     if (selected && selectedRepo) {
@@ -50,6 +51,8 @@ export default class RepositoryBrowser extends Component {
         <Col sm={4} className='col-sm-pull-8'>
           <RepositoryList isUpdating={repos.isFetching}
                           repositories={repos.items}
+                          filterBy={repos.filterBy}
+                          filterRepos={filterRepos}
                           fetchAll={fetchAll}
                           selected={selected}/>
         </Col>

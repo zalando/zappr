@@ -58,9 +58,9 @@ export default class NavHeader extends Component {
             <li className={this.isActive('/')}>
               <Link to="/">Home</Link>
             </li>
-            <li className={this.isActive('/settings')}>
+            {/*<li className={this.isActive('/settings')}>
               <Link to="/settings">Settings</Link>
-            </li>
+            </li>*/}
           </Nav>
           <Nav pullRight>
             <NavDropdown title={displayName || 'anonymous'} id="basic-nav-dropdown">

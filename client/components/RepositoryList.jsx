@@ -9,33 +9,27 @@ export default class RepositoryList extends Component {
     selected: PropTypes.string.isRequired,
     repositories: PropTypes.array.isRequired,
     isUpdating: PropTypes.bool,
+    filterBy: PropTypes.string.isRequired,
+    filterRepos: PropTypes.func.isRequired,
     fetchAll: PropTypes.func.isRequired
   };
 
   static defaultProps = {
-    repositories: []
+    repositories: [],
+    filterBy: '',
+    isUpdating: true
   };
-
-  constructor() {
-    super()
-    this.state = {
-      filterBy: ''
-    }
-  }
 
   onFetchAll() {
     this.props.fetchAll(true)
   }
 
   updateSearch(evt) {
-    this.setState({
-      filterBy: evt.target.value
-    })
+    this.props.filterRepos(evt.target.value)
   }
 
   render() {
-    const {selected, repositories, isUpdating} = this.props
-    const {filterBy} = this.state
+    const {selected, repositories, isUpdating, filterBy} = this.props
     const filteredRepos = repositories.filter(r => fuzzysearch(filterBy, r.full_name))
     const repoList = filteredRepos.length > 0 ?
                       filteredRepos.map((repository, i) => ((

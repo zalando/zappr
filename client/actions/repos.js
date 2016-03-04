@@ -2,6 +2,14 @@ import RepoService from '../service/RepoService'
 import { PENDING, SUCCESS, ERROR } from '../actions/status'
 
 export const GET_REPOS = Symbol('create status')
+export const FILTER_REPOS = Symbol('filter repos')
+
+export function filterRepos(filterBy) {
+  return {
+    type: FILTER_REPOS,
+    payload: filterBy
+  }
+}
 
 const fetchRepos = (status, payload = null) => ({
   type: GET_REPOS,

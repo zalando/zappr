@@ -14,6 +14,9 @@ export default class KMSEncryptionService {
     }
 
     encrypt(plaintext) {
+        if (!plaintext) {
+            return Promise.resolve()
+        }
         return new Promise((resolve, reject) => {
             this.kms.encrypt({ KeyId: this.keyId, Plaintext: plaintext}, (err, data) => {
                 if (err) {
@@ -27,6 +30,9 @@ export default class KMSEncryptionService {
     }
 
     decrypt(cipher) {
+        if (!cipher) {
+            return Promise.resolve()
+        }
         // decode base64
         const blob = new Buffer(cipher, 'base64')
         return new Promise((resolve, reject) => {

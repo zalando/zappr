@@ -4,7 +4,7 @@ import { Row, Col, Alert } from 'react-bootstrap'
 
 import RepositoryBrowser from '../components/RepositoryBrowser.jsx'
 import { toggleCheck } from '../actions/checks'
-import { requestRepos as fetchAll } from '../actions/repos';
+import { requestRepos as fetchAll, filterRepos } from '../actions/repos';
 
 function mapStateToProps(state) {
   return {
@@ -17,11 +17,12 @@ class Home extends Component {
     params: PropTypes.object.isRequired, // React Router route params
     repos: PropTypes.object.isRequired,
     toggleCheck: PropTypes.func.isRequired,
-    fetchAll: PropTypes.func.isRequired
+    fetchAll: PropTypes.func.isRequired,
+    filterRepos: PropTypes.func.isRequired
   };
 
   render() {
-    const {repos, toggleCheck, fetchAll} = this.props
+    const {repos, toggleCheck, fetchAll, filterRepos} = this.props
     const {error} = repos
     const selectedRepo = this.props.params.owner && this.props.params.repository ?
             `${this.props.params.owner}/${this.props.params.repository}` :
@@ -35,6 +36,7 @@ class Home extends Component {
             :
             <RepositoryBrowser repos={repos}
                                fetchAll={fetchAll}
+                               filterRepos={filterRepos}
                                selected={selectedRepo}
                                toggleCheck={toggleCheck}/>
           }
@@ -44,4 +46,4 @@ class Home extends Component {
   }
 }
 
-export default connect(mapStateToProps, {toggleCheck, fetchAll})(Home)
+export default connect(mapStateToProps, {toggleCheck, filterRepos, fetchAll})(Home)
