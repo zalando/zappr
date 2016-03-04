@@ -48,7 +48,7 @@ export default db.define('repository', {
     findAllSorted: function (options) {
       const order = {
         sqlite: ['id', 'ASC'],
-        postgres: [db.json('json.name'), 'ASC']
+        postgres: ['id', 'ASC'] // FIXME: [Sequelize.json('json.full_name'), 'ASC']
       }
       return this.findAll({
         ...options,

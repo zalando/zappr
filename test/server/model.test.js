@@ -20,7 +20,8 @@ describe('Model', () => {
 
   beforeEach(done => Promise.all([
     User.truncate(),
-    Repository.truncate()
+    Repository.truncate(),
+    UserRepository.truncate()
   ]).then(() => done()).catch(done))
 
   describe('User', () => {
@@ -131,7 +132,16 @@ describe('Model', () => {
                 },
                 transaction: t
               })
-              await repo.addUser(userB.id, {
+              // HACK: workaround for https://github.com/sequelize/sequelize/issues/3220
+              await UserRepository.findOrCreate({
+                where: {
+                  userId: userB.id,
+                  repositoryId: repo.id
+                },
+                defaults: {
+                  userId: userB.id,
+                  repositoryId: repo.id
+                },
                 transaction: t
               })
             })

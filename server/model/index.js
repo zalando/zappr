@@ -5,9 +5,10 @@ import PullRequest from './PullRequest'
 import { UserRepository } from './relations'
 
 // Relations, see http://docs.sequelizejs.com/en/latest/docs/associations
+// n:m relations are currently poorly supported: https://github.com/sequelize/sequelize/issues/3220
 // User <(n)---(m)> Repository
-User.belongsToMany(Repository, {through: {model: UserRepository, unique: true}})
-Repository.belongsToMany(User, {through: {model: UserRepository, unique: true}})
+User.belongsToMany(Repository, {through: {model: UserRepository, unique: false}, constraints: false})
+Repository.belongsToMany(User, {through: {model: UserRepository, unique: false}, constraints: false})
 // Repository <(1)---(m)> Check
 Repository.hasMany(Check, {foreignKey: {allowNull: false}})
 Check.belongsTo(Repository, {foreignKey: {allowNull: false}})
