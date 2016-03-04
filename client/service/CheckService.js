@@ -19,7 +19,7 @@ export default class RepoService extends Service {
 
   static enableCheck(check) {
     log('enable check %o', check)
-    return fetch(`/api/repos/${check.repoId}/${check.type}`, {
+    return fetch(Service.url(`/api/repos/${check.repoId}/${check.type}`), {
       method: 'PUT',
       headers: {
         'Accept': 'application/json',
@@ -34,7 +34,7 @@ export default class RepoService extends Service {
 
   static disableCheck(check) {
     log('disable check %o', check)
-    return fetch(`/api/repos/${check.repoId}/${check.type}`, {
+    return fetch(Service.url(`/api/repos/${check.repoId}/${check.type}`), {
       method: 'DELETE',
       headers: {
         'Accept': 'application/json',

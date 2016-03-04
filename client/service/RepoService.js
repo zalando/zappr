@@ -4,7 +4,7 @@ import Service from './Service'
 export default class RepoService extends Service {
 
   static fetchAll() {
-    return fetch('/api/repos', {
+    return fetch(Service.url('/api/repos'), {
       credentials: 'same-origin'
     }).then(response => response.json())
   }
@@ -13,7 +13,7 @@ export default class RepoService extends Service {
    * @deprecated API should not support 'PUT' on whole repository. TODO: method to add 'checks'
    */
   static updateOne(repo) {
-    return fetch(`/api/repos/${repo.id}`, {
+    return fetch(Service.url(`/api/repos/${repo.id}`), {
       method: 'PUT',
       headers: {
         'Accept': 'application/json',
