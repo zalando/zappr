@@ -37,7 +37,7 @@ SenzaComponents:
           DEBUG: zappr:*
           NODE_ENV: production
           HOST_ADDR: https://zappr.opensource.zalan.do
-          ENCRYPTION_ENGINE: kms
+          ENCRYPTION_ENGINE: ~ # TODO: must be kms, see #22
 
   - AppLoadBalancer:
       Type: Senza::WeightedDnsElasticLoadBalancer
