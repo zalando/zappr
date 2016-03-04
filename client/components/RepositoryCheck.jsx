@@ -10,7 +10,7 @@ const INFO_TEXT = {
                those as approvals to merge. If your PR has enough approvals 
                (default: <code>2</code>) the status will be set to successful.
                By default ZAPPR will count comments from anyone, but you can
-               configure this in your <a href='https://github.com/zalando/zappr/blob/master/example-zappr.yml'>
+               configure this in your <a href='https://github.com/zalando/zappr/tree/master/.zappr-example.yml'>
                <code>zappr.yml</code></a> file.</p>
 }
 

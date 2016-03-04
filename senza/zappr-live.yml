@@ -36,11 +36,21 @@ SenzaComponents:
           DB_HOST: zappr.cqu6e27qwq1u.eu-west-1.rds.amazonaws.com
           DEBUG: zappr:*
           NODE_ENV: production
+          ENCRYPTION_ENGINE: kms
+          KMS_REGION: eu-west-1
+          ENCRYPTION_KEY: arn:aws:kms:eu-west-1:082194939997:key/913dc389-7399-436d-94b8-16ed31d88be7
           HOST_ADDR: https://zappr.opensource.zalan.do
-          ENCRYPTION_ENGINE: ~ # TODO: must be kms, see #22
+      AutoScaling:
+        Minimum: 2
+        Maximum: 4
+        # TODO maybe scale based on network when we got some numbers
+        MetricType: CPU
+        ScaleUpThreshold: 70
+        ScaleDownThreshold: 40
 
   - AppLoadBalancer:
       Type: Senza::WeightedDnsElasticLoadBalancer
+      SSLCertificateId: opensource-zalan-do-comodo-20160304
       HTTPPort: 3000
       HealthCheckPath: /health
       SecurityGroups:
