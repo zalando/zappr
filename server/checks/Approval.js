@@ -21,9 +21,11 @@ export default class Approval {
   }
 
   static async countApprovals(github, repository, comments, config, token) {
-    const {pattern} = config
+    const {pattern, ignore} = config
     const fullName = `${repository.full_name}`
     let filtered = comments
+                    // filter ignored users
+                    .filter(c => ignore.indexOf(c.user.login) === -1)
                     // get comments that match specified approval pattern
                     .filter(c => (new RegExp(pattern)).test(c.body) !== -1)
                     // slightly unperformant filtering here:
@@ -130,7 +132,7 @@ export default class Approval {
           }
           // update status
           await github.setCommitStatus(user, repo, pull_request.head.sha, status, token)
-          info(`${repository.full_name}#${number}: PR was reopened, set state to ${state}`)
+          info(`${repository.full_name}#${number}: PR was reopened, set state to ${state} (${approvals}/${minimum})`)
         // if it was synced, ie a commit added to it
         } else if (action === 'synchronize') {
           // update last push in db
@@ -160,8 +162,10 @@ export default class Approval {
           dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, issue.number)
         }
         // get approval count
+        const opener = pr.user.login
+        const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
         const comments = await github.getComments(user, repo, issue.number, formatDate(dbPR.last_push), token)
-        const approvals = await this.countApprovals(github, repository, comments, config.approvals, token)
+        const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
         const state = approvals < minimum ? 'failure' : 'success'
         let status = {
           state,
@@ -170,7 +174,7 @@ export default class Approval {
         }
         // update status
         await github.setCommitStatus(user, repo, pr.head.sha, status, token)
-        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${state}`)
+        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${state} (${approvals}/${minimum})`)
       }
     }
     catch(e) {

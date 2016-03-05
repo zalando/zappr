@@ -62,7 +62,7 @@ class HookHandler {
       const checks = repo.checks.reduce((m, c) => {m[c.type] = c; return m;}, {})
       // read config
       const zapprFileContent = await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
-      const config = Object.assign(DEFAULT_CONFIG, zapprFileContent)
+      const config = Object.assign({}, DEFAULT_CONFIG, zapprFileContent)
       if (checks[Approval.type] && checks[Approval.type].token) {
         Approval.execute(this.github, config, payload, checks[Approval.type].token, repo.id, pullRequestHandler)
         info(`Executed approval hook for ${owner.login}/${name}`)
