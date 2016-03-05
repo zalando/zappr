@@ -25,7 +25,7 @@ export default class Approval {
     const fullName = `${repository.full_name}`
     let filtered = comments
                     // filter ignored users
-                    .filter(c => ignore.indexOf(c.user.login) === -1)
+                    .filter(c => (ignore || []).indexOf(c.user.login) === -1)
                     // get comments that match specified approval pattern
                     .filter(c => (new RegExp(pattern)).test(c.body))
                     // slightly unperformant filtering here:
@@ -110,9 +110,13 @@ export default class Approval {
           // set status to pending first
           sha = pull_request.head.sha
           await github.setCommitStatus(user, repo, pull_request.head.sha, pendingPayload, token)
+          // check if we have PR already and create if we don't
+          let dbPR = await pullRequestHandler.onGet(dbRepoId, number)
+          if (!dbPR) {
+            dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
+          }
           if (action === 'opened' && minimum > 0) {
-            // if it was opened, create pr in our db and set to fail
-            await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
+            // if it was opened, set to fail
             await github.setCommitStatus(user, repo, pull_request.head.sha, {
               state: 'failure',
               description: this.generateStatusMessage(0, minimum),
@@ -122,8 +126,10 @@ export default class Approval {
             return
           }
           // get approvals for pr
-          const comments = await github.getComments(user, repo, number, null, token)
-          const approvals = await this.countApprovals(github, repository, comments, config.approvals, token)
+          const opener = pull_request.user.login
+          const comments = await github.getComments(user, repo, number, formatDate(dbPR.last_push), token)
+          const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
+          const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
           const state = approvals < minimum ? 'failure' : 'success'
           let status = {
             state,
