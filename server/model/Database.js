@@ -83,7 +83,6 @@ class Database extends Sequelize {
     if (schemas.indexOf(this.schema) === -1) {
       const result = await db.createSchema(this.schema)
       log('created schema' + result)
-      console.log('created schema' + result)
     }
 
     try {

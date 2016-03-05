@@ -66,6 +66,7 @@ describe('Approval#execute', () => {
       number: 1,
       updated_at: '2016-03-02T13:37:00Z',
       state: 'open',
+      user: { login: 'stranger'},
       head: {
         sha: 'abcd1234'
       }
@@ -126,6 +127,12 @@ describe('Approval#execute', () => {
     }, {
       body: 'awesome',
       user: { login: 'bar'}
+    }, {
+      body: 'awesome',
+      user: { login: 'bar'}
+    }, {
+      body: 'awesome',
+      user: { login: 'stranger' }
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
