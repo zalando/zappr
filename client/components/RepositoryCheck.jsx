@@ -11,7 +11,7 @@ const INFO_TEXT = {
                (default: <code>2</code>) the status will be set to successful.
                By default ZAPPR will count comments from anyone, but you can
                configure this in your <a href='https://github.com/zalando/zappr/tree/master/.zappr-example.yml'>
-               <code>zappr.yml</code></a> file.</p>
+               <code>.zappr.yml</code></a> file.</p>
 }
 
 export default class RepositoryCheck extends Component {
