@@ -47,7 +47,7 @@
     "babel-preset-react": "6.5.x",
     "babel-preset-stage-1": "6.5.x",
     "babel-preset-stage-3": "6.5.x",
-    "babel-register": "6.6.0",
+    "babel-register": "6.6.5",
     "chai": "3.5.x",
     "couldbe": "1.0.0",
     "css-loader": "0.23.x",
