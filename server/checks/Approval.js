@@ -25,7 +25,7 @@ export default class Approval {
     const fullName = `${repository.full_name}`
     let filtered = comments
                     // get comments that match specified approval pattern
-                    .filter(c => (new RegExp(pattern)).test(c.body) !== -1)
+                    .filter(c => (new RegExp(pattern)).test(c.body))
                     // slightly unperformant filtering here:
                     // kicking out multiple approvals from same person
                     .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
