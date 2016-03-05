@@ -27,7 +27,7 @@ export default class Approval {
                     // filter ignored users
                     .filter(c => ignore.indexOf(c.user.login) === -1)
                     // get comments that match specified approval pattern
-                    .filter(c => (new RegExp(pattern)).test(c.body) !== -1)
+                    .filter(c => (new RegExp(pattern)).test(c.body))
                     // slightly unperformant filtering here:
                     // kicking out multiple approvals from same person
                     .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))

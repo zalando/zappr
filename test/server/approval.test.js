@@ -3,6 +3,36 @@ import { expect } from 'chai'
 import { formatDate } from '../../common/debug'
 import Approval from '../../server/checks/Approval'
 
+describe('Approval#countApprovals', () => {
+  const DEFAULT_REPO = {
+    name: 'hello-world',
+    full_name: 'mfellner/hello-world',
+    owner: {
+      login: 'mfellner'
+    }
+  }
+
+  it('should honor the provided pattern', async (done) => {
+    const comments = [{
+      user: { login: 'prayerslayer' },
+      body: 'awesome :+1:' // does not count
+    }, {
+      user: { login: 'mfellner' },
+      body: ':+1:' // counts
+    }, {
+      user: { login: 'mfellner' },
+      body: ':+1:' // is ignored because mfellner already approved
+    }]
+    try {
+      const approvals = await Approval.countApprovals(null, DEFAULT_REPO, comments, {pattern: '^:\\+1:$'}, null)
+      expect(approvals).to.equal(1)
+      done()
+    } catch(e) {
+      done(e)
+    }
+  })
+})
+
 describe('Approval#execute', () => {
   var github
   var pullRequestHandler
