@@ -34,7 +34,7 @@ class HookHandler {
     types.push(type)
     const evts = findHookEventsFor(types)
 
-    await this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
     await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
     info(`${repo.full_name}: enabled check ${type}`)
   }
@@ -44,7 +44,7 @@ class HookHandler {
     const types = repository.checks.map(c => c.type).filter(t => t !== type)
     const evts = findHookEventsFor(types)
 
-    await this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
     await checkHandler.onDeleteCheck(repo.id, type)
     info(`${repo.full_name}: disabled check ${type}`)
   }
