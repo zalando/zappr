@@ -34,7 +34,7 @@ class HookHandler {
     types.push(type)
     const evts = findHookEventsFor(types)
 
-    await this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
     await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
     info(`${repo.full_name}: enabled check ${type}`)
   }
@@ -44,7 +44,7 @@ class HookHandler {
     const types = repository.checks.map(c => c.type).filter(t => t !== type)
     const evts = findHookEventsFor(types)
 
-    await this.github.updateWebhookFor(user.username, repo.name, evts, user.accessToken)
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
     await checkHandler.onDeleteCheck(repo.id, type)
     info(`${repo.full_name}: disabled check ${type}`)
   }
@@ -62,7 +62,7 @@ class HookHandler {
       const checks = repo.checks.reduce((m, c) => {m[c.type] = c; return m;}, {})
       // read config
       const zapprFileContent = await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
-      const config = Object.assign(DEFAULT_CONFIG, zapprFileContent)
+      const config = Object.assign({}, DEFAULT_CONFIG, zapprFileContent)
       if (checks[Approval.type] && checks[Approval.type].token) {
         Approval.execute(this.github, config, payload, checks[Approval.type].token, repo.id, pullRequestHandler)
         info(`Executed approval hook for ${owner.login}/${name}`)

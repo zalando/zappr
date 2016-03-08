@@ -34,7 +34,8 @@ describe('API', () => {
       // Load fixtures
       fixtures.repos = require('../fixtures/github.user.a.repos.json')
       fixtures.repo = fixtures.repos[0]
-      fixtures.repoName = fixtures.repos[0].name
+      fixtures.repoOwner = fixtures.repo.owner.login
+      fixtures.repoName = fixtures.repo.name
 
       // Configure mountebank
       const mb = await mountebank.start()
@@ -48,7 +49,7 @@ describe('API', () => {
           setBody(require('../fixtures/github.repo.hooks.json')).
         add().
         predicate().
-          setPath(`/repos/test/${fixtures.repoName}/hooks`).
+          setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks`).
           setMethod('GET').
         add().
       add().
@@ -57,7 +58,7 @@ describe('API', () => {
           setStatusCode(200).
         add().
         predicate().
-          setPath(`/repos/test/${fixtures.repoName}/hooks/123`).
+          setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`).
           setMethod('PATCH').
         add().
       add().
@@ -66,7 +67,7 @@ describe('API', () => {
           setStatusCode(200).
         add().
         predicate().
-          setPath(`/repos/test/${fixtures.repoName}/hooks/123`).
+          setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`).
           setMethod('DELETE').
         add().
       add().
@@ -207,7 +208,7 @@ describe('API', () => {
         const calls = await mountebank.calls(imposter.port)
         expect(calls.length).to.equal(5)
         expect(calls[4].method).to.equal('DELETE')
-        expect(calls[4].path).to.equal(`/repos/test/${fixtures.repoName}/hooks/123`)
+        expect(calls[4].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`)
 
         done()
       } catch (e) {
@@ -235,9 +236,9 @@ describe('API', () => {
         expect(calls[0].method).to.equal('GET')
         expect(calls[0].path).to.equal('/user/repos')
         expect(calls[1].method).to.equal('GET')
-        expect(calls[1].path).to.equal(`/repos/test/${fixtures.repoName}/hooks`)
+        expect(calls[1].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks`)
         expect(calls[2].method).to.equal('PATCH')
-        expect(calls[2].path).to.equal(`/repos/test/${fixtures.repoName}/hooks/123`)
+        expect(calls[2].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`)
 
         done()
       } catch (e) {
