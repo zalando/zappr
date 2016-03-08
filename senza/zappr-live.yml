@@ -34,6 +34,8 @@ SenzaComponents:
           SESSION_SECRET: aws:kms:CiA1wrtM1zFZvo2zlXed6Q3HTMMXEQ8SrDTNKDxXNNZamxKnAQEBAgB4NcK7TNcxWb6Ns5V3nekNx0zDFxEPEqw0zSg8VzTWWpsAAAB+MHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAw9thbsYlYpZRGUjqUCARCAO8WFiWy2vSTw8E8GyFNei5kTRqZxaxHNTYk1S6luk4kdtmYf3cqWbdsd1vDr7xoVUbiZzvqKigRdArQh
           DB_PASS: aws:kms:CiA1wrtM1zFZvo2zlXed6Q3HTMMXEQ8SrDTNKDxXNNZamxKdAQEBAgB4NcK7TNcxWb6Ns5V3nekNx0zDFxEPEqw0zSg8VzTWWpsAAAB0MHIGCSqGSIb3DQEHBqBlMGMCAQAwXgYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAxIHhIrh9GFx0XehsICARCAMQuwiejmjTCutq6erqrCPOurhLAYFQ7PuL2ElzlMLRtRGNcFYhTwa7VzC9ZARBuWLyY=
           DB_HOST: zappr.cqu6e27qwq1u.eu-west-1.rds.amazonaws.com
+          DB_NAME: zappr
+          DB_SCHEMA: zappr_data
           DEBUG: zappr:*
           NODE_ENV: production
           ENCRYPTION_ENGINE: kms
