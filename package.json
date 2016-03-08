@@ -84,6 +84,7 @@
     "bootstrap": "3.3.6",
     "bootstrap-social": "4.11.0",
     "bootstrap-toggle": "2.2.1",
+    "classnames": "2.2.3",
     "debug": "2.2.0",
     "dottie": "1.1.1",
     "font-awesome": "4.5.0",
