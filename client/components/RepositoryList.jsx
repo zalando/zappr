@@ -43,6 +43,7 @@ export default class RepositoryList extends Component {
     return (
       <Panel collapsible defaultExpanded header={header}>
         <Input type='search'
+              value={filterBy}
               onChange={this.updateSearch.bind(this)}
               placeholder='zalando/zappr'
               label={'Search for a repository'}/>
