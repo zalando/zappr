@@ -7,7 +7,7 @@ import { logger } from '../../common/debug'
 const error = logger('api', 'error')
 const warn = logger('api', 'warn')
 const info = logger('api', 'info')
-const sha1 = crypto.createHmac('sha1', nconf.get('GITHUB_HOOK_SECRET'))
+const GITHUB_HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
 
 function validateIsCalledFromGithub(ctx, next) {
   const {header, body} = ctx.request
@@ -17,7 +17,9 @@ function validateIsCalledFromGithub(ctx, next) {
     warn(`Request from host ${header.host} is missing X-Hub-Signature header!`)
     return next()
   }
-  const expectedSignature = `sha1=${sha1.update(JSON.stringify(body)).digest('hex')}`
+  const sha1 = crypto.createHmac('sha1', GITHUB_HOOK_SECRET)
+  const hmac = sha1.update(JSON.stringify(body)).digest('hex')
+  const expectedSignature = `sha1=${hmac}`
   if (actualSignature !== expectedSignature) {
     error(`Hook for ${body.repository.full_name} called with invalid signature "${actualSignature}" (expected: "${expectedSignature}") from ${header.host}!`)
     ctx.throw(400)
