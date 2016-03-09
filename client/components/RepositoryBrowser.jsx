@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react'
+import classes from 'classnames'
 import { Row, Button, Col, Alert } from 'react-bootstrap'
 
 import RepositoryList from './RepositoryList.jsx'
@@ -24,20 +25,21 @@ export default class RepositoryBrowser extends Component {
 
   render() {
     const {selected, repos, fetchAll, filterRepos, toggleCheck} = this.props
+    const {isFetching} = repos
     const selectedRepo = repos.items.find(r => r.full_name === selected)
     let content = null
     if (selected && selectedRepo) {
         content = <RepositoryDetail
                       repository={selectedRepo}
                       toggleCheck={toggleCheck}/>
-    } else if (selected && !repos.isFetching) {
+    } else if (selected) {
       content = <Alert bsStyle='danger'>We didn’t find a repository {selected}.
                   <Button
                       style={{marginLeft: 15}}
-                      disabled={repos.isFetching}
+                      disabled={isFetching}
                       lg
                       onClick={this.onFetchAll.bind(this)}>
-                    <i className='fa fa-refresh' />&nbsp;Load all from Github
+                    <i className={classes('fa', 'fa-refresh', {'fa-spin': isFetching})} />&nbsp;Sync with Github
                   </Button>
                 </Alert>
     } else if (!selected) {
@@ -49,7 +51,7 @@ export default class RepositoryBrowser extends Component {
           {content}
         </Col>
         <Col sm={4} className='col-sm-pull-8'>
-          <RepositoryList isUpdating={repos.isFetching}
+          <RepositoryList isUpdating={isFetching}
                           repositories={repos.items}
                           filterBy={repos.filterBy}
                           filterRepos={filterRepos}

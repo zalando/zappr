@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react'
 import { Button, Panel, ListGroup, ListGroupItem, Input } from 'react-bootstrap'
 import fuzzysearch from 'fuzzysearch'
 import RepositoryListItem from './RepositoryListItem.jsx'
-import Spinner from './Spinner.jsx'
+import classes from 'classnames'
 
 export default class RepositoryList extends Component {
   static propTypes = {
@@ -36,24 +36,25 @@ export default class RepositoryList extends Component {
                           <RepositoryListItem key={i} repository={repository}
                                               active={repository.full_name === selected}/>
                         ))) :
-                      <ListGroupItem>Oops, no repo found!</ListGroupItem>
+                      <ListGroupItem>Oops, no repository found! Try the button below, it could help.</ListGroupItem>
+    const header = <header>
+                      Repositories {isUpdating ? <i className='fa fa-refresh fa-spin' /> : `(${repositories.length})`}
+                    </header>
     return (
-      <Panel collapsible defaultExpanded header={`Repositories (${repositories.length})`}>
+      <Panel collapsible defaultExpanded header={header}>
         <Input type='search'
               onChange={this.updateSearch.bind(this)}
               placeholder='zalando/zappr'
               label={'Search for a repository'}/>
-        <ListGroup componentClass="ul" fill>
-          {isUpdating
-              ? (<Spinner size={2}/>)
-              : repoList}
+        <ListGroup componentClass="ul">
+          {repoList}
         </ListGroup>
         <Button
             style={{width: '100%'}}
             disabled={isUpdating}
             onClick={this.onFetchAll.bind(this)}
             bsStyle='primary' lg>
-            <i className='fa fa-refresh' />&nbsp;Load all from Github
+            <i className={classes('fa', 'fa-refresh', {'fa-spin': isUpdating})} />&nbsp;Sync with Github
         </Button>
       </Panel>
     )
