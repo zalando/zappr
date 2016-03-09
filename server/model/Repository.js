@@ -16,6 +16,9 @@ export default db.define('repository', {
     allowNull: false,
     autoIncrement: false
   },
+  hookSecret: {
+    type: Sequelize.TEXT
+  },
   json: {
     type: Sequelize.JSONB,
     allowNull: false,

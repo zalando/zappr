@@ -7,7 +7,8 @@ import session from 'koa-generic-session'
 import bodyParser from 'koa-bodyparser'
 import convert from 'koa-convert'
 import morgan from 'koa-morgan'
-
+import Umzug from 'umzug'
+import Sequelize from 'sequelize'
 import nconf from './nconf'
 import DatabaseStore from './session/database-store'
 import { db } from './model'
@@ -68,12 +69,42 @@ export function init(options = {}) {
  * @param {number} port Port to listen on
  */
 async function start(port = nconf.get('APP_PORT')) {
+  const umzug = new Umzug({
+    storage: 'sequelize',
+    logging: logger('migration', 'info'),
+    migrations: {
+      path: './migrations',
+      pattern: /^\d+[\w-]+\.js$/,
+      params: [db.queryInterface, Sequelize]
+    },
+    storageOptions: {
+      // The configured instance of Sequelize.
+      sequelize: db,
+      // this one is actually undocumented
+      schema: 'zappr_meta',
+      // The name of the to be used model.
+      // (not sure if we need this actually)
+      modelName: 'SequelizeMeta',
+      // The name of table to create if `model` option is not supplied
+      tableName: 'migrations',
+      // The name of table column holding migration name.
+      columnName: 'migration',
+      // The type of the column holding migration name.
+      columnType: new Sequelize.TEXT
+    }
+  })
+  // apply migrations
+  await umzug.up()
+  // sync models
   await db.sync()
   init().listen(port)
   log(`listening on port ${port}`)
 }
 
-if (require.main === module) start().catch(err => {
-  log(err)
-  process.exit(1)
-})
+if (require.main === module) {
+  start()
+  .catch(err => {
+    log(err)
+    process.exit(1)
+  })
+}
