@@ -21,6 +21,7 @@ class RepositoryHandler {
   onGetOne(id, user = null, includeToken = false) {
     if (user) {
       return Repository.userScope(user).findById(id, {
+        attributes: {exclude: includeToken ? [] : ['hookSecret']}
         include: [{
           model: Check,
           attributes: {exclude: includeToken ? [] : ['token']}
@@ -28,6 +29,7 @@ class RepositoryHandler {
       })
     }
     return Repository.findById(id, {
+      attributes: {exclude: includeToken ? [] : ['hookSecret']}
       include: [{
         model: Check,
         attributes: {exclude: includeToken ? [] : ['token']}

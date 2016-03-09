@@ -122,7 +122,7 @@ export default class GithubService {
     }
   }
 
-  async updateWebhookFor(user, repo, events, accessToken) {
+  async updateWebhookFor(user, repo, events, accessToken, secret) {
     debug(`${user}/${repo}: updating webhook with events: ${events.join(", ")}`)
     let path = HOOK_PATH.replace('${owner}', user).replace('${repo}', repo)
     let hook_url = nconf.get('HOST_ADDR') + '/api/hook'
@@ -133,7 +133,8 @@ export default class GithubService {
       events,
       config: {
         url: hook_url,
-        content_type: 'json'
+        content_type: 'json',
+        secret
       }
     }
     // check if it's there already

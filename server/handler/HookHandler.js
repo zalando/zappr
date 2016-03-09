@@ -6,6 +6,7 @@ import { pullRequestHandler } from './PullRequestHandler'
 import { getCheckByType } from '../checks'
 import nconf from '../nconf'
 import GithubService from '../service/GithubService'
+import crypto from 'crypto'
 
 const info = logger('hook', 'info')
 const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
@@ -34,7 +35,14 @@ class HookHandler {
     types.push(type)
     const evts = findHookEventsFor(types)
 
-    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
+    // create hook secret if we don't have it already
+    if (!repository.hookSecret) {
+      // create random 64 hex characters
+      repository.hookSecret = new Buffer(crypto.randomBytes(32)).toString('hex')
+      await repository.save()
+    }
+
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken, repository.hookSecret)
     await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
     info(`${repo.full_name}: enabled check ${type}`)
   }
@@ -44,7 +52,7 @@ class HookHandler {
     const types = repository.checks.map(c => c.type).filter(t => t !== type)
     const evts = findHookEventsFor(types)
 
-    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken, repo.hookSecret)
     await checkHandler.onDeleteCheck(repo.id, type)
     info(`${repo.full_name}: disabled check ${type}`)
   }
