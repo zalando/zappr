@@ -2,9 +2,29 @@ import nconf from '../nconf'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
 import { repositoryHandler } from '../handler/RepositoryHandler'
-
+import crypto from 'crypto'
 import { logger } from '../../common/debug'
 const error = logger('api', 'error')
+const warn = logger('api', 'warn')
+const info = logger('api', 'info')
+const sha1 = crypto.createHmac('sha1', nconf.get('GITHUB_HOOK_SECRET'))
+
+function validateIsCalledFromGithub(ctx, next) {
+  const {header, body} = ctx.request
+  const actualSignature = header['x-hub-signature']
+  // not require signature header for backwards compatibility
+  if (!actualSignature) {
+    warn(`Request from host ${header.host} is missing X-Hub-Signature header!`)
+    return next()
+  }
+  const expectedSignature = `sha1=${sha1.update(JSON.stringify(body)).digest('hex')}`
+  if (actualSignature !== expectedSignature) {
+    error(`Hook for ${body.repository.full_name} called with invalid signature "${actualSignature}" (expected: "${expectedSignature}") from ${header.host}!`)
+    ctx.throw(400)
+  }
+
+  return next()
+}
 
 /**
  * Environment variables endpoint.
@@ -71,7 +91,7 @@ export function repo(router) {
       ctx.throw(e)
     }
   }).
-  post('/api/hook', async (ctx) => {
+  post('/api/hook', validateIsCalledFromGithub, async (ctx) => {
     const hookResult = await hookHandler.onHandleHook(ctx.request.body)
     ctx.response.type = 'application/json'
     ctx.response.status = 200

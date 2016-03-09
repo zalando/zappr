@@ -35,14 +35,7 @@ class HookHandler {
     types.push(type)
     const evts = findHookEventsFor(types)
 
-    // create hook secret if we don't have it already
-    if (!repository.hookSecret) {
-      // create random 64 hex characters
-      repository.hookSecret = new Buffer(crypto.randomBytes(32)).toString('hex')
-      await repository.save()
-    }
-
-    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken, repository.hookSecret)
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
     await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
     info(`${repo.full_name}: enabled check ${type}`)
   }
@@ -52,7 +45,7 @@ class HookHandler {
     const types = repository.checks.map(c => c.type).filter(t => t !== type)
     const evts = findHookEventsFor(types)
 
-    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken, repo.hookSecret)
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
     await checkHandler.onDeleteCheck(repo.id, type)
     info(`${repo.full_name}: disabled check ${type}`)
   }

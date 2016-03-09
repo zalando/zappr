@@ -13,6 +13,7 @@ GITHUB_SCOPES:
   - user:email
   - public_repo
   - admin:repo_hook
+GITHUB_HOOK_SECRET: foo
 GITHUB_URL: https://api.github.com
 
 # Address of the web application host

@@ -7,6 +7,8 @@ const debug = logger('github')
 const info = logger('github', 'info')
 const error = logger('github', 'error')
 
+const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
+
 const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
 const PR_PATH = '/repos/${owner}/${repo}/pulls/${number}'
 const ORG_MEMBER_PATH = '/orgs/${org}/public_members/${user}'
@@ -122,7 +124,7 @@ export default class GithubService {
     }
   }
 
-  async updateWebhookFor(user, repo, events, accessToken, secret) {
+  async updateWebhookFor(user, repo, events, accessToken) {
     debug(`${user}/${repo}: updating webhook with events: ${events.join(", ")}`)
     let path = HOOK_PATH.replace('${owner}', user).replace('${repo}', repo)
     let hook_url = nconf.get('HOST_ADDR') + '/api/hook'
@@ -134,7 +136,7 @@ export default class GithubService {
       config: {
         url: hook_url,
         content_type: 'json',
-        secret
+        secret: HOOK_SECRET
       }
     }
     // check if it's there already
