@@ -6,7 +6,6 @@ import { pullRequestHandler } from './PullRequestHandler'
 import { getCheckByType } from '../checks'
 import nconf from '../nconf'
 import GithubService from '../service/GithubService'
-import crypto from 'crypto'
 
 const info = logger('hook', 'info')
 const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
