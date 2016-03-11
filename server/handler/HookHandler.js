@@ -1,4 +1,4 @@
-import { Approval } from '../checks'
+import { Approval, Autobranch } from '../checks'
 import { logger } from '../../common/debug'
 import { checkHandler } from './CheckHandler'
 import { repositoryHandler } from './RepositoryHandler'
@@ -65,7 +65,11 @@ class HookHandler {
       const config = Object.assign({}, DEFAULT_CONFIG, zapprFileContent)
       if (checks[Approval.type] && checks[Approval.type].token) {
         Approval.execute(this.github, config, payload, checks[Approval.type].token, repo.id, pullRequestHandler)
-        info(`Executed approval hook for ${owner.login}/${name}`)
+        info(`Executed approval hook for ${repo.full_name}`)
+      }
+      if (checks[Autobranch.type] && checks[Autobranch.type].token) {
+        Autobranch.execute(this.github, config, payload, checks[Autobranch.type].token)
+        info(`Executed autobranch hook for ${repo.full_name}`)
       }
     }
     return '"THANKS"'

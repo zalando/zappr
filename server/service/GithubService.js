@@ -7,13 +7,17 @@ const debug = logger('github')
 const info = logger('github', 'info')
 const error = logger('github', 'error')
 
-const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
-const PR_PATH = '/repos/${owner}/${repo}/pulls/${number}'
-const ORG_MEMBER_PATH = '/orgs/${org}/public_members/${user}'
-const STATUS_PATH = '/repos/${owner}/${repo}/statuses/${sha}'
-const COMMENT_PATH = '/repos/${owner}/${repo}/issues/${number}/comments'
-const COLLABORATOR_PATH = '/repos/${owner}/${repo}/collaborators/${user}'
-const ZAPPR_FILE_REPO_PATH = '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH')
+const PATHS = {
+  HOOK: '/repos/${owner}/${repo}/hooks',
+  PR: '/repos/${owner}/${repo}/pulls/${number}',
+  ORG_MEMBER: '/orgs/${org}/public_members/${user}',
+  STATUS: '/repos/${owner}/${repo}/statuses/${sha}',
+  COMMENT: '/repos/${owner}/${repo}/issues/${number}/comments',
+  COLLABORATOR: '/repos/${owner}/${repo}/collaborators/${user}',
+  ZAPPR_FILE_REPO: '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH'),
+  REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
+  CREATE_REF: '/repos/${owner}/${repo}/git/refs'
+}
 
 export default class GithubService {
 
@@ -46,7 +50,7 @@ export default class GithubService {
   }
 
   setCommitStatus(user, repo, sha, status, accessToken) {
-    let path = STATUS_PATH
+    let path = PATHS.STATUS
                 .replace('${owner}', user)
                 .replace('${repo}', repo)
                 .replace('${sha}', sha)
@@ -54,7 +58,7 @@ export default class GithubService {
   }
 
   async isCollaborator(owner, repo, user, accessToken) {
-    let path = COLLABORATOR_PATH
+    let path = PATHS.COLLABORATOR
                 .replace('${owner}', owner)
                 .replace('${repo}', repo)
                 .replace('${user}', user)
@@ -67,7 +71,7 @@ export default class GithubService {
   }
 
   async isMemberOfOrg(org, user, accessToken) {
-    let path = ORG_MEMBER_PATH
+    let path = PATHS.ORG_MEMBER
                 .replace('${org}', org)
                 .replace('${user}', user)
     try {
@@ -79,7 +83,7 @@ export default class GithubService {
   }
 
   getComments(user, repo, number, since, accessToken) {
-    let path = COMMENT_PATH
+    let path = PATHS.COMMENT
                   .replace('${owner}', user)
                   .replace('${repo}', repo)
                   .replace('${number}', number)
@@ -90,7 +94,7 @@ export default class GithubService {
   }
 
   async getPullRequest(user, repo, number, accessToken) {
-    const path = PR_PATH
+    const path = PATHS.PR
                   .replace('${owner}', user)
                   .replace('${repo}', repo)
                   .replace('${number}', number)
@@ -104,9 +108,30 @@ export default class GithubService {
     }
   }
 
+  async getHead(owner, repo, branch, accessToken) {
+    const path = PATHS.REF
+                  .replace('${owner}', owner)
+                  .replace('${repo}', repo)
+                  .replace('${branch}', branch)
+    const ref = await this.fetchPath('GET', path, null, accessToken)
+    return ref.object
+  }
+
+  createBranch(owner, repo, branch, sha, accessToken) {
+    const path = PATHS.CREATE_REF
+                  .replace('${owner}', owner)
+                  .replace('${repo}', repo)
+    const payload = {
+      ref: `refs/heads/${branch}`,
+      sha
+    }
+
+    this.fetchPath('POST', path, payload, accessToken)
+  }
+
   async readZapprFile(user, repo, accessToken) {
     // fetch file info
-    const path = ZAPPR_FILE_REPO_PATH.replace('${owner}', user).replace('${repo}', repo)
+    const path = PATHS.ZAPPR_FILE_REPO.replace('${owner}', user).replace('${repo}', repo)
     try {
       let {content} = await this.fetchPath('GET', path, null, accessToken)
       // short circuit if there is no such file
@@ -124,7 +149,7 @@ export default class GithubService {
 
   async updateWebhookFor(user, repo, events, accessToken) {
     debug(`${user}/${repo}: updating webhook with events: ${events.join(", ")}`)
-    let path = HOOK_PATH.replace('${owner}', user).replace('${repo}', repo)
+    let path = PATHS.HOOK.replace('${owner}', user).replace('${repo}', repo)
     let hook_url = nconf.get('HOST_ADDR') + '/api/hook'
     // payload for hook
     let payload = {

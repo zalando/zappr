@@ -49,6 +49,9 @@ MORGAN_THRESH: 0
 # path to zapprfile in repository
 ZAPPR_FILE_PATH: "/.zappr.yml"
 ZAPPR_DEFAULT_CONFIG:
+  autobranch:
+    pattern: "{number}-{title}"
+    length: 60
   approvals:
     minimum: 2
     pattern: "^:\\+1:$"
