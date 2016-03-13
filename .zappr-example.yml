@@ -13,3 +13,12 @@ approvals:
     # this guy
     users:
       - mfellner
+autobranch:
+  # things in curly brackets are variables that
+  # will be replaced. possible variables:
+  # - number: the issue number
+  # - title: the issue title
+  # - labels: the labels of the issue at opening time
+  pattern: "{number}-{title}"
+  # restrict branch name to maximum this many characters
+  length: 60

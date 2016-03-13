@@ -11,7 +11,15 @@ const INFO_TEXT = {
                (default: <code>2</code>) the status will be set to successful.
                By default ZAPPR will count comments from anyone, but you can
                configure this in your <a href='https://github.com/zalando/zappr/tree/master/.zappr-example.yml'>
-               <code>.zappr.yml</code></a> file.</p>
+               <code>.zappr.yml</code></a> file.
+            </p>,
+  autobranch: <p>When enabling automatic branch creation, ZAPPR will automatically
+                 create a branch in your repository for every opened issue. By
+                 default the branch name will be <code>{'{issue.number}-{issue.title}'}</code>
+                 and maximum 60 characters long, but you can configure this in your
+                 <code>.zappr.yml</code>. Note that non-ASCII characters and
+                 punctuation will be removed.
+              </p>
 }
 
 export default class RepositoryCheck extends Component {
@@ -31,8 +39,8 @@ export default class RepositoryCheck extends Component {
     const {check, onToggle} = this.props
     const header = (
       <div>
-        <Toggle checked={check.isEnabled} isUpdating={check.isUpdating} onToggle={onToggle}/>
-        <b style={style}>{check.type}</b> check is {check.isEnabled ? 'enabled' : 'disabled'}
+        <Toggle checked={check.enabled} isUpdating={check.isUpdating} onToggle={onToggle}/>
+        <b style={style}>{check.name}</b> is {check.enabled ? 'enabled' : 'disabled'}
       </div>
     )
     return (

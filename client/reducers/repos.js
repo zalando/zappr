@@ -1,4 +1,4 @@
-import checks from './checks'
+import checks, {init as initChecks} from './checks'
 import { PENDING, SUCCESS, ERROR } from '../actions/status'
 import { GET_REPOS, FILTER_REPOS } from '../actions/repos'
 import { PUT_CHECK, DELETE_CHECK } from '../actions/checks'
@@ -17,6 +17,7 @@ function repo(state = {
         case PENDING:
           return Object.assign({}, state, {
             isUpdating: true,
+            checks: checks(state.checks, action),
             error: false
           })
         case SUCCESS:
@@ -29,6 +30,7 @@ function repo(state = {
           log(action.payload)
           return Object.assign({}, state, {
             isUpdating: false,
+            checks: checks(state.checks, action),
             error: action.payload
           })
           return state
@@ -39,6 +41,7 @@ function repo(state = {
         case PENDING:
           return Object.assign({}, state, {
             isUpdating: true,
+            checks: checks(state.checks, action),
             error: false
           })
         case SUCCESS:
@@ -51,6 +54,7 @@ function repo(state = {
           log(action.payload)
           return Object.assign({}, state, {
             isUpdating: false,
+            checks: checks(state.checks, action),
             error: action.payload
           })
           return state
@@ -83,7 +87,7 @@ export default function repos(state = {
           return Object.assign({}, state, {
             isFetching: false,
             error: false,
-            items: action.payload.items,
+            items: action.payload.items.map(repo => Object.assign(repo, {checks: initChecks(repo)})),
             lastUpdated: action.payload.receivedAt
           })
         case ERROR:

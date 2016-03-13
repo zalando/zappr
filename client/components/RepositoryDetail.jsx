@@ -4,6 +4,11 @@ import { Row, Col, Panel, Badge } from 'react-bootstrap'
 import RepositoryCheck from './RepositoryCheck.jsx'
 import { TYPES as CHECK_TYPES } from '../service/CheckService'
 
+const TYPE_NAMES = {
+  approval: 'Approval check',
+  autobranch: 'Automatic branch creation'
+}
+
 export default class RepositoryDetail extends Component {
   static propTypes = {
     repository: PropTypes.object.isRequired,
@@ -20,7 +25,6 @@ export default class RepositoryDetail extends Component {
 
   render() {
     if (!this.props.repository.full_name) return null
-
     const {repository} = this.props
     const header = (
       <h2>
@@ -41,16 +45,14 @@ export default class RepositoryDetail extends Component {
 
           <Col md={12}>
             {CHECK_TYPES.
-              map(type => ({
+              map(type => Object.assign({}, {
+                ...repository.checks[type],
                 type,
-                repoId: repository.id,
-                error: repository.error,
-                isUpdating: repository.isUpdating,
-                isEnabled: repository.checks && repository.checks.
-                  findIndex(check => check.type === type) !== -1
+                name: TYPE_NAMES[type],
+                repoId: repository.id
               })).
-              map((check, i) => (
-                <RepositoryCheck key={i} check={check}
+              map(check => (
+                <RepositoryCheck key={check.type} check={check}
                                  onToggle={this.onToggleCheck.bind(this, check)}/>
               ))}
           </Col>
