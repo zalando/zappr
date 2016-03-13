@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react'
+import classes from 'classnames'
 import { Link } from 'react-router'
 
 export default class RepositoryListItem extends Component {
@@ -12,11 +13,12 @@ export default class RepositoryListItem extends Component {
   };
 
   render() {
-    const active = this.props.active ? ' active' : ''
+    const {repository, active} = this.props
+    const hasChecks = Object.keys(repository.checks).filter(c => repository.checks[c].enabled).length > 0
     return (
-      <Link className={`zpr-repository-list-item list-group-item${active}`}
-            to={`/repository/${this.props.repository.full_name}`}>
-        {this.props.repository.full_name}
+      <Link className={classes('zpr-repository-list-item', 'list-group-item', {active: active})}
+            to={`/repository/${repository.full_name}`}>
+        <i className={classes('fa', 'fa-fw', hasChecks ? 'fa-circle' : 'fa-circle-o')} />&nbsp; {repository.full_name}
       </Link>
     )
   }
