@@ -7,6 +7,8 @@ const debug = logger('github')
 const info = logger('github', 'info')
 const error = logger('github', 'error')
 
+const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
+
 const HOOK_PATH = '/repos/${owner}/${repo}/hooks'
 const PR_PATH = '/repos/${owner}/${repo}/pulls/${number}'
 const ORG_MEMBER_PATH = '/orgs/${org}/public_members/${user}'
@@ -133,7 +135,8 @@ export default class GithubService {
       events,
       config: {
         url: hook_url,
-        content_type: 'json'
+        content_type: 'json',
+        secret: HOOK_SECRET
       }
     }
     // check if it's there already
