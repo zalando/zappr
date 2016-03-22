@@ -46,7 +46,7 @@ class Login extends Component {
 
     return (
       <section className='zpr-login'>
-        <div style={{flex: '0 0 auto', width: '100%', background: '#ebebeb'}}>
+        <div style={{flex: '1 1 auto', width: '100%', background: '#ebebeb'}}>
           <div style={{textAlign: 'center', marginTop: 15}}>
             <img style={{marginLeft: -40}} src={logo} />
           </div>
@@ -54,7 +54,7 @@ class Login extends Component {
             {loginButton}
           </div>
         </div>
-        <div style={{flex: '0 0 auto', maxWidth: '100%'}}>
+        <div style={{flex: '1 1 auto', maxWidth: '100%'}}>
           <div className='page-header'>
             <h1>Protect your <code>master</code> branch!</h1>
           </div>
