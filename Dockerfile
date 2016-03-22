@@ -12,6 +12,7 @@ RUN npm install --production && \
 
 COPY dist/ $HOME/dist
 COPY config.yml $HOME/config.yml
+COPY migrations/ $HOME/migrations
 
 RUN chown -R node:node ${HOME} && chmod 0770 ${HOME}
 
