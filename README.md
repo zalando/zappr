@@ -18,21 +18,25 @@ Zappr Features:
 - via a text-based user configuration file that you insert in your repository, you can override GitHub's default settings and endow users with PR approval authorization by inviting them by name, organization and/or contributor status. 
 
 ###Why We Developed Zappr
-GitHub is generally very open to contributions, in that it doesn’t impose restrictions on work flows. While great for establishing openness, this can pose challenges for project developers who want contributors to follow certain protocols/contributor guidelines. This challenge is noted in the "[Dear GitHub](https://github.com/dear-github/dear-github)" letter that went viral in 2015. Zappr is our attempt to restore and improve code review to the process of developing a project on GitHub.
+####Code Review 
+Zappr is our attempt to restore and improve code review to the process of developing a project on GitHub. GitHub doesn’t impose restrictions on project contributions. While great for openness, this can pose challenges for project developers who want contributors to follow certain guidelines. This challenge is noted in the "[Dear GitHub](https://github.com/dear-github/dear-github)" letter that went viral in 2015.  
 
-We are proponents of being able to do as much work as possible in GitHub, using GitHub. When working with compliance requirements, this can get tricky: how can devs employ the four-eyes principle in GitHub? Zappr aims to address this by applying a review/approval function to project workflow at a critical point of transition. We think it could be very useful for larger open-source projects that can't rely on a handful of admins to handle all PRs without sacrificing quality control. 
+####Compliance
+We are proponents of being able to do as much work as possible in GitHub, using GitHub. When working with compliance requirements, howevr, this can get tricky: how can devs employ the four-eyes principle in GitHub? Zappr aims to address this by applying a review/approval function to project workflow at a critical point of transition. 
+
+####No More Bottlenecks
+We think it could be very useful for larger open-source projects that can't rely on a handful of admins to handle all PRs without sacrificing quality control. 
 
 ### Technical Requirements
 This is easy: All you need is a GitHub username. No setup is required. To start using Zappr on a specific project, you *do* have to opt-in as a project/repo owner. Then you're set.
 
 ### Setup and Running Zappr
 1. Using your GitHub account, log in to Zappr [here](https://zappr.opensource.zalan.do/login). 
-2. Authorize the application and type in your password to export your [GitHub credentials](https://github.com/settings/applications)
+2. Authorize the application and type in your password to export your [GitHub credentials](https://github.com/settings/applications).
 3. You'll see a dashboard with all of your repositories listed in a column at left. Scroll all the way down to the bottom of this column and click the blue "Sync with GitHub button." (You will only need to do this whenever you add new repositories to your GitHub account.) 
-4. To enable Zappr on a specific repository, use the search function. You'll get a screen like this:
-
-[include screenshot]
-5. Switch the toggle to "On." At this time, you can customize your configuration by adding a zappr.yml file to your repository. 
+4. To enable Zappr on a specific repository, use the search function. You'll get a screen like this: [include screenshot]
+5. Switch the toggle to "On": [screenshot]
+6. At this time, you can customize your configuration by adding a zappr.yml file to your repository. 
 
 
 ```
