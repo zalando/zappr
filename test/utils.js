@@ -10,7 +10,7 @@ export function waitFor(test, timeLeft = 100) {
       } else if (test()) {
         return resolve(null)
       } else {
-        wait(test, timeLeft - 10, resolve, reject);
+        wait(test, timeLeft - 10, resolve, reject)
       }
     }, 10))
   }

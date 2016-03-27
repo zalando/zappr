@@ -8,7 +8,8 @@ const info = logger('encryption', 'info')
 const log = logger('encryption')
 
 export default class EncryptionService {
-  static instance
+  static instance;
+
   static create() {
     if (!this.instance) {
       const engine = nconf.get('ENCRYPTION_ENGINE')
