@@ -1,0 +1,71 @@
+:idprefix:
+:idseparator: -
+ifdef::env-github[:outfilesuffix: .adoc]
+
+= API
+
+== Client resources
+
+Called by the Zappr client.
+
+=== Enable zappr for a repository
+
+*POST /api/repos/:id/checks*
+
+request:
+
+[source,js]
+----
+{
+  "type": "approval"
+}
+----
+
+response:
+
+[source,js]
+----
+{
+  "id": 1,
+  "type": "approval"
+}
+----
+
+For the repository with the given ID:
+
+. Create footnote:[https://developer.github.com/v3/repos/hooks/#create-a-hook] or
+  update footnoteref:[edithook, https://developer.github.com/v3/repos/hooks/#edit-a-hook] a webhook for the
+  events footnote:[https://developer.github.com/webhooks/#events] `pull_request`, `pull_request_review_comment`
+. Create or update a <<models#webhook,webhook>> entity in the database
+.. create a new entity if none exists for this repository
+.. update an existing entity with the events required by this check
+. Create a new <<models#check,check>> entity in the database
+
+=== Disable zappr for a repository
+
+*DELETE /api/repos/:id/checks/:check_id*
+
+For the repository with the given ID:
+
+. Delete footnote:[https://developer.github.com/v3/repos/hooks/#delete-a-hook] or
+  update footnoteref:[edithook] the associated webhook
+. Delete or update the corresponding <<models#webhook,webhook>> entity in the database
+. Delete the corresponding <<models#check,check>> entity in the database
+. Delete all corresponding <<models#status,status>> entities in the database
+
+== Webhook endpoints
+
+Called by the Github service.
+
+=== pull_request
+
+*POST /api/webhooks/pull_request*
+
+* <<events#opened,opened>>
+* <<events#closed,closed>>
+
+=== pull_request_review_comment
+
+*POST /api/webhooks/pull_request_review_comment*
+
+* <<events#created,created>>

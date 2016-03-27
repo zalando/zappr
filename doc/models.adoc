@@ -1,0 +1,89 @@
+:idprefix:
+:idseparator: -
+ifdef::env-github[:outfilesuffix: .adoc]
+
+= Models
+
+[[user]]
+[caption="", options="header"]
+.User
+|===
+|name |type
+
+|id
+|BIGINT
+
+|json
+|JSONB
+|===
+
+* hasMany <<repository,Repositories>>
+
+[[repository]]
+[caption="Repository - ", options="header"]
+.Github repository
+|===
+|name |type
+
+|id
+|BIGINT
+
+|json
+|JSONB
+|===
+
+* belongsTo <<user,User>>
+* hasMany <<check,Checks>>
+* hasMany <<webhook,Webhooks>>
+* hasMany <<status,Statuses>>
+
+[[check]]
+[caption="Check - ", options="header"]
+.Zappr <<checks#,check>>
+|===
+|name |type
+
+|id
+|BIGINT
+
+|type
+|ENUM
+
+|arguments
+|JSONB
+|===
+
+* belongsTo <<repository,Repository>>
+
+[[webhook]]
+[caption="Webhook - ", options="header"]
+.Github web hook
+|===
+|name |type
+
+|id
+|BIGINT
+
+|json
+|JSONB
+|===
+
+* belongsTo <<repository,Repository>>
+
+[[status]]
+[caption="Status - ", options="header"]
+.Github status
+|===
+|name |type
+
+|id
+|BIGINT
+
+|ref
+|STRING
+
+|json
+|JSONB
+|===
+
+* belongsTo <<repository,Repository>>

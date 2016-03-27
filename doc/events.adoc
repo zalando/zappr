@@ -1,0 +1,37 @@
+:idprefix:
+:idseparator: -
+ifdef::env-github[:outfilesuffix: .adoc]
+
+[discrete]
+= Events
+
+[discrete]
+== PullRequest
+
+React to the PullRequest event.footnote:[https://developer.github.com/v3/activity/events/types/#pullrequestevent] 
+
+[discrete]
+=== opened
+
+. Submit a new _pending_ status.footnote:[https://developer.github.com/v3/repos/statuses/#create-a-status]
+. Create a new _status_ <<models#status,entity>> in the database.
+
+[discrete]
+=== closed
+
+do nothing (?)
+
+[discrete]
+== PullRequestReviewCommentEvent
+
+React to the PullRequestReviewComment event.footnote:[https://developer.github.com/v3/activity/events/types/#pullrequestreviewcommentevent]
+
+[discrete]
+=== created
+
+. Apply <<checks#approval,Approval>> check
+. Submit a new status to the Github API
+.. Create a new status
+... `success` if all positive check requirements are met (approval)
+... `failure` if all negative check requirements are met (disapproval)
+.. Update the `pending` status (optional)
