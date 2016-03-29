@@ -44,7 +44,7 @@ export GITHUB_CLIENT_ID=<your-client-id>
 export GITHUB_CLIENT_SECRET=<your-client-secret>
 ```
 
-**Build & run:**
+**Build and Run:**
 
 ```
 npm install
@@ -52,7 +52,7 @@ npm run build
 npm start
 ```
 
-**Debug client & server:**
+**Debug Client and Server:**
 
 ```
 npm run build-client -- -d
@@ -81,7 +81,7 @@ window.DEBUG.enable('zappr:*')
 * `npm run test-server` - run only server tests
 * `npm run test-karma` - run Karma (UI) tests
 
-**Docker image:**
+**Docker Image:**
 
 ```
 ./tools/build.sh
@@ -95,3 +95,12 @@ Please read our [contributor guidelines](https://github.com/zalando/zappr/blob/m
 We're developing additional documentation [here](doc/readme.md). Check back for updates.
 
 ## License
+The MIT License (MIT)
+
+Copyright (c) 2015 Zalando SE
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
