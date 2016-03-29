@@ -8,8 +8,10 @@ const CONFIG = {
     length: 60
   }
 }
+const TOKEN = 'token'
 const REPO = {
   name: 'hello-world',
+  default_branch: 'master',
   owner: {
     login: 'mfellner'
   }
@@ -60,30 +62,30 @@ describe('Autobranch', () => {
 
     beforeEach(() => {
       github = {
-        getHeadCommit: sinon.stub().returns(REF),
+        getHead: sinon.stub().returns(REF),
         createBranch: sinon.spy()
       }
     })
 
-    it('should create a branch of the master head ref', async (done) => {
+    it('should create a branch from the default branch head ref', async (done) => {
       try {
-        await Autobranch.execute(github, CONFIG, OPEN_PAYLOAD, 'token')
-        expect(github.getHeadCommit.calledOnce).to.be.true
+        await Autobranch.execute(github, CONFIG, OPEN_PAYLOAD, TOKEN)
+        expect(github.getHead.calledOnce).to.be.true
         expect(github.createBranch.calledOnce).to.be.true
-        const headArgs = github.getHeadCommit.args[0]
+        const headArgs = github.getHead.args[0]
         const branchArgs = github.createBranch.args[0]
         expect(headArgs).to.deep.equal([
           REPO.owner.login,
           REPO.name,
-          'master',
-          'token'
+          REPO.default_branch,
+          TOKEN
         ])
         expect(branchArgs).to.deep.equal([
           REPO.owner.login,
           REPO.name,
           '124-this-should-hve-1-emoji-for-sure',
           REF.sha,
-          'token'
+          TOKEN
         ])
         done()
       } catch(e) {
@@ -94,8 +96,8 @@ describe('Autobranch', () => {
     it('should ignore non-opened issues', async (done) => {
       const NOT_OPEN = Object.assign({}, OPEN_PAYLOAD, {action: 'closed'})
       try {
-        await Autobranch.execute(github, CONFIG, NOT_OPEN, 'token')
-        expect(github.getHeadCommit.callCount).to.equal(0)
+        await Autobranch.execute(github, CONFIG, NOT_OPEN, TOKEN)
+        expect(github.getHead.callCount).to.equal(0)
         expect(github.createBranch.callCount).to.equal(0)
         done()
       } catch(e) {
