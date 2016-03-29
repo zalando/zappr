@@ -56,7 +56,7 @@ class HookHandler {
    * @return {json}
    */
   async onHandleHook(payload) {
-    const {name, id, owner} = payload.repository
+    const {name, id, owner, full_name} = payload.repository
     const repo = await repositoryHandler.onGetOne(id, null, true)
     if (repo.checks.length) {
       const checks = repo.checks.reduce((m, c) => {m[c.type] = c; return m;}, {})
@@ -65,11 +65,11 @@ class HookHandler {
       const config = Object.assign({}, DEFAULT_CONFIG, zapprFileContent)
       if (checks[Approval.type] && checks[Approval.type].token) {
         Approval.execute(this.github, config, payload, checks[Approval.type].token, repo.id, pullRequestHandler)
-        info(`Executed approval hook for ${repo.full_name}`)
+        info(`Executed approval hook for ${full_name}`)
       }
       if (checks[Autobranch.type] && checks[Autobranch.type].token) {
         Autobranch.execute(this.github, config, payload, checks[Autobranch.type].token)
-        info(`Executed autobranch hook for ${repo.full_name}`)
+        info(`Executed autobranch hook for ${full_name}`)
       }
     }
     return '"THANKS"'

@@ -41,17 +41,16 @@ export default class Autobranch {
 
   static async execute(github, config, hookPayload, token) {
     const {action, issue, repository} = hookPayload
-
     // only interested in open events right now
     if (action !== 'opened') {
+      info(`${repository.full_name}: Ignoring issue because action not "opened" (${action}).`)
       return;
     }
-
-    const owner = repository.owner.login
-    const repo = repository.name
-    const branchName = this.createBranchNameFromIssue(issue, config.autobranch)
-    const {sha} = await github.getHeadCommit(owner, repo, 'master', token)
     try {
+      const owner = repository.owner.login
+      const repo = repository.name
+      const branchName = this.createBranchNameFromIssue(issue, config.autobranch)
+      const {sha} = await github.getHead(owner, repo, repository.default_branch, token)
       // branch could exist already
       await github.createBranch(owner, repo, branchName, sha, token)
       info(`Created branch ${branchName} for ${sha} in ${repository.full_name}`)
