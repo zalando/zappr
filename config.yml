@@ -9,6 +9,7 @@ SESSION_SECRET: secret
 # own values as defined in your Github account.
 GITHUB_CLIENT_ID: id
 GITHUB_CLIENT_SECRET: secret
+GITHUB_HOOK_SECRET: captainHook
 GITHUB_SCOPES:
   - user:email
   - public_repo

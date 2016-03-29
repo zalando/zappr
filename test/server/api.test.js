@@ -1,6 +1,7 @@
 import nconf from 'nconf'
 import supertest from 'supertest-as-promised'
 import { expect } from 'chai'
+import crypto from 'crypto'
 
 import MountebankClient from '../MountebankClient'
 import MockStrategy from '../passport/MockStrategy'
@@ -183,7 +184,40 @@ describe('API', () => {
   })
 
   describe('POST /api/hook', () => {
-    it('should return THANKS');
+    it('should return THANKS')
+
+    it('should validate x-hub-signature if provided', async(done) => {
+      try {
+        await request.get('/api/repos')
+        const body = {repository: fixtures.repo}
+        const sha1 = crypto.createHmac('sha1', 'captainHook')
+        const signature = sha1.update(JSON.stringify(body)).digest('hex')
+
+        // wrong signature => 400
+        await request
+              .post('/api/hook')
+              .set('X-Hub-Signature', 'foo')
+              .send(body)
+              .expect(400)
+
+        // no signature => 200
+        await request
+              .post('/api/hook')
+              .send(body)
+              .expect(200)
+
+        // correct signature => 200
+        await request
+              .post('/api/hook')
+              .set('X-Hub-Signature', `sha1=${signature}`)
+              .send(body)
+              .expect(200)
+
+        done()
+      } catch(e) {
+        done(e)
+      }
+    })
   })
 
   describe('DELETE /api/repos/:id/:type', () => {
@@ -239,7 +273,10 @@ describe('API', () => {
         expect(calls[1].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks`)
         expect(calls[2].method).to.equal('PATCH')
         expect(calls[2].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`)
-
+        // patch call should contain hook secret
+        const body = JSON.parse(calls[2].body)
+        expect(body).to.have.deep.property('config.secret')
+        expect(body.config.secret).to.equal('captainHook')
         done()
       } catch (e) {
         done(e)
