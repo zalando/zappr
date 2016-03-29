@@ -16,17 +16,19 @@ export function init(repo) {
 
 export default function checks(state = {}, action) {
   const checks = Object.assign({}, state)
-  checks[action.payload.type] = checks[action.payload.type] || {}
+  const checkType = action.check
+  checks[checkType] = checks[checkType] || {}
   if (action.status === PENDING) {
-    checks[action.payload.type].isUpdating = true
-    checks[action.payload.type].error = false
+    checks[checkType].isUpdating = true
+    checks[checkType].error = false
   } else if (action.status === SUCCESS) {
-    checks[action.payload.type].isUpdating = false
-    checks[action.payload.type].error = false
-    checks[action.payload.type].enabled = action.type === PUT_CHECK
+    checks[checkType].isUpdating = false
+    checks[checkType].error = false
+    checks[checkType].enabled = action.type === PUT_CHECK
   } else if (action.status === ERROR) {
-    checks[action.payload.type].isUpdating = false
-    checks[action.payload.type].error = action.payload
+    checks[checkType].isUpdating = false
+    checks[checkType].error = action.payload
   }
+  console.debug(state, checkType, action, checks);
   return checks
 }
