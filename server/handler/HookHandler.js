@@ -59,7 +59,10 @@ class HookHandler {
     const {name, id, owner} = payload.repository
     const repo = await repositoryHandler.onGetOne(id, null, true)
     if (repo.checks.length) {
-      const checks = repo.checks.reduce((m, c) => {m[c.type] = c; return m;}, {})
+      const checks = repo.checks.reduce((m, c) => {
+        m[c.type] = c
+        return m
+      }, {})
       // read config
       const zapprFileContent = await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
       const config = Object.assign({}, DEFAULT_CONFIG, zapprFileContent)
