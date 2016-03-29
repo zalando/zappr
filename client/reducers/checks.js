@@ -9,7 +9,7 @@ export function init(repo) {
     enabled: true
   }))
   .reduce((state, check) => {
-    state[check.type] = check;
+    state[check.type] = check
     return state
   }, {})
 }
@@ -29,6 +29,6 @@ export default function checks(state = {}, action) {
     checks[checkType].isUpdating = false
     checks[checkType].error = action.payload
   }
-  console.debug(state, checkType, action, checks);
+  console.debug(state, checkType, action, checks)
   return checks
 }

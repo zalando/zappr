@@ -44,7 +44,7 @@ export default class Autobranch {
     // only interested in open events right now
     if (action !== 'opened') {
       info(`${repository.full_name}: Ignoring issue because action not "opened" (${action}).`)
-      return;
+      return
     }
     try {
       const owner = repository.owner.login
