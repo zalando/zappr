@@ -1,13 +1,13 @@
 import Sequelize from 'sequelize'
 import nconf from '../nconf'
-import EncryptionService from '../service/EncryptionService'
+import * as EncryptionServiceCreator from '../service/EncryptionServiceCreator'
 import { logger } from '../../common/debug'
 
 import { User, Repository, UserRepository, Check, PullRequest, Session } from './'
 
 const log = logger('model')
 const error = logger('model', 'error')
-const encryptionService = EncryptionService.create()
+const encryptionService = EncryptionServiceCreator.create()
 
 async function decryptToken(check) {
   const plain = await encryptionService.decrypt(check.token)
