@@ -8,35 +8,58 @@
 
 ***
 
-##Zappr: Enhance your GitHub pull-request workflow 
+## Zappr: Enhance your GitHub pull-request workflow
 
-Zappr is a GitHub integration built to enhance your project workflow. Built by open-source enthusiasts, it's aimed at helping developers to increase productivity and improve open-source project quality. It does this primarily by removing bottlenecks around pull request approval and helping project owners to halt "rogue" pull requests before they're merged into the master branch.
+Zappr is a GitHub integration built to enhance your project workflow. Built by open-source enthusiasts,
+it's aimed at helping developers to increase productivity and improve open-source project quality.
+It does this primarily by removing bottlenecks around pull request approval and helping project owners to
+halt "rogue" pull requests before they're merged into the master branch.
 
 Zappr Features:
+
 - you can apply it and enable/disable approval checks per repository, with the simple flip of a toggle
 - you can configure what counts an approval and what doesn’t
-- via a text-based user configuration file that you insert in your repository, you can override GitHub's default settings and endow users with PR approval authorization by inviting them by name, organization and/or contributor status. 
+- via a text-based user configuration file that you insert in your repository,
+  you can override GitHub's default settings and endow users with PR approval authorization
+  by inviting them by name, organization and/or contributor status.
 
-###Why We Developed Zappr
-####Code Review 
-Zappr is our attempt to restore and improve code review to the process of developing a project on GitHub. GitHub doesn’t impose restrictions on project contributions. While great for openness, this can pose challenges for project developers who want contributors to follow certain guidelines. This challenge is noted in the "[Dear GitHub](https://github.com/dear-github/dear-github)" letter that went viral in 2015.  
+### Why We Developed Zappr
 
-####Compliance
-We are proponents of being able to do as much work as possible in GitHub, using GitHub. When working with compliance requirements, howevr, this can get tricky: how can devs employ the four-eyes principle in GitHub? Zappr aims to address this by applying a review/approval function to project workflow at a critical point of transition. 
+#### Code Review
 
-####No More Bottlenecks
-We think it could be very useful for larger open-source projects that can't rely on a handful of admins to handle all PRs without sacrificing quality control. 
+Zappr is our attempt to restore and improve code review to the process of developing a project on GitHub.
+GitHub doesn’t impose restrictions on project contributions. While great for openness, this can pose challenges
+for project developers who want contributors to follow certain guidelines. This challenge is noted in the
+"[Dear GitHub](https://github.com/dear-github/dear-github)" letter that went viral in 2015.
+
+#### Compliance
+
+We are proponents of being able to do as much work as possible in GitHub, using GitHub. When working with
+compliance requirements, howevr, this can get tricky: how can devs employ the four-eyes principle in GitHub?
+Zappr aims to address this by applying a review/approval function to project workflow at a critical point of transition.
+
+#### No More Bottlenecks
+
+We think it could be very useful for larger open-source projects that can't rely on a handful of admins to
+handle all PRs without sacrificing quality control.
 
 ### Technical Requirements
-This is easy: All you need is a GitHub username. No setup is required. To start using Zappr on a specific project, you *do* have to opt-in as a project/repo owner. Then you're set.
+
+This is easy: All you need is a GitHub username. No setup is required. To start using Zappr on a specific project,
+you *do* have to opt-in as a project/repo owner. Then you're set.
 
 ### Setup and Running Zappr
-1. Using your GitHub account, log in to Zappr [here](https://zappr.opensource.zalan.do/login). 
-2. Authorize the application and type in your password to export your [GitHub credentials](https://github.com/settings/applications).
-3. You'll see a dashboard with all of your repositories listed in a column at left. Scroll all the way down to the bottom of this column and click the blue "Sync with GitHub button." (You will only need to do this whenever you add new repositories to your GitHub account.) 
-4. To enable Zappr on a specific repository, use the search function. You'll get a screen like this: [include screenshot]
+
+1. Using your GitHub account, log in to Zappr [here](https://zappr.opensource.zalan.do/login).
+2. Authorize the application and type in your password to export your
+[GitHub credentials](https://github.com/settings/applications).
+3. You'll see a dashboard with all of your repositories listed in a column at left.
+   Scroll all the way down to the bottom of this column and click the blue "Sync with GitHub button."
+   (You will only need to do this whenever you add new repositories to your GitHub account.)
+4. To enable Zappr on a specific repository, use the search function.
+   You'll get a screen like this: [include screenshot]
 5. Switch the toggle to "On": [screenshot]
-6. At this time, you can customize your configuration by adding a zappr.yml file to your repository. 
+6. At this time, you can customize your configuration by adding a zappr.yml file to your repository.
 
 
 ```
@@ -88,19 +111,33 @@ window.DEBUG.enable('zappr:*')
 ```
 
 ## Contributing to Zappr
-Please read our [contributor guidelines](https://github.com/zalando/zappr/blob/master/CONTRIBUTING.md) for more details. And please check [these open issues](https://github.com/zalando/zappr/issues) for specific tasks.  
+Please read our [contributor guidelines](https://github.com/zalando/zappr/blob/master/CONTRIBUTING.md) for more details.
+And please check [these open issues](https://github.com/zalando/zappr/issues) for specific tasks.
 
 ## Documentation
 
 We're developing additional documentation [here](doc/readme.md). Check back for updates.
 
 ## License
+
 The MIT License (MIT)
 
 Copyright (c) 2016 Zalando SE
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
