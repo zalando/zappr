@@ -1,13 +1,13 @@
 import Sequelize from 'sequelize'
 
-import EncryptionService from '../service/EncryptionService'
+import * as EncryptionServiceCreator from '../service/EncryptionServiceCreator'
 import { db } from './Database'
 import { deserializeJson } from './properties'
 import { TYPES } from '../checks'
 import { logger } from '../../common/debug'
 
 const debug = logger('check')
-const encryptionService = EncryptionService.create()
+const encryptionService = EncryptionServiceCreator.create()
 
 /**
  * Zappr check. Belongs to a {@link Repository}.
