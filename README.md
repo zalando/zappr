@@ -61,6 +61,9 @@ you *do* have to opt-in as a project/repo owner. Then you're set.
 5. Switch the toggle to "On": [screenshot]
 6. At this time, you can customize your configuration by adding a zappr.yml file to your repository.
 
+### Development
+
+Export your [Github credentials](https://github.com/settings/applications):
 
 ```
 export GITHUB_CLIENT_ID=<your-client-id>
