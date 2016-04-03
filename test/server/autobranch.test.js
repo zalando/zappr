@@ -22,7 +22,9 @@ const REF = {
 const ISSUE = {
   number: 124,
   labels: [],
-  title: '💡 This should häve 1 emoji 😈 for sure'
+  // 💡 === 0xD83D 0xDCA1
+  // 😈 === 0xD83D 0xDE08
+  title: `${unicode(0xD83D, 0xDCA1)} This should häve 1 emoji ${unicode(0xD83D, 0xDE08)} for sure`
 }
 const OPEN_PAYLOAD = {
   repository: REPO,
@@ -30,31 +32,35 @@ const OPEN_PAYLOAD = {
   issue: ISSUE
 }
 
+function unicode() {
+  return Array.from(arguments).reduce((s, i) => s + String.fromCharCode(i), '')
+}
+
 describe('Autobranch', () => {
   describe('#createBranchNamefromIssue', () => {
     const branchName = Autobranch.createBranchNameFromIssue
-    it('should drop emojis', () => {
-      expect(branchName(ISSUE, CONFIG.autobranch)).to.equal('124-this-should-hve-1-emoji-for-sure')
+    it('should allow emojis', () => {
+      expect(branchName(ISSUE, CONFIG.autobranch)).to.equal('124-💡-this-should-häve-1-emoji-😈-for-sure')
     })
-    it('should drop japanese', () => {
+    it('should allow japanese', () => {
       const NIPPON = Object.assign({}, ISSUE, { title: 'なうてててしか' })
-      expect(branchName(NIPPON, CONFIG.autobranch)).to.equal('124-')
+      expect(branchName(NIPPON, CONFIG.autobranch)).to.equal('124-なうてててしか')
     })
-    it('should preserve ascii', () => {
-      const ENGLISH = Object.assign({}, ISSUE, { title: 'An error in README.md'})
-      expect(branchName(ENGLISH, CONFIG.autobranch)).to.equal('124-an-error-in-readmemd')
+    it('should drop forbidden characters', () => {
+      const ENGLISH = Object.assign({}, ISSUE, { title: '^Issue: *error* ~in~ README.md?'})
+      expect(branchName(ENGLISH, CONFIG.autobranch)).to.equal('124-issue-error-in-readmemd')
     })
     it('should honor length config', () => {
       expect(branchName(ISSUE, {length: 20}).length).to.equal(20)
     })
     it('should stick to pattern', () => {
-      expect(branchName(ISSUE, {pattern: '{title}'})).to.equal('this-should-hve-1-emoji-for-sure')
+      expect(branchName(ISSUE, {pattern: '{title}'})).to.equal('💡-this-should-häve-1-emoji-😈-for-sure')
     })
     it('should deal with labels', () => {
       const LABELS = Object.assign({}, ISSUE, {labels: [{name: 'foo: 😈'}, {name: 'て: bar'}]})
       expect(branchName(LABELS, {
         pattern: '{number}-{labels}-{title}',
-        length: 100})).to.equal('124-foo-bar-this-should-hve-1-emoji-for-sure')
+        length: 100})).to.equal('124-foo-😈-て-bar-💡-this-should-häve-1-emoji-😈-for-sure')
     })
   })
   describe('#execute', () => {
@@ -83,7 +89,7 @@ describe('Autobranch', () => {
         expect(branchArgs).to.deep.equal([
           REPO.owner.login,
           REPO.name,
-          '124-this-should-hve-1-emoji-for-sure',
+          '124-💡-this-should-häve-1-emoji-😈-for-sure',
           REF.sha,
           TOKEN
         ])
