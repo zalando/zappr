@@ -1,4 +1,6 @@
+import Check from './Check'
 import { logger } from '../../common/debug'
+import * as EVENTS from '../model/GithubEvents'
 
 const info = logger('autobranch', 'info')
 const error = logger('autobranch', 'error')
@@ -35,39 +37,38 @@ function safeString(str, join = '-') {
             .toLowerCase()
 }
 
-export default class Autobranch {
+export default class Autobranch extends Check {
   static get type() {
     return 'autobranch'
   }
 
   static get hookEvents() {
-    return ['issues']
+    return [EVENTS.ISSUES]
   }
 
   static createBranchNameFromIssue({number, title, labels}, {length = 60, pattern = '{number}-{title}'}) {
-    return pattern
-            .replace('{number}', number)
-            .replace('{title}', safeString(title))
-            .replace('{labels}', safeArray(labels.map(l => l.name)))
-            .substring(0, length)
+    return pattern.replace('{number}', number)
+                  .replace('{title}', safeString(title))
+                  .replace('{labels}', arrayToString(labels.map(l => l.name)))
+                  .substring(0, length)
   }
 
   static async execute(github, config, hookPayload, token) {
     const {action, issue, repository} = hookPayload
+    const branchName = this.createBranchNameFromIssue(issue, config.autobranch)
     // only interested in open events right now
     if (action !== 'opened') {
-      info(`${repository.full_name}: Ignoring issue because action not "opened" (${action}).`)
+      info(`${repository.full_name}: Ignore issue #${issue.number}. Action was "${action}" instead of "opened".`)
       return
     }
     try {
       const owner = repository.owner.login
       const repo = repository.name
-      const branchName = this.createBranchNameFromIssue(issue, config.autobranch)
       const {sha} = await github.getHead(owner, repo, repository.default_branch, token)
       // branch could exist already
       await github.createBranch(owner, repo, branchName, sha, token)
       info(`Created branch ${branchName} for ${sha} in ${repository.full_name}`)
-    } catch(e) {
+    } catch (e) {
       // but we don't care
       error(`Could not create branch ${branchName} for ${sha} in ${repository.full_name}`, e)
     }

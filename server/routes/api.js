@@ -8,10 +8,12 @@ const error = logger('api', 'error')
 const warn = logger('api', 'warn')
 const info = logger('api', 'info')
 const GITHUB_HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
+const GITHUB_SIGNATURE_HEADER = 'x-hub-signature'
+const GITHUB_EVENT_HEADER = 'x-github-event'
 
 function validateIsCalledFromGithub(ctx, next) {
   const {header, body} = ctx.request
-  const actualSignature = header['x-hub-signature']
+  const actualSignature = header[GITHUB_SIGNATURE_HEADER]
   // not require signature header for backwards compatibility
   if (!actualSignature) {
     warn(`Request from host ${header.host} is missing X-Hub-Signature header!`)
@@ -21,7 +23,8 @@ function validateIsCalledFromGithub(ctx, next) {
   const hmac = sha1.update(JSON.stringify(body)).digest('hex')
   const expectedSignature = `sha1=${hmac}`
   if (actualSignature !== expectedSignature) {
-    error(`Hook for ${body.repository.full_name} called with invalid signature "${actualSignature}" (expected: "${expectedSignature}") from ${header.host}!`)
+    error(`Hook for ${body.repository.full_name} called with invalid signature "${actualSignature}"`
+      + `(expected: "${expectedSignature}") from ${header.host}!`)
     ctx.throw(400)
   }
 
@@ -94,7 +97,9 @@ export function repo(router) {
     }
   }).
   post('/api/hook', validateIsCalledFromGithub, async (ctx) => {
-    const hookResult = await hookHandler.onHandleHook(ctx.request.body)
+    const {header, body} = ctx.request
+    const event = header[GITHUB_EVENT_HEADER]
+    const hookResult = await hookHandler.onHandleHook(event, body)
     ctx.response.type = 'application/json'
     ctx.response.status = 200
     ctx.response.body = hookResult

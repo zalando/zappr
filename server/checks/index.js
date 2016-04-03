@@ -1,19 +1,15 @@
 import Approval from './Approval'
 import Autobranch from './Autobranch'
 
-let CHECKS = {}
+const CHECKS = {}
 CHECKS[Approval.type] = Approval
 CHECKS[Autobranch.type] = Autobranch
 
 export const TYPES = Object.keys(CHECKS)
 
-function getCheckByType(type) {
-    return CHECKS[type]
+export function getCheckByType(type) {
+  return CHECKS[type]
 }
 
-export {
-    Approval,
-    Autobranch,
-    getCheckByType
-}
-
+export { default as Approval } from './Approval'
+export { default as Autobranch } from './Autobranch'
