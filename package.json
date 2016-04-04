@@ -52,7 +52,7 @@
     "chai": "3.5.x",
     "couldbe": "1.0.0",
     "css-loader": "0.23.x",
-    "eslint": "2.5.1",
+    "eslint": "2.7.0",
     "extract-text-webpack-plugin": "1.0.x",
     "file-loader": "0.8.x",
     "json-loader": "0.5.x",
