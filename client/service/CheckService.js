@@ -11,6 +11,7 @@ class CheckError extends Error {
   constructor(check, message) {
     super(message)
     this.repoId = check.repoId
+    this.type = check.type
   }
 }
 

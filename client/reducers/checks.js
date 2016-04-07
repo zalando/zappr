@@ -16,7 +16,7 @@ export function init(repo) {
 
 export default function checks(state = {}, action) {
   const checks = Object.assign({}, state)
-  const checkType = action.check
+  const checkType = action.payload.type
   checks[checkType] = checks[checkType] || {}
   if (action.status === PENDING) {
     checks[checkType].isUpdating = true
@@ -29,6 +29,5 @@ export default function checks(state = {}, action) {
     checks[checkType].isUpdating = false
     checks[checkType].error = action.payload
   }
-  console.debug(state, checkType, action, checks)
   return checks
 }
