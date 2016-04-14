@@ -6,6 +6,7 @@ import { pullRequestHandler } from './PullRequestHandler'
 import { getCheckByType } from '../checks'
 import nconf from '../nconf'
 import GithubService from '../service/GithubService'
+import merge from 'lodash/merge'
 
 const info = logger('hook', 'info')
 const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
@@ -65,7 +66,7 @@ class HookHandler {
       }, {})
       // read config
       const zapprFileContent = await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
-      const config = Object.assign({}, DEFAULT_CONFIG, zapprFileContent)
+      const config = merge({}, DEFAULT_CONFIG, zapprFileContent)
       if (checks[Approval.type] && checks[Approval.type].token) {
         Approval.execute(this.github, config, payload, checks[Approval.type].token, repo.id, pullRequestHandler)
         info(`Executed approval hook for ${owner.login}/${name}`)
