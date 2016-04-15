@@ -20,7 +20,8 @@ function validateIsCalledFromGithub(ctx, next) {
     return next()
   }
   const sha1 = crypto.createHmac('sha1', GITHUB_HOOK_SECRET)
-  const hmac = sha1.update(JSON.stringify(body)).digest('hex')
+  // use buffer otherwise unicde (emojis! 💩) break the hash
+  const hmac = sha1.update(new Buffer(JSON.stringify(body))).digest('hex')
   const expectedSignature = `sha1=${hmac}`
   if (actualSignature !== expectedSignature) {
     error(`Hook for ${body.repository.full_name} called with invalid signature "${actualSignature}"`
