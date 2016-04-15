@@ -61,7 +61,6 @@ function check(state = {
 }
 
 function checks(state = {}, action) {
-  console.debug(action);
   switch(action.type) {
     case GET_REPOS:
       switch(action.status) {

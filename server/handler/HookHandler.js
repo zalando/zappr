@@ -91,7 +91,9 @@ class HookHandler {
       info(`Received event "${event}" for ${payload.repository.full_name} but there is no handler for this event.`)
     }
 
-    return {}
+    return {
+      message: "THANKS"
+    }
   }
 }
 
