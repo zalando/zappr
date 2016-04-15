@@ -81,7 +81,7 @@
     "webpack-dev-server": "1.14.x"
   },
   "dependencies": {
-    "aws-sdk": "2.2.47",
+    "aws-sdk": "2.3.1",
     "bootstrap": "3.3.6",
     "bootstrap-social": "4.11.0",
     "bootstrap-toggle": "2.2.2",
