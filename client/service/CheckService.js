@@ -4,13 +4,14 @@ import Service from './Service'
 import { logger } from '../../common/debug'
 
 // TODO make this dynamic
-const TYPES = ['approval']
+const TYPES = ['approval', 'autobranch']
 const log = logger('CheckService')
 
 class CheckError extends Error {
   constructor(check, message) {
     super(message)
     this.repoId = check.repoId
+    this.type = check.type
   }
 }
 

@@ -1,16 +1,19 @@
+import Check from './Check'
 import { logger, formatDate } from '../../common/debug'
+import * as EVENTS from '../model/GithubEvents'
+
 const context = 'zappr'
 const info = logger('approval', 'info')
 const debug = logger('approval')
 const error = logger('approval', 'error')
 
-export default class Approval {
+export default class Approval extends Check {
   static get type() {
     return 'approval'
   }
 
   static get hookEvents() {
-    return ['pull_request', 'issue_comment']
+    return [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
   }
 
   static generateStatusMessage(actual, needed) {

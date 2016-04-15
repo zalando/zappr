@@ -26,7 +26,6 @@ function enableCheck(check) {
 }
 
 function disableCheck(check) {
-  console.log('disableCheck', check)
   return (dispatch) => {
     dispatch(putCheck(PENDING, check))
     CheckService.disableCheck(check).
