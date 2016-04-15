@@ -1,6 +1,7 @@
+import merge from 'lodash/merge'
+
 import GithubService from '../service/GithubService'
 import nconf from '../nconf'
-
 import { Approval, Autobranch } from '../checks'
 import { logger } from '../../common/debug'
 import { checkHandler } from './CheckHandler'
@@ -68,7 +69,7 @@ class HookHandler {
       if (check) {
         // read zappr configuration
         const zapprFileContent = await github.readZapprFile(owner.login, name, repo.checks[0].token)
-        const config = {...DEFAULT_CONFIG, ...zapprFileContent}
+        const config = merge({}, DEFAULT_CONFIG, zapprFileContent)
 
         await callback(check, repo, config)
         info(`Executed ${type} hook for ${full_name}`)
