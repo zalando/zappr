@@ -14,9 +14,9 @@
     "build-client": "webpack --config webpack.client.js",
     "build-server": "webpack --config webpack.server.js",
     "clean": "rm -rf dist",
-    "run-all": "parallelshell 'npm run run-client -- -d' 'npm run build-server -- -dw' 'npm run run-server'",
-    "run-client": "webpack-dev-server --history-api-fallback --inline --no-info --config webpack.client.js --content-base dist/client",
-    "run-server": "nodemon dist/server/server.min.js --watch dist",
+    "all": "parallelshell 'npm run client -- -d' 'npm run build-server -- -dw' 'npm run server'",
+    "client": "webpack-dev-server --history-api-fallback --inline --no-info --config webpack.client.js --content-base dist/client",
+    "server": "nodemon dist/server/server.min.js --watch dist",
     "start": "node dist/server/server.min.js"
   },
   "engines": {
