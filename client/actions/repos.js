@@ -4,6 +4,11 @@ import { PENDING, SUCCESS, ERROR } from '../actions/status'
 export const GET_REPOS = Symbol('create status')
 export const FILTER_REPOS = Symbol('filter repos')
 
+/**
+ * Update the filter for the list of repos.
+ *
+ * @param {string} filterBy
+ */
 export function filterRepos(filterBy) {
   return {
     type: FILTER_REPOS,
@@ -11,35 +16,37 @@ export function filterRepos(filterBy) {
   }
 }
 
-const fetchRepos = (status, payload = null) => ({
-  type: GET_REPOS,
-  status,
-  payload
-})
+function getRepos(status, payload = null) {
+  return {
+    type: GET_REPOS,
+    status,
+    payload
+  }
+}
 
-function receiveRepos(json) {
+function sortRepos(repos) {
   // sort by repo.full_name
-  // can't do this in backend as fullname is not
-  // a column there -.-
-  json = json.sort((ra, rb) => {
-    const ralc = ra.full_name.toLowerCase()
-    const rblc = rb.full_name.toLowerCase()
-    return ralc < rblc ?
-            -1 : rblc < ralc ?
-              1 : 0
+  // can't do this in backend as fullname is not a column there -.-
+  return repos.sort((a, b) => {
+    a = a.full_name.toLowerCase()
+    b = b.full_name.toLowerCase()
+    return a < b ? -1 : (b < a ? 1 : 0)
   })
-  return fetchRepos(SUCCESS, {
-    items: json,
+}
+
+function receiveRepos(repos) {
+  return getRepos(SUCCESS, {
+    items: sortRepos(repos),
     receivedAt: Date.now()
   })
 }
 
-export function requestRepos(includeUpstream = false) {
+function requestRepos(includeUpstream = false) {
   return (dispatch) => {
-    dispatch(fetchRepos(PENDING))
-    RepoService.fetchAll(includeUpstream).
-      then(json => dispatch(receiveRepos(json))).
-      catch(err => dispatch(fetchRepos(ERROR, err)))
+    dispatch(getRepos(PENDING))
+    RepoService.fetchAll(includeUpstream)
+               .then(json => dispatch(receiveRepos(json)))
+               .catch(err => dispatch(getRepos(ERROR, err)))
   }
 }
 
@@ -47,6 +54,10 @@ function shouldFetchRepos(state) {
   return !state.repos.isFetching
 }
 
+/**
+ * Request the list of repos from the server
+ * unless they are already being requested.
+ */
 export function requestReposIfNeeded() {
   return (dispatch, getState) => {
     if (shouldFetchRepos(getState())) {

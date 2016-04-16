@@ -7,15 +7,15 @@ const log = logger('repos')
 
 function initChecks(repo) {
   return repo.checks.map(c => ({
-    type: c.type,
-    error: false,
-    isUpdating: false,
-    enabled: true
-  }))
-  .reduce((state, check) => {
-    state[check.type] = check
-    return state
-  }, {})
+               type: c.type,
+               error: false,
+               isUpdating: false,
+               enabled: true
+             }))
+             .reduce((state, check) => {
+               state[check.type] = check
+               return state
+             }, {})
 }
 
 /**
@@ -25,17 +25,17 @@ function initChecks(repo) {
  *       error, isUpdating, enabled, type
  *     },
  *     autobranch: {
- *       
+ *
  *     }
  *   }
  * }
  */
 
 function check(state = {
-                error: false,
-                isUpdating: false,
-                enabled: true
-              }, action) {
+  error: false,
+  isUpdating: false,
+  enabled: true
+}, action) {
   if (!action) return state
 
   if (action.type === PUT_CHECK || action.type === DELETE_CHECK) {
@@ -61,17 +61,18 @@ function check(state = {
 }
 
 function checks(state = {}, action) {
-  switch(action.type) {
+  switch (action.type) {
     case GET_REPOS:
-      switch(action.status) {
-        case SUCCESS: {
+      switch (action.status) {
+        case SUCCESS:
           return action.payload.checks
-                    .map(c => ({...c, ...check()}))
-                    .reduce((checks, check) => {
-                      checks[check.type] = check
-                      return checks
-                    }, {})
-        }
+                       .map(c => ({...c, ...check()}))
+                       .reduce((checks, check) => {
+                         checks[check.type] = check
+                         return checks
+                       }, {})
+        default:
+          return state
       }
     case PUT_CHECK:
     case DELETE_CHECK:
@@ -79,8 +80,9 @@ function checks(state = {}, action) {
         ...state,
         [action.payload.type]: check(state[action.payload.type], action)
       }
+    default:
+      return state
   }
-  return checks
 }
 
 function repo(state = {
@@ -95,6 +97,8 @@ function repo(state = {
           return Object.assign({}, state, {
             checks: checks(state.checks, action)
           })
+        default:
+          return state
       }
     case PUT_CHECK:
       switch (action.status) {
@@ -141,9 +145,9 @@ function repo(state = {
             checks: checks(state.checks, action),
             error: action.payload
           })
+        default:
           return state
       }
-      break
     default:
       return state
   }
@@ -181,9 +185,9 @@ export default function repos(state = {
             isFetching: false,
             error: action.payload
           })
+        default:
           return state
       }
-      break
     case PUT_CHECK:
     case DELETE_CHECK:
       log(action)
@@ -191,7 +195,7 @@ export default function repos(state = {
       if (i === -1) {
         const msg = `ERROR no repo for id ${action.payload.repoId}`
         log(msg)
-        return Object.assign({}, state, { error: msg })
+        return Object.assign({}, state, {error: msg})
       }
       return Object.assign({}, state, {
         items: [
