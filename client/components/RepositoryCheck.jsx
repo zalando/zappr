@@ -7,7 +7,7 @@ const INFO_TEXT = {
   approval: <p>Once you enabled the Approval check, ZAPPR will set a
                commit status on every PR in your repository, much like <a href='https://travis-ci.org'>Travis</a>.
                It will look for comments that match a regex (default: <code>/^:\+1:$/</code>) and count
-               those as approvals to merge. If your PR has enough approvals 
+               those as approvals to merge. If your PR has enough approvals
                (default: <code>2</code>) the status will be set to successful.
                By default ZAPPR will count comments from anyone, but you can
                configure this in your <a href='https://github.com/zalando/zappr/tree/master/.zappr-example.yml'>
@@ -39,8 +39,8 @@ export default class RepositoryCheck extends Component {
     const {check, onToggle} = this.props
     const header = (
       <div>
-        <Toggle checked={check.enabled} isUpdating={check.isUpdating} onToggle={onToggle}/>
-        <b style={style}>{check.name}</b> is {check.enabled ? 'enabled' : 'disabled'}
+        <Toggle checked={check.isEnabled} isUpdating={check.isUpdating} onToggle={onToggle}/>
+        <b style={style}>{check.name}</b> is {check.isEnabled ? 'enabled' : 'disabled'}
       </div>
     )
     return (

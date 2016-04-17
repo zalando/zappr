@@ -1,7 +1,10 @@
+import { normalize } from 'normalizr'
+
 import RepoService from '../service/RepoService'
 import { PENDING, SUCCESS, ERROR } from '../actions/status'
+import { REPOS_SCHEMA } from '../model/schema'
 
-export const GET_REPOS = Symbol('create status')
+export const GET_REPOS = Symbol('get repos')
 export const FILTER_REPOS = Symbol('filter repos')
 
 /**
@@ -24,6 +27,7 @@ function getRepos(status, payload = null) {
   }
 }
 
+// TODO: move into view
 function sortRepos(repos) {
   // sort by repo.full_name
   // can't do this in backend as fullname is not a column there -.-
@@ -35,16 +39,21 @@ function sortRepos(repos) {
 }
 
 function receiveRepos(repos) {
+  // Normalize the server response according to a schema.
+  // This will split the received data over several distinct
+  // entities and reducers, making the state more manageable.
+  // TODO: move into custom middleware
+  const normalized = normalize(repos, REPOS_SCHEMA)
   return getRepos(SUCCESS, {
-    items: sortRepos(repos),
+    ...normalized,
     receivedAt: Date.now()
   })
 }
 
-function requestRepos(includeUpstream = false) {
+function requestRepos(loadAll) {
   return (dispatch) => {
     dispatch(getRepos(PENDING))
-    RepoService.fetchAll(includeUpstream)
+    RepoService.fetchAll(loadAll)
                .then(json => dispatch(receiveRepos(json)))
                .catch(err => dispatch(getRepos(ERROR, err)))
   }
@@ -57,11 +66,13 @@ function shouldFetchRepos(state) {
 /**
  * Request the list of repos from the server
  * unless they are already being requested.
+ *
+ * @param {Boolean} [loadAll = false] - (Re)load all repositories
  */
-export function requestReposIfNeeded() {
+export function requestReposIfNeeded(loadAll = false) {
   return (dispatch, getState) => {
     if (shouldFetchRepos(getState())) {
-      return dispatch(requestRepos())
+      return dispatch(requestRepos(loadAll))
     }
   }
 }

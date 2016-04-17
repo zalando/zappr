@@ -1,7 +1,6 @@
-import Approval from '../checks/Approval'
-import { Check } from '../model'
+import { Check } from "../model"
+import { logger } from "../../common/debug"
 
-import { logger } from '../../common/debug'
 const debug = logger('check-handler')
 
 class CheckHandler {
@@ -12,6 +11,8 @@ class CheckHandler {
       type,
       token,
       arguments: {}
+    }, {
+      attributes: {exclude: ['token']}
     })
   }
 
@@ -19,6 +20,16 @@ class CheckHandler {
     // noop for now
     // implement this when we fucked up
     return Promise.resolve()
+  }
+
+  onGetOne(repoId, type) {
+    debug(`find check ${type} for repo ${repoId}`)
+    return Check.findOne({
+      where: {
+        repositoryId: repoId,
+        type
+      }
+    })
   }
 
   onDeleteCheck(repoId, type) {

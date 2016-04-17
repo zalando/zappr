@@ -31,16 +31,23 @@ class HookHandler {
     this.github = github
   }
 
+  // TODO: should be part of CheckHandler as this is only called via the Zappr API
   async onEnableCheck(user, repository, type) {
     const repo = repository.get('json')
     const types = [type, ...repository.checks.map(c => c.type)]
     const events = findHookEventsFor(types)
 
+    // TODO: could use a database constraint instead?
+    const existingCheck = await checkHandler.onGetOne(repo.id, type)
+    if (existingCheck) throw new Error(`Check ${type} already exists for repo ${repo.id}`, 409)
+
     await this.github.updateWebhookFor(repo.owner.login, repo.name, events, user.accessToken)
-    await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
+    const check = await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
     info(`${repo.full_name}: enabled check ${type}`)
+    return check
   }
 
+  // TODO: should be part of CheckHandler as this is only called via the Zappr API
   async onDisableCheck(user, repository, type) {
     const repo = repository.get('json')
     const types = repository.checks.map(c => c.type).filter(t => t !== type)

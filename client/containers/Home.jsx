@@ -3,7 +3,6 @@ import { connect } from 'react-redux'
 import { Row, Col, Alert } from 'react-bootstrap'
 
 import RepositoryBrowser from '../components/RepositoryBrowser.jsx'
-import { toggleCheck } from '../actions/checks'
 import { requestReposIfNeeded, filterRepos } from '../actions/repos';
 
 function mapStateToProps(state) {
@@ -16,17 +15,16 @@ class Home extends Component {
   static propTypes = {
     params: PropTypes.object.isRequired, // React Router route params
     repos: PropTypes.object.isRequired,
-    toggleCheck: PropTypes.func.isRequired,
     requestReposIfNeeded: PropTypes.func.isRequired,
     filterRepos: PropTypes.func.isRequired
   };
 
   render() {
-    const {repos, toggleCheck, requestReposIfNeeded, filterRepos} = this.props
+    const {repos, requestReposIfNeeded, filterRepos} = this.props
     const {error} = repos
-    const selectedRepo = this.props.params.owner && this.props.params.repository ?
-            `${this.props.params.owner}/${this.props.params.repository}` :
-            false
+    const selectedRepo = (this.props.params.owner && this.props.params.repository)
+      ? `${this.props.params.owner}/${this.props.params.repository}`
+      : null
 
     return (
       <Row className="zpr-home">
@@ -37,8 +35,7 @@ class Home extends Component {
             <RepositoryBrowser repos={repos}
                                fetchAll={requestReposIfNeeded}
                                filterRepos={filterRepos}
-                               selected={selectedRepo}
-                               toggleCheck={toggleCheck}/>
+                               selected={selectedRepo}/>
           }
         </Col>
       </Row>
@@ -46,4 +43,4 @@ class Home extends Component {
   }
 }
 
-export default connect(mapStateToProps, {toggleCheck, filterRepos, requestReposIfNeeded})(Home)
+export default connect(mapStateToProps, {filterRepos, requestReposIfNeeded})(Home)

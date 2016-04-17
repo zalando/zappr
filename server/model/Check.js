@@ -35,6 +35,19 @@ export default db.define('check', {
   }
 }, {
   schema: db.schema,
+  instanceMethods: {
+    /**
+     * Never return the token in JSON.
+     *
+     * @override
+     * @returns {object}
+     */
+    toJSON: function () {
+      const json = this.get({plain: true})
+      delete json.token
+      return json
+    }
+  },
   hooks: {
     beforeUpdate: encryptTokenHook,
     beforeCreate: encryptTokenHook

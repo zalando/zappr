@@ -24,7 +24,7 @@ function enableCheck(check) {
   return (dispatch) => {
     dispatch(putCheck(PENDING, check))
     CheckService.enableCheck(check)
-                .then(() => dispatch(putCheck(SUCCESS, check)))
+                .then(json => dispatch(putCheck(SUCCESS, json)))
                 .catch(err => dispatch(putCheck(ERROR, err)))
   }
 }

@@ -14,7 +14,7 @@ export default class RepositoryListItem extends Component {
 
   render() {
     const {repository, active} = this.props
-    const hasChecks = Object.keys(repository.checks).filter(c => repository.checks[c].enabled).length > 0
+    const hasChecks = repository.checks.length > 0
     return (
       <Link className={classes('zpr-repository-list-item', 'list-group-item', {active: active})}
             to={`/repository/${repository.full_name}`}>

@@ -109,8 +109,8 @@ describe('API', () => {
         .expect(({body}) => {
           expect(body).to.be.an('array').and.to.have.length.above(1)
           expect(body).to.have.deep.property('[0].id').that.is.a('number')
-          expect(body).to.have.deep.property('[0].name').that.is.a('string')
           expect(body).to.have.deep.property('[0].checks').that.is.a('array')
+          expect(body).to.have.deep.property('[0].json').that.is.an('object')
         })
         .end(done)
     })
@@ -149,7 +149,7 @@ describe('API', () => {
         // them into a format equal to the HTTP response.
         const repos = await Repository.userScope(user)
           .findAllSorted({include: [Check]})
-          .then(repos => repos.map(r => r.flatten()))
+          .then(repos => repos.map(r => r.toJSON()))
           .then(repos => repos.map(r => JSON.stringify(r)))
           .then(repos => repos.map(r => JSON.parse(r)))
 
