@@ -68,7 +68,7 @@
     "nodemon": "1.9.x",
     "parallelshell": "2.0.x",
     "passport-strategy": "1.0.x",
-    "react-addons-test-utils": "0.14.x",
+    "react-addons-test-utils": "15.0.1",
     "rimraf": "2.5.x",
     "sinon": "1.17.3",
     "source-map-support": "0.4.x",
