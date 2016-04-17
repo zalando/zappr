@@ -1,5 +1,5 @@
 const PREFIX = 'zappr'
-const LEVEL = 'info'
+const LEVEL = process.env.DEBUG_LEVEL || 'info'
 const LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
 
 function noop() {}
@@ -45,9 +45,11 @@ export function formatDate(date) {
  */
 export function logger(name, loglevel='debug', parent = null) {
   const inst = (parent || require('debug'))(`${PREFIX}:${name}:${loglevel}`)
+
   function actualLogger() {
-    const args = [formatDate(new Date())].concat(Array.from(arguments))
-    inst.apply(inst, args)
+    const [message, ...args] = Array.from(arguments)
+    const time = formatDate(new Date())
+    inst.apply(inst, [`${time} ${message}`, ...args])
   }
   return shouldLog(loglevel) ? actualLogger : noop
 }
@@ -56,4 +58,3 @@ export function bind(parent, loglevel='debug') {
   parent['DEBUG'] = require('debug')
   return (name => logger(name, loglevel, parent['DEBUG']))
 }
-
