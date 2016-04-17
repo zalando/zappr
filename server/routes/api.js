@@ -91,8 +91,9 @@ export function repo(router) {
     const type = ctx.params.type
     try {
       await hookHandler.onDisableCheck(user, repo, type)
-      ctx.response.status = 200
-    } catch(e) {
+      ctx.response.status = 204
+      ctx.body = null
+    } catch (e) {
       error(e)
       ctx.throw(e)
     }

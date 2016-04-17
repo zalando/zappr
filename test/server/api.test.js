@@ -234,7 +234,7 @@ describe('API', () => {
         await request.
           delete(`/api/repos/${id}/approval`).
           send().
-          expect(200)
+          expect(204)
 
         const repo = await Repository.findById(id, {include: [Check]})
         expect(repo.checks.length).to.equal(0)
