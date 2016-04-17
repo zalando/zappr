@@ -1,6 +1,6 @@
-import { PENDING, SUCCESS, ERROR } from '../actions/status'
-import { PUT_CHECK, DELETE_CHECK } from '../actions/checks'
-import { GET_REPOS } from '../actions/repos'
+import { PENDING, SUCCESS, ERROR } from '../../actions/status'
+import { PUT_CHECK, DELETE_CHECK } from '../../actions/checks'
+import { GET_REPOS } from '../../actions/repos'
 
 function check(state = {
   error: false,

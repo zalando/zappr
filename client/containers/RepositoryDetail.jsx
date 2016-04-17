@@ -2,26 +2,16 @@ import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { Row, Col, Badge } from 'react-bootstrap'
 
-import RepositoryCheck from './RepositoryCheck.jsx'
+import RepositoryCheck from './../components/RepositoryCheck.jsx'
 import { toggleCheck } from '../actions/checks'
 import { checkId } from '../model/schema'
 import { CHECK_TYPES, CHECK_NAMES } from '../../server/checks'
-
-function mapStateToProps(state) {
-  return {
-    checks: state.checks
-  }
-}
 
 class RepositoryDetail extends Component {
   static propTypes = {
     repository: PropTypes.object.isRequired,
     checks: PropTypes.object.isRequired,
     toggleCheck: PropTypes.func.isRequired
-  };
-
-  static defaultProps = {
-    repository: {checks: []}
   };
 
   onToggleCheck(check, isChecked) {
@@ -70,4 +60,4 @@ class RepositoryDetail extends Component {
   }
 }
 
-export default connect(mapStateToProps, {toggleCheck})(RepositoryDetail)
+export default connect(null, {toggleCheck})(RepositoryDetail)

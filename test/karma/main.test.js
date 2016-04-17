@@ -9,7 +9,7 @@ import { browserHistory } from 'react-router'
 
 import Root from '../../client/components/Root.jsx'
 import RepositoryList from '../../client/components/RepositoryList.jsx'
-import RepositoryDetail from '../../client/components/RepositoryDetail.jsx'
+import RepositoryDetail from '../../client/containers/RepositoryDetail.jsx'
 import configureStore from '../../client/store/configureStore'
 import { waitFor } from '../utils'
 

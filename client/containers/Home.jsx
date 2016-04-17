@@ -21,7 +21,7 @@ class Home extends Component {
 
   render() {
     const {repos, requestReposIfNeeded, filterRepos} = this.props
-    const {error} = repos
+    const {error} = repos.status
     const selectedRepo = (this.props.params.owner && this.props.params.repository)
       ? `${this.props.params.owner}/${this.props.params.repository}`
       : null
