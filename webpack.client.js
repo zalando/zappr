@@ -12,7 +12,7 @@ nconf.
 
 module.exports = {
   entry: {
-    client: './client/main.js',
+    client: ['babel-polyfill', './client/main.js'],
     vendor: [
       'react',
       'react-dom'
