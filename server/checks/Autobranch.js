@@ -38,9 +38,9 @@ function safeString(str, join = '-') {
 }
 
 export default class Autobranch extends Check {
-  static get type() {
-    return 'autobranch'
-  }
+
+  static TYPE = 'autobranch';
+  static NAME = 'Automatic branch creation';
 
   static get hookEvents() {
     return [EVENTS.ISSUES]

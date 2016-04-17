@@ -189,7 +189,7 @@ describe('Model', () => {
         await Repository.create({id: repoId, userId, json: repo})
         await Check.create({
           id: checkId, token, repositoryId: repoId,
-          type: Approval.type, arguments: {}
+          type: Approval.TYPE, arguments: {}
         })
         const savedCheck = await Check.findById(checkId)
         expect(savedCheck.get('token')).to.equal(token)

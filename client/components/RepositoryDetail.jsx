@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react'
 import { Row, Col, Panel, Badge } from 'react-bootstrap'
 
 import RepositoryCheck from './RepositoryCheck.jsx'
-import { TYPES as CHECK_TYPES } from '../service/CheckService'
+import { CHECK_TYPES, CHECK_NAMES } from '../../server/checks'
 
 const TYPE_NAMES = {
   approval: 'Approval check',

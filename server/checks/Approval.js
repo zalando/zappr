@@ -8,10 +8,10 @@ const debug = logger('approval')
 const error = logger('approval', 'error')
 
 export default class Approval extends Check {
-  static get type() {
-    return 'approval'
-  }
 
+  static TYPE = 'approval';
+  static NAME = 'Approval check';
+  
   static get hookEvents() {
     return [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
   }
