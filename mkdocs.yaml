@@ -4,3 +4,4 @@ repo_url: https://github.com/zalando/zappr
 docs_dir: docs
 pages:
   - Setup: setup.md
+  - FAQ: faq.md
