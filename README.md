@@ -59,7 +59,7 @@ you *do* have to opt-in as a project/repo owner. Then you're set.
 4. To enable Zappr on a specific repository, use the search function.
    You'll get a screen like this: [include screenshot]
 5. Switch the toggle to "On": [screenshot]
-6. At this time, you can customize your configuration by adding a zappr.yml file to your repository.
+6. At this time, you can customize your configuration by adding a `.zappr.yml` file to your repository.
 
 ### Development
 
