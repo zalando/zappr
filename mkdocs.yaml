@@ -1,5 +1,6 @@
 site_name: Zappr
+site_favicon: client/img/favicon.ico
 repo_url: https://github.com/zalando/zappr
 docs_dir: docs
 pages:
-  - Introduction: index.md
+  - Setup: setup.md
