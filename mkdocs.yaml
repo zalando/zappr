@@ -1,0 +1,5 @@
+site_name: Zappr
+repo_url: https://github.com/zalando/zappr
+docs_dir: docs
+pages:
+  - Introduction: index.md
