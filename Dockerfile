@@ -1,21 +1,17 @@
-FROM node:5.7
+FROM registry.opensource.zalan.do/stups/node:5.10-23
 
-RUN adduser --disabled-login --disabled-password --gecos "" node
-ENV HOME /home/node
+ENV ZAPPR_HOME /opt/zappr
 
-WORKDIR $HOME
+WORKDIR $ZAPPR_HOME
 
-COPY package.json $HOME
+COPY package.json $ZAPPR_HOME
 
 RUN npm install --production && \
     npm install pg
 
-COPY dist/ $HOME/dist
-COPY config.yml $HOME/config.yml
-COPY migrations/ $HOME/migrations
-
-RUN chown -R node:node ${HOME} && chmod 0770 ${HOME}
-
+COPY dist/ $ZAPPR_HOME/dist
+COPY config.yml $ZAPPR_HOME/config.yml
+COPY migrations/ $ZAPPR_HOME/migrations
 COPY scm-source.json /scm-source.json
 
 ENV DB_DRIVER postgres
@@ -32,6 +28,5 @@ ENV APP_PORT 3000
 
 EXPOSE 3000
 
-USER node
 ENTRYPOINT ["npm"]
 CMD ["start"]
