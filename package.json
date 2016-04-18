@@ -104,7 +104,7 @@
     "lodash": "4.8.2",
     "nconf": "0.8.4",
     "passport": "0.3.2",
-    "passport-github2": "0.1.10",
+    "passport-github": "1.1.0",
     "react": "0.14.7",
     "react-bootstrap": "0.28.5",
     "react-dom": "0.14.7",

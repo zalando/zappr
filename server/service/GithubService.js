@@ -7,6 +7,8 @@ const debug = logger('github')
 const info = logger('github', 'info')
 const error = logger('github', 'error')
 const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
+const GITHUB_API_ADDR = nconf.get('GITHUB_API_ADDR')
+const HOST_ADDR = nconf.get('HOST_ADDR')
 
 const PATHS = {
   HOOK: '/repos/${owner}/${repo}/hooks',
@@ -23,14 +25,12 @@ const PATHS = {
 export default class GithubService {
 
   getOptions(method, path, body, accessToken) {
-    let url = nconf.get('GITHUB_URL') + path
-
     return {
       json: true,
       method: method,
-      url,
+      url: GITHUB_API_ADDR + path,
       headers: {
-        'User-Agent': 'ZAPPR/1.0 (+https://zappr.hackweek.zalan.do)',
+        'User-Agent': `ZAPPR/1.0 (+${HOST_ADDR})`,
         'Authorization': `token ${accessToken}`
       },
       body: body

@@ -14,7 +14,10 @@ GITHUB_SCOPES:
   - user:email
   - public_repo
   - admin:repo_hook
-GITHUB_URL: https://api.github.com
+# See https://developer.github.com/v3/enterprise
+# for GitHub Enterprise configuration.
+GITHUB_MAIN_ADDR: https://github.com
+GITHUB_API_ADDR: https://api.github.com
 
 # Address of the web application host
 # that ZAPPR is going to run on.

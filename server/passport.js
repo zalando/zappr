@@ -1,5 +1,5 @@
 import passport from 'koa-passport'
-import { Strategy as GithubStrategy } from 'passport-github2'
+import { Strategy as GithubStrategy } from 'passport-github'
 
 import nconf from './nconf'
 import { User } from './model'
@@ -9,6 +9,8 @@ const log = logger('passport')
 
 const GITHUB_CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
 const GITHUB_CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
+const GITHUB_MAIN_ADDR = nconf.get('GITHUB_MAIN_ADDR')
+const GITHUB_API_ADDR = nconf.get('GITHUB_API_ADDR')
 const HOST_ADDR = nconf.get('HOST_ADDR')
 
 /**
@@ -21,6 +23,15 @@ function normalizeProfile(profile) {
   const { id, _json, _raw, ...rest } = profile
   const normalizedProfile = {...rest, ..._json}
   return normalizedProfile
+}
+
+/**
+ * @param {string} root - http(s)://domain
+ * @param {string} path - /some/path
+ * @returns {string} - http(s)://domain/some/path
+ */
+function urlJoin(root, path) {
+  return `${root.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
 }
 
 /**
@@ -43,19 +54,23 @@ export function init(Strategy = GithubStrategy) {
    */
   passport.deserializeUser((data, done) => {
     log(`deserializeUser id: ${data.id}`)
-    User.findById(data.id).
-    then(user => user
-      ? user.flatten()
-      : null).
-    then(user => user
-      ? done(null, {...user, ...data})
-      : done(new Error(`no user for id ${data.id}`)))
+    User.findById(data.id)
+        .then(user => user
+          ? user.flatten()
+          : null)
+        .then(user => user
+          ? done(null, {...user, ...data})
+          : done(new Error(`no user for id ${data.id}`)))
   })
 
   passport.use(new Strategy({
+      // See https://developer.github.com/v3/oauth
       clientID: GITHUB_CLIENT_ID,
       clientSecret: GITHUB_CLIENT_SECRET,
-      callbackURL: `${HOST_ADDR}/auth/github/callback`
+      callbackURL: urlJoin(HOST_ADDR, 'auth/github/callback'),
+      authorizationURL: urlJoin(GITHUB_MAIN_ADDR, 'login/oauth/authorize'),
+      tokenURL: urlJoin(GITHUB_MAIN_ADDR, 'login/oauth/access_token'),
+      userProfileURL: urlJoin(GITHUB_API_ADDR, 'user')
     },
     (accessToken, refreshToken, profile, done) => {
       // Add the accessToken to the returned object so that it is stored in the session.
@@ -66,9 +81,9 @@ export function init(Strategy = GithubStrategy) {
       const {id, ...userData} = normalizeProfile(profile)
       const data = {id, accessToken} // the session data
 
-      User.upsert({id, json: userData}).
-      then(() => done(null, data)).
-      catch(done)
+      User.upsert({id, json: userData})
+          .then(() => done(null, data))
+          .catch(done)
     }
   ))
 
