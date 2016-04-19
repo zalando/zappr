@@ -2,9 +2,6 @@
 
 *Enhance your Github workflow*
 
-[![Build Status](https://travis-ci.org/zalando/zappr.svg?branch=master)](https://travis-ci.org/zalando/zappr)
-[![Dependencies](https://david-dm.org/zalando/zappr.svg)](https://david-dm.org/zalando/zappr)
-
 Zappr is a Github integration built to enhance your project workflow. Created by open-source enthusiasts, it's aimed at helping developers to increase productivity and improve open-source project quality. It does this primarily by removing bottlenecks around pull request approval and helping project owners to halt "rogue" pull requests before they're merged into the master branch.
 
 ## Features
