@@ -1,5 +1,5 @@
 const PREFIX = 'zappr'
-const LEVEL = process.env.DEBUG_LEVEL || 'info'
+const LEVEL = process.env.LOG_LEVEL || 'info'
 const LEVELS = ['trace', 'debug', 'info', 'warn', 'error']
 
 function noop() {}
