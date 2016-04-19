@@ -50,10 +50,10 @@ function receiveRepos(repos) {
   })
 }
 
-function requestRepos(loadAll) {
+function requestRepos(loadAllFromUpstream) {
   return (dispatch) => {
     dispatch(getRepos(PENDING))
-    RepoService.fetchAll(loadAll)
+    RepoService.fetchAll(loadAllFromUpstream)
                .then(json => dispatch(receiveRepos(json)))
                .catch(err => dispatch(getRepos(ERROR, err)))
   }
@@ -67,12 +67,12 @@ function shouldFetchRepos(state) {
  * Request the list of repos from the server
  * unless they are already being requested.
  *
- * @param {Boolean} [loadAll = false] - (Re)load all repositories
+ * @param {Boolean} [loadAllFromUpstream = false] - (Re)load all repositories
  */
-export function requestReposIfNeeded(loadAll = false) {
+export function requestReposIfNeeded(loadAllFromUpstream = false) {
   return (dispatch, getState) => {
     if (shouldFetchRepos(getState())) {
-      return dispatch(requestRepos(loadAll))
+      return dispatch(requestRepos(loadAllFromUpstream))
     }
   }
 }
