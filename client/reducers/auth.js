@@ -5,16 +5,7 @@ import {
   LOGOUT_GITHUB_REQUEST
 } from '../actions/auth'
 
-import { logger } from '../../common/debug'
-const log = logger('auth')
-
-const initialState = {
-  isAuthenticating: false
-}
-
-export default function auth(state = initialState, action) {
-  log('reduce', action.type)
-
+export default function auth(state = {isAuthenticating: false}, action) {
   switch (action.type) {
     case LOGIN_GITHUB_REQUEST:
       return Object.assign({}, state, {

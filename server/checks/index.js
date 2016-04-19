@@ -2,12 +2,18 @@ import Approval from './Approval'
 import Autobranch from './Autobranch'
 import TicketReference from './TicketReference'
 
-const CHECKS = {}
-CHECKS[Approval.type] = Approval
-CHECKS[Autobranch.type] = Autobranch
-CHECKS[TicketReference.type] = TicketReference
+const CHECKS = {
+  [Approval.TYPE]: Approval,
+  [Autobranch.TYPE]: Autobranch
+}
 
-export const TYPES = Object.keys(CHECKS)
+export const CHECK_NAMES = {
+  [Approval.TYPE]: Approval.NAME,
+  [Autobranch.TYPE]: Autobranch.NAME
+}
+>>>>>>> master
+
+export const CHECK_TYPES = Object.keys(CHECKS)
 
 export function getCheckByType(type) {
   return CHECKS[type]

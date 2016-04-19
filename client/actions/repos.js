@@ -1,9 +1,17 @@
+import { normalize } from 'normalizr'
+
 import RepoService from '../service/RepoService'
 import { PENDING, SUCCESS, ERROR } from '../actions/status'
+import { REPOS_SCHEMA } from '../model/schema'
 
-export const GET_REPOS = Symbol('create status')
+export const GET_REPOS = Symbol('get repos')
 export const FILTER_REPOS = Symbol('filter repos')
 
+/**
+ * Update the filter for the list of repos.
+ *
+ * @param {string} filterBy
+ */
 export function filterRepos(filterBy) {
   return {
     type: FILTER_REPOS,
@@ -11,35 +19,43 @@ export function filterRepos(filterBy) {
   }
 }
 
-const fetchRepos = (status, payload = null) => ({
-  type: GET_REPOS,
-  status,
-  payload
-})
+function getRepos(status, payload = null) {
+  return {
+    type: GET_REPOS,
+    status,
+    payload
+  }
+}
 
-function receiveRepos(json) {
+// TODO: move into view
+function sortRepos(repos) {
   // sort by repo.full_name
-  // can't do this in backend as fullname is not
-  // a column there -.-
-  json = json.sort((ra, rb) => {
-    const ralc = ra.full_name.toLowerCase()
-    const rblc = rb.full_name.toLowerCase()
-    return ralc < rblc ?
-            -1 : rblc < ralc ?
-              1 : 0
+  // can't do this in backend as fullname is not a column there -.-
+  return repos.sort((a, b) => {
+    a = a.full_name.toLowerCase()
+    b = b.full_name.toLowerCase()
+    return a < b ? -1 : (b < a ? 1 : 0)
   })
-  return fetchRepos(SUCCESS, {
-    items: json,
+}
+
+function receiveRepos(repos) {
+  // Normalize the server response according to a schema.
+  // This will split the received data over several distinct
+  // entities and reducers, making the state more manageable.
+  // TODO: move into custom middleware
+  const normalized = normalize(repos, REPOS_SCHEMA)
+  return getRepos(SUCCESS, {
+    ...normalized,
     receivedAt: Date.now()
   })
 }
 
-export function requestRepos(includeUpstream = false) {
+function requestRepos(loadAllFromUpstream) {
   return (dispatch) => {
-    dispatch(fetchRepos(PENDING))
-    RepoService.fetchAll(includeUpstream).
-      then(json => dispatch(receiveRepos(json))).
-      catch(err => dispatch(fetchRepos(ERROR, err)))
+    dispatch(getRepos(PENDING))
+    RepoService.fetchAll(loadAllFromUpstream)
+               .then(json => dispatch(receiveRepos(json)))
+               .catch(err => dispatch(getRepos(ERROR, err)))
   }
 }
 
@@ -47,10 +63,16 @@ function shouldFetchRepos(state) {
   return !state.repos.isFetching
 }
 
-export function requestReposIfNeeded() {
+/**
+ * Request the list of repos from the server
+ * unless they are already being requested.
+ *
+ * @param {Boolean} [loadAllFromUpstream = false] - (Re)load all repositories
+ */
+export function requestReposIfNeeded(loadAllFromUpstream = false) {
   return (dispatch, getState) => {
     if (shouldFetchRepos(getState())) {
-      return dispatch(requestRepos())
+      return dispatch(requestRepos(loadAllFromUpstream))
     }
   }
 }
