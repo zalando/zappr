@@ -6,4 +6,4 @@ pages:
   - Overview: index.md
   - Setup: setup.md
   - FAQ: faq.md
-extra_css: [docs/images.css]
+extra_css: [images.css]
