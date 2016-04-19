@@ -70,13 +70,14 @@ function check(state = {
 /**
  * Map over the keys and values of an object.
  *
- * @param {Object} root
+ * @param {Object} object
  * @param {function} callback
- * @returns {Object}
+ * @returns {Object} - new object
  */
-function mapObject(root, callback) {
-  return Object.keys(root || {}).reduce((obj, key) => ({
-    ...obj, [key]: callback(key, root[key])
+function mapValues(object, callback) {
+  if (!object) return {}
+  return Object.keys(object).reduce((newObject, key) => ({
+    ...newObject, [key]: callback(key, object[key])
   }), {})
 }
 
@@ -87,7 +88,7 @@ export default function checks(state = {}, action) {
         case SUCCESS:
           // The repos response from the backend was normalized. Now we need to update
           // every check of a repo with the default values from the check reducer.
-          return mapObject(action.payload.entities.checks, (_, v) => check(v, action))
+          return mapValues(action.payload.entities.checks, (_, v) => check(v, action))
         default:
           return state
       }
