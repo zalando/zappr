@@ -101,7 +101,7 @@ export default class Approval extends Check {
       description: 'Approval validation in progress.',
       context
     }
-    debug(`${repository.full_name}: Executing approval hook`)
+    debug(`${repository.full_name}: Got hook`)
     try {
       // on an open pull request
       if (!!pull_request && pull_request.state === 'open') {

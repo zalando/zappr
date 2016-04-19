@@ -5,7 +5,7 @@ import * as EVENTS from '../model/GithubEvents'
 const CHECK_TYPE = 'commitmessage'
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
-const context = 'zappr-ticketref'
+const context = 'zappr-commitmessage'
 
 /**
  * Takes RegExps and returns a function that takes a string
