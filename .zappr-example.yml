@@ -3,6 +3,8 @@ approvals:
   minimum: 2
   # approval = comment that matches this regex
   pattern: "(:\\+1:|👍)"
+  # note that `from` is by default empty,
+  # accepting any matching comment as approval
   from:
     # commenter must be either one of:
     # a public zalando org member
