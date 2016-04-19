@@ -7,8 +7,6 @@ const debug = logger('github')
 const info = logger('github', 'info')
 const error = logger('github', 'error')
 const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
-const GITHUB_API_ADDR = nconf.get('GITHUB_API_ADDR')
-const HOST_ADDR = nconf.get('HOST_ADDR')
 
 const PATHS = {
   HOOK: '/repos/${owner}/${repo}/hooks',
@@ -28,9 +26,9 @@ export default class GithubService {
     return {
       json: true,
       method: method,
-      url: GITHUB_API_ADDR + path,
+      url: nconf.get('GITHUB_API_URL') + path,
       headers: {
-        'User-Agent': `ZAPPR/1.0 (+${HOST_ADDR})`,
+        'User-Agent': `Zappr (+${nconf.get('HOST_ADDR')})`,
         'Authorization': `token ${accessToken}`
       },
       body: body
@@ -202,6 +200,7 @@ export default class GithubService {
   async fetchRepoPage(page, accessToken) {
     let links = {}
     const [resp, body] = await request(this.getOptions('GET', `/user/repos?page=${page}&visibility=public`, null, accessToken))
+    debug('fetched repository page response headers: %o body: %o', resp.headers, body)
     if (resp.headers && resp.headers.link) {
       links = this.parseLinkHeader(resp.headers.link)
     }
@@ -225,6 +224,7 @@ export default class GithubService {
       const pages = await Promise.all(pageDefs.map(async (page) => await that.fetchRepoPage(page, accessToken)))
       pages.forEach(p => Array.prototype.push.apply(repos, p.body))
     }
+    info('Loaded %d repos from Github', repos.length)
     return repos
   }
 }

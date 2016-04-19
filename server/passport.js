@@ -9,8 +9,8 @@ const log = logger('passport')
 
 const GITHUB_CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
 const GITHUB_CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
-const GITHUB_MAIN_ADDR = nconf.get('GITHUB_MAIN_ADDR')
-const GITHUB_API_ADDR = nconf.get('GITHUB_API_ADDR')
+const GITHUB_UI_URL = nconf.get('GITHUB_UI_URL')
+const GITHUB_API_URL = nconf.get('GITHUB_API_URL')
 const HOST_ADDR = nconf.get('HOST_ADDR')
 
 /**
@@ -30,7 +30,7 @@ function normalizeProfile(profile) {
  * @param {string} path - /some/path
  * @returns {string} - http(s)://domain/some/path
  */
-function urlJoin(root, path) {
+function joinURL(root, path) {
   return `${root.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
 }
 
@@ -67,10 +67,10 @@ export function init(Strategy = GithubStrategy) {
       // See https://developer.github.com/v3/oauth
       clientID: GITHUB_CLIENT_ID,
       clientSecret: GITHUB_CLIENT_SECRET,
-      callbackURL: urlJoin(HOST_ADDR, 'auth/github/callback'),
-      authorizationURL: urlJoin(GITHUB_MAIN_ADDR, 'login/oauth/authorize'),
-      tokenURL: urlJoin(GITHUB_MAIN_ADDR, 'login/oauth/access_token'),
-      userProfileURL: urlJoin(GITHUB_API_ADDR, 'user')
+      callbackURL: joinURL(HOST_ADDR, 'auth/github/callback'),
+      authorizationURL: joinURL(GITHUB_UI_URL, 'login/oauth/authorize'),
+      tokenURL: joinURL(GITHUB_UI_URL, 'login/oauth/access_token'),
+      userProfileURL: joinURL(GITHUB_API_URL, 'user')
     },
     (accessToken, refreshToken, profile, done) => {
       // Add the accessToken to the returned object so that it is stored in the session.
