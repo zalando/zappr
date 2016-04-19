@@ -30,7 +30,7 @@ module.exports = {
       }
     }, {
       test: /\.js$/, exclude: /node_modules/, loader: 'babel', query: {
-        presets: ['es2015-node5', 'stage-3']
+        presets: ['es2015-node5', 'stage-1']
       }
     }, {
       test: /\.json$/, exclude: /node_modules/, loader: 'json'

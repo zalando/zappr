@@ -81,9 +81,8 @@ npm start
 **Debug Client and Server:**
 
 ```
-npm run build-client -- -d
-npm run build-server -- -d
-npm run run-all
+npm run build
+npm run all
 ```
 
 Enable debug logs...

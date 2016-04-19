@@ -5,6 +5,8 @@ import { deserializeJson, flattenToJson } from './properties'
 
 /**
  * PassportJS session.
+ * 
+ * FIXME: session should be encrypted
  */
 export default db.define('session', {
   id: {
