@@ -24,7 +24,9 @@ export default class Approval extends Check {
   }
 
   static async countApprovals(github, repository, comments, config, token) {
+
     const {pattern, ignore} = config
+
     const fullName = `${repository.full_name}`
     let filtered = comments
                     // filter ignored users
