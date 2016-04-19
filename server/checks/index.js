@@ -1,17 +1,18 @@
 import Approval from './Approval'
 import Autobranch from './Autobranch'
-import TicketReference from './TicketReference'
+import CommitMessage from './CommitMessage'
 
 const CHECKS = {
   [Approval.TYPE]: Approval,
-  [Autobranch.TYPE]: Autobranch
+  [Autobranch.TYPE]: Autobranch,
+  [CommitMessage.TYPE]: CommitMessage
 }
 
 export const CHECK_NAMES = {
   [Approval.TYPE]: Approval.NAME,
-  [Autobranch.TYPE]: Autobranch.NAME
+  [Autobranch.TYPE]: Autobranch.NAME,
+  [CommitMessage.TYPE]: CommitMessage.NAME
 }
->>>>>>> master
 
 export const CHECK_TYPES = Object.keys(CHECKS)
 
@@ -21,3 +22,4 @@ export function getCheckByType(type) {
 
 export { default as Approval } from './Approval'
 export { default as Autobranch } from './Autobranch'
+export { default as CommitMessage } from './CommitMessage'

@@ -17,7 +17,8 @@ const PATHS = {
   COLLABORATOR: '/repos/${owner}/${repo}/collaborators/${user}',
   ZAPPR_FILE_REPO: '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH'),
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
-  CREATE_REF: '/repos/${owner}/${repo}/git/refs'
+  CREATE_REF: '/repos/${owner}/${repo}/git/refs',
+  PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits'
 }
 
 export default class GithubService {
@@ -52,42 +53,42 @@ export default class GithubService {
 
   setCommitStatus(user, repo, sha, status, accessToken) {
     let path = PATHS.STATUS
-                .replace('${owner}', user)
-                .replace('${repo}', repo)
-                .replace('${sha}', sha)
+                    .replace('${owner}', user)
+                    .replace('${repo}', repo)
+                    .replace('${sha}', sha)
     return this.fetchPath('POST', path, status, accessToken)
   }
 
   async isCollaborator(owner, repo, user, accessToken) {
     let path = PATHS.COLLABORATOR
-                .replace('${owner}', owner)
-                .replace('${repo}', repo)
-                .replace('${user}', user)
+                    .replace('${owner}', owner)
+                    .replace('${repo}', repo)
+                    .replace('${user}', user)
     try {
       await this.fetchPath('GET', path, null, accessToken)
       return true
-    } catch(e) {
+    } catch (e) {
       return false
     }
   }
 
   async isMemberOfOrg(org, user, accessToken) {
     let path = PATHS.ORG_MEMBER
-                .replace('${org}', org)
-                .replace('${user}', user)
+                    .replace('${org}', org)
+                    .replace('${user}', user)
     try {
       await this.fetchPath('GET', path, null, accessToken)
       return true
-    } catch(e) {
+    } catch (e) {
       return false
     }
   }
 
   getComments(user, repo, number, since, accessToken) {
     let path = PATHS.COMMENT
-                  .replace('${owner}', user)
-                  .replace('${repo}', repo)
-                  .replace('${number}', number)
+                    .replace('${owner}', user)
+                    .replace('${repo}', repo)
+                    .replace('${number}', number)
     if (since) {
       path += `?since=${since}`
     }
@@ -96,14 +97,14 @@ export default class GithubService {
 
   async getPullRequest(user, repo, number, accessToken) {
     const path = PATHS.PR
-                  .replace('${owner}', user)
-                  .replace('${repo}', repo)
-                  .replace('${number}', number)
+                      .replace('${owner}', user)
+                      .replace('${repo}', repo)
+                      .replace('${number}', number)
     try {
       const pr = await this.fetchPath('GET', path, null, accessToken)
       debug(`${user}/${repo}:${number} is a pull request`)
       return pr
-    } catch(e) {
+    } catch (e) {
       debug(`${user}/${repo}:${number} is NOT a pull request`)
       return false
     }
@@ -111,17 +112,17 @@ export default class GithubService {
 
   async getHead(owner, repo, branch, accessToken) {
     const path = PATHS.REF
-                  .replace('${owner}', owner)
-                  .replace('${repo}', repo)
-                  .replace('${branch}', branch)
+                      .replace('${owner}', owner)
+                      .replace('${repo}', repo)
+                      .replace('${branch}', branch)
     const ref = await this.fetchPath('GET', path, null, accessToken)
     return ref.object
   }
 
   createBranch(owner, repo, branch, sha, accessToken) {
     const path = PATHS.CREATE_REF
-                  .replace('${owner}', owner)
-                  .replace('${repo}', repo)
+                      .replace('${owner}', owner)
+                      .replace('${repo}', repo)
     const payload = {
       ref: `refs/heads/${branch}`,
       sha
@@ -182,20 +183,20 @@ export default class GithubService {
   }
 
   parseLinkHeader(header) {
-    if (!header || !header.length) {
+    if (!header || !header.length) {
       return {}
     }
     return header
-            .split(',')
-            .map(link => link.trim())
-            .map(link => link.match(/<(?:.+?)\?page=([0-9]+)(?:.+?)>; rel="([a-z]+)"/))
-            .reduce((links, matches) => {
-              if (!matches || matches.length !== 3) {
-                return links
-              }
-              links[matches[2]] = parseInt(matches[1], 10)
-              return links
-            }, {})
+    .split(',')
+    .map(link => link.trim())
+    .map(link => link.match(/<(?:.+?)\?page=([0-9]+)(?:.+?)>; rel="([a-z]+)"/))
+    .reduce((links, matches) => {
+      if (!matches || matches.length !== 3) {
+        return links
+      }
+      links[matches[2]] = parseInt(matches[1], 10)
+      return links
+    }, {})
 
   }
 
@@ -222,9 +223,22 @@ export default class GithubService {
     Array.prototype.push.apply(repos, firstPage.body)
     if (loadAll && firstPage.links.last > 0) {
       const pageDefs = Array(firstPage.links.last).fill(0).map((p, i) => i + 1)
-      const pages = await Promise.all(pageDefs.map(async (page) => await that.fetchRepoPage(page, accessToken)))
+      const pages = await Promise.all(pageDefs.map(async(page) => await that.fetchRepoPage(page, accessToken)))
       pages.forEach(p => Array.prototype.push.apply(repos, p.body))
     }
     return repos
+  }
+
+  async fetchPullRequestCommits(owner, repo, number, accessToken) {
+    const path = PATHS.PR_COMMITS
+                      .replace('${owner}', owner)
+                      .replace('${repo}', repo)
+                      .replace('${number}', number)
+    try {
+      return this.fetchPath('GET', path, null, accessToken)
+    } catch(e) {
+      // might happen if there is no pull request with this number
+      return []
+    }
   }
 }
