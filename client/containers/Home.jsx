@@ -3,8 +3,7 @@ import { connect } from 'react-redux'
 import { Row, Col, Alert } from 'react-bootstrap'
 
 import RepositoryBrowser from '../components/RepositoryBrowser.jsx'
-import { toggleCheck } from '../actions/checks'
-import { requestRepos as fetchAll, filterRepos } from '../actions/repos';
+import { requestReposIfNeeded, filterRepos } from '../actions/repos';
 
 function mapStateToProps(state) {
   return {
@@ -16,17 +15,16 @@ class Home extends Component {
   static propTypes = {
     params: PropTypes.object.isRequired, // React Router route params
     repos: PropTypes.object.isRequired,
-    toggleCheck: PropTypes.func.isRequired,
-    fetchAll: PropTypes.func.isRequired,
+    requestReposIfNeeded: PropTypes.func.isRequired,
     filterRepos: PropTypes.func.isRequired
   };
 
   render() {
-    const {repos, toggleCheck, fetchAll, filterRepos} = this.props
-    const {error} = repos
-    const selectedRepo = this.props.params.owner && this.props.params.repository ?
-            `${this.props.params.owner}/${this.props.params.repository}` :
-            false
+    const {repos, requestReposIfNeeded, filterRepos} = this.props
+    const {error} = repos.status
+    const selectedRepo = (this.props.params.owner && this.props.params.repository)
+      ? `${this.props.params.owner}/${this.props.params.repository}`
+      : null
 
     return (
       <Row className="zpr-home">
@@ -35,10 +33,9 @@ class Home extends Component {
             <Alert bsStyle='danger'>Could not fetch repositories: {error}</Alert>
             :
             <RepositoryBrowser repos={repos}
-                               fetchAll={fetchAll}
+                               fetchAll={requestReposIfNeeded}
                                filterRepos={filterRepos}
-                               selected={selectedRepo}
-                               toggleCheck={toggleCheck}/>
+                               selected={selectedRepo}/>
           }
         </Col>
       </Row>
@@ -46,4 +43,4 @@ class Home extends Component {
   }
 }
 
-export default connect(mapStateToProps, {toggleCheck, filterRepos, fetchAll})(Home)
+export default connect(mapStateToProps, {filterRepos, requestReposIfNeeded})(Home)

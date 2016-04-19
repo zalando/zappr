@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize'
 
 import { db } from './Database'
-import { deserializeJson, flattenToJson } from './properties'
+import { deserializeJson } from './properties'
 
 /**
  * Zappr/Github user. Has many {@link Repository}.
@@ -20,8 +20,5 @@ export default db.define('user', {
     get: deserializeJson('json')
   }
 }, {
-  instanceMethods: {
-    flatten: flattenToJson
-  },
   schema: db.schema
 })

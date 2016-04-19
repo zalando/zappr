@@ -44,23 +44,10 @@ export function getStaticAssets() {
   }))
 }
 
-function filterUserObject(user = {}) {
-  return [
-    'id',
-    'login',
-    'avatar_url',
-    'html_url',
-    'displayName'
-  ].reduce((obj, key) => {
-    obj[key] = user[key]
-    return obj
-  }, {})
-}
-
 export default async function renderStatic(ctx, next) {
 
   const assets = await getStaticAssets()
-  const user = filterUserObject(ctx.req.user)
+  const user = ctx.req.user ? ctx.req.user.json : {}
   const isAuthenticated = ctx.isAuthenticated()
 
   const store = configureStore({

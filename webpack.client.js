@@ -12,7 +12,7 @@ nconf.
 
 module.exports = {
   entry: {
-    client: './client/main.js',
+    client: ['babel-polyfill', './client/main.js'],
     vendor: [
       'react',
       'react-dom'
@@ -40,6 +40,7 @@ module.exports = {
     new CommonsChunkPlugin('vendor', '0-vendor.min.js'),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(nconf.get('NODE_ENV')),
+      'process.env.LOG_LEVEL': JSON.stringify(nconf.get('LOG_LEVEL')),
       'HOST_ADDR': "''" // always use the the relative server path
     })
   ],
