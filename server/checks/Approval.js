@@ -9,13 +9,10 @@ const error = logger('approval', 'error')
 
 export default class Approval extends Check {
 
-  static TYPE = 'approval';
-  static NAME = 'Approval check';
+  static TYPE = 'approval'
+  static NAME = 'Approval check'
+  static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
   
-  static get hookEvents() {
-    return [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
-  }
-
   static generateStatusMessage(actual, needed) {
     if (actual < needed) {
       return `This PR needs ${needed - actual} more approvals (${actual}/${needed} given).`

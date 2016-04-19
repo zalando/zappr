@@ -9,7 +9,7 @@ export default class Index extends Component {
     js: PropTypes.array.isRequired,
     css: PropTypes.array.isRequired,
     store: PropTypes.object.isRequired
-  };
+  }
 
   static createMarkup(props) {
     return {

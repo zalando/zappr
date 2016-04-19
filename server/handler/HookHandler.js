@@ -18,7 +18,7 @@ const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
  */
 function findHookEventsFor(types) {
   return types.map(getCheckByType)
-              .map(c => c.hookEvents)
+              .map(c => c.HOOK_EVENTS)
               .reduce((arr, evts) => { // flatten
                 Array.prototype.push.apply(arr, evts)
                 return arr
