@@ -20,6 +20,10 @@ const PATHS = {
   CREATE_REF: '/repos/${owner}/${repo}/git/refs'
 }
 
+function fromBase64(encoded) {
+  return new Buffer(encoded, 'base64').toString('utf8')
+}
+
 export default class GithubService {
 
   getOptions(method, path, body, accessToken) {
@@ -140,8 +144,7 @@ export default class GithubService {
         return {}
       }
       // decode file content
-      let file = Buffer(content, 'base64').toString('utf8')
-      return yaml.safeLoad(file)
+      return yaml.safeLoad(fromBase64(content))
     } catch (e) {
       // No .zappr file found, fall back to default configuration.
       return {}

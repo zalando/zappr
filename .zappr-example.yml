@@ -1,8 +1,8 @@
 approvals:
-  # PR needs at least 4 approvals
-  minimum: 4
+  # PR needs at least 2 approvals
+  minimum: 2
   # approval = comment that matches this regex
-  pattern: "^:\\+1:$"
+  pattern: "(:\\+1:|👍)"
   from:
     # commenter must be either one of:
     # a public zalando org member
