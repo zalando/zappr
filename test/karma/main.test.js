@@ -9,7 +9,7 @@ import { browserHistory } from 'react-router'
 
 import Root from '../../client/components/Root.jsx'
 import RepositoryList from '../../client/components/RepositoryList.jsx'
-import RepositoryDetail from '../../client/components/RepositoryDetail.jsx'
+import RepositoryDetail from '../../client/containers/RepositoryDetail.jsx'
 import configureStore from '../../client/store/configureStore'
 import { waitFor } from '../utils'
 
@@ -46,7 +46,9 @@ describe('Root', function () {
 
   async function waitForMockDataToLoad(store, done) {
     try {
-      await waitFor(() => couldbe(store.getState())('repos')('items')('length', 0) > 0, 1000)
+      await waitFor(() => {
+        return Object.keys(couldbe(store.getState())('repos')('items', {})).length > 0
+      }, 1000)
     } catch (e) {
       return done('mock data did not load for 1 second')
     }
@@ -62,49 +64,63 @@ describe('Root', function () {
   })
 
   it('should render the home route when authenticated', async(done) => {
-    const {root, store} = renderRootWithInitialState({
-      auth: {isAuthenticated: true}
-    })
-    expect(window.location.pathname).to.equal('/')
-    const home = TestUtils.findRenderedDOMComponentWithClass(root, 'zpr-home')
-    expect(TestUtils.isDOMComponent(home)).to.be.true
-    await waitForMockDataToLoad(store, done)
-    expect(store.getState()).to.have.deep.property('repos.items.length', 2)
-    done()
+    try {
+      const {root, store} = renderRootWithInitialState({
+        auth: {isAuthenticated: true}
+      })
+      expect(window.location.pathname).to.equal('/')
+      const home = TestUtils.findRenderedDOMComponentWithClass(root, 'zpr-home')
+      expect(TestUtils.isDOMComponent(home)).to.be.true
+      await waitForMockDataToLoad(store, done)
+      expect(store.getState())
+      .to.have.deep.property('repos.items')
+      .and.to.have.all.keys(['mfellner/angular-react', 'mfellner/atomic-directive-demo'])
+      done()
+    } catch (e) {
+      done(e)
+    }
   })
 
   it('should render the repository list', async(done) => {
-    const {root, store} = renderRootWithInitialState({
-      auth: {isAuthenticated: true}
-    })
-    const repositoryList = TestUtils.findRenderedComponentWithType(root, RepositoryList)
-    expect(TestUtils.isCompositeComponent(repositoryList)).to.be.true
-    await waitForMockDataToLoad(store, done)
-    expect(repositoryList.props).to.have.
-      deep.property('repositories[0].name', 'angular-react')
-    expect(repositoryList.props).to.have.
-      deep.property('repositories[1].name', 'atomic-directive-demo')
-    done()
+    try {
+      const {root, store} = renderRootWithInitialState({
+        auth: {isAuthenticated: true}
+      })
+      const repositoryList = TestUtils.findRenderedComponentWithType(root, RepositoryList)
+      expect(TestUtils.isCompositeComponent(repositoryList)).to.be.true
+      await waitForMockDataToLoad(store, done)
+      expect(repositoryList.props)
+      .to.have.deep.property('repositories.mfellner/angular-react.name', 'angular-react')
+      expect(repositoryList.props)
+      .to.have.deep.property('repositories.mfellner/atomic-directive-demo.name', 'atomic-directive-demo')
+      done()
+    } catch (e) {
+      done(e)
+    }
   })
 
   it('should render the selected repository', async(done) => {
-    const {root, store} = renderRootWithInitialState({
-      auth: {isAuthenticated: true}
-    })
+    try {
+      const {root, store} = renderRootWithInitialState({
+        auth: {isAuthenticated: true}
+      })
 
-    await waitForMockDataToLoad(store, done)
+      await waitForMockDataToLoad(store, done)
 
-    function clickOnDetail(i) {
-      const items = TestUtils.scryRenderedDOMComponentsWithClass(root, 'zpr-repository-list-item')
-      TestUtils.Simulate.click(items[i], {button: 0})
-      return TestUtils.findRenderedComponentWithType(root, RepositoryDetail)
+      function clickOnDetail(i) {
+        const items = TestUtils.scryRenderedDOMComponentsWithClass(root, 'zpr-repository-list-item')
+        TestUtils.Simulate.click(items[i], {button: 0})
+        return TestUtils.findRenderedComponentWithType(root, RepositoryDetail)
+      }
+
+      for (let i = 0, detail; i < 2; i += 1) {
+        detail = clickOnDetail(i)
+        expect(TestUtils.isCompositeComponent(detail)).to.be.true
+        expect(window.location.pathname).to.equal('/repository/' + detail.props.repository.full_name)
+      }
+      done()
+    } catch (e) {
+      done(e)
     }
-
-    for (let i = 0, detail; i < 2; i += 1) {
-      detail = clickOnDetail(i)
-      expect(TestUtils.isCompositeComponent(detail)).to.be.true
-      expect(window.location.pathname).to.equal('/repository/' + detail.props.repository.full_name)
-    }
-    done()
   })
 })

@@ -3,7 +3,7 @@ import dottie from 'dottie'
 
 import User from './User'
 import { db } from './Database'
-import { deserializeJson, flattenToJson } from './properties'
+import { deserializeJson } from './properties'
 
 /**
  * Github repository. Belongs to a {@link User}.
@@ -24,9 +24,13 @@ export default db.define('repository', {
 }, {
   scopes: {
     userId: userId => ({
-      include: [
-        {model: User, where: {id: userId}}
-      ]
+      include: [{
+        model: User,
+        where: {id: userId},
+        through: {
+          attributes: [] // prevents association table from being included in the result
+        }
+      }]
     })
   },
   instanceMethods: {
@@ -38,8 +42,7 @@ export default db.define('repository', {
         dottie.set(json, path.replace('json.', ''), value)
         this.set('json', json)
       }
-    },
-    flatten: flattenToJson
+    }
   },
   classMethods: {
     userScope: function (user) {

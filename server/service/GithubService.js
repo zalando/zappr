@@ -208,14 +208,20 @@ export default class GithubService {
     return {body, links, page}
   }
 
-  // loads from {{page}} to last page
-  async fetchRepos(page = 0, loadAll = false, accessToken) {
+  /**
+   * Load the first page or all pages of repositories.
+   *
+   * @param {String} accessToken - User's Github access token
+   * @param {Boolean} loadAll - Load all pages of repositories
+   * @returns {Array.<Object>}
+   */
+  async fetchRepos(accessToken, loadAll = false) {
     let repos = []
     var that = this
-    const firstPage = await this.fetchRepoPage(page, accessToken)
+    const firstPage = await this.fetchRepoPage(0, accessToken)
     Array.prototype.push.apply(repos, firstPage.body)
-    if (loadAll && firstPage.links.last > page) {
-      const pageDefs = Array(firstPage.links.last - page).fill(0).map((p, i) => i + page + 1)
+    if (loadAll && firstPage.links.last > 0) {
+      const pageDefs = Array(firstPage.links.last).fill(0).map((p, i) => i + 1)
       const pages = await Promise.all(pageDefs.map(async (page) => await that.fetchRepoPage(page, accessToken)))
       pages.forEach(p => Array.prototype.push.apply(repos, p.body))
     }

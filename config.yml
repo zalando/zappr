@@ -47,6 +47,9 @@ ENCRYPTION_ENGINE: ~
 MORGAN_FORMAT: dev
 MORGAN_THRESH: 0
 
+# Logging level
+LOG_LEVEL: debug
+
 # Zappr configuration
 # ===================
 
