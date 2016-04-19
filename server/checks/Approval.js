@@ -24,7 +24,14 @@ export default class Approval extends Check {
   }
 
   static async countApprovals(github, repository, comments, config, token) {
-    const {pattern, ignore} = config
+      
+    const {pattern} = config
+
+    // Do not ignore users that were explicitly added.
+    const ignore = Array.isArray(config.from.users)
+    ? config.ignore.filter(user => config.from.users.indexOf(user) === -1)
+    : config.ignore
+
     const fullName = `${repository.full_name}`
     let filtered = comments
                     // filter ignored users
