@@ -8,6 +8,8 @@ const debug = logger('github')
 const info = logger('github', 'info')
 const error = logger('github', 'error')
 const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
+const VALID_ZAPPR_FILE_PATHS = nconf.get('VALID_ZAPPR_FILE_PATHS')
+
 
 const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
@@ -134,19 +136,20 @@ export default class GithubService {
 
   async readZapprFile(user, repo, accessToken) {
     const repoContentUrl = API_URL_TEMPLATES.REPO_CONTENT.replace('${owner}', user).replace('${repo}', repo)
-    const validZapprFileUrls = nconf.get('VALID_ZAPPR_FILE_PATHS')
+    const validZapprFileUrls = VALID_ZAPPR_FILE_PATHS
                                     .map(zapprFilePath => path.join(repoContentUrl, zapprFilePath))
 
     const zapprFileRequests = validZapprFileUrls.map(zapprFileUrl => this.fetchPath('GET', zapprFileUrl, null, accessToken))
 
     try {
         const resp = await promiseFirst(zapprFileRequests)
-        const file = Buffer(resp.content, 'base64').toString('utf8')
+        const file = new Buffer(resp.content, 'base64').toString('utf8')
         return yaml.safeLoad(file)
     }
     catch(error) {
         return {}
     }
+
   }
 
 
