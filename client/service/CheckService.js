@@ -3,8 +3,6 @@ import fetch from 'isomorphic-fetch'
 import Service from './Service'
 import { logger } from '../../common/debug'
 
-// TODO make this dynamic
-const TYPES = ['approval', 'autobranch']
 const log = logger('CheckService')
 
 class CheckError extends Error {
@@ -15,7 +13,6 @@ class CheckError extends Error {
   }
 }
 
-export {TYPES}
 export default class RepoService extends Service {
 
   static enableCheck(check) {
@@ -28,8 +25,10 @@ export default class RepoService extends Service {
       },
       credentials: 'same-origin'
     }).then(response => {
-      if (!response.ok)
-        throw new CheckError(check, response.statusText)
+      // Merge the argument with the server response so that we don't lose
+      // important client-only attributes (e.g. isUpdating, etc.)
+      if (response.ok) return response.json().then(json => ({...check, ...json}))
+      else throw new CheckError(check, response.statusText)
     })
   }
 
@@ -43,8 +42,7 @@ export default class RepoService extends Service {
       },
       credentials: 'same-origin'
     }).then(response => {
-      if (!response.ok)
-        throw new CheckError(check, response.statusText)
+      if (!response.ok) throw new CheckError(check, response.statusText)
     })
   }
 }

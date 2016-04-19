@@ -18,7 +18,7 @@ const HOST_ADDR = nconf.get('HOST_ADDR')
  * https://developer.github.com/v3/users/#get-a-single-user
  */
 function normalizeProfile(profile) {
-  const { id, _json, _raw, ...rest } = profile
+  const {_raw, _json, ...rest} = profile
   const normalizedProfile = {...rest, ..._json}
   return normalizedProfile
 }
@@ -45,7 +45,7 @@ export function init(Strategy = GithubStrategy) {
     log(`deserializeUser id: ${data.id}`)
     User.findById(data.id).
     then(user => user
-      ? user.flatten()
+      ? user.toJSON()
       : null).
     then(user => user
       ? done(null, {...user, ...data})
@@ -59,14 +59,15 @@ export function init(Strategy = GithubStrategy) {
     },
     (accessToken, refreshToken, profile, done) => {
       // Add the accessToken to the returned object so that it is stored in the session.
-      // DO NOT persist the accessToken in the user data.
+      // DO NOT persist the accessToken in the user profile.
       log(`verify profile id: ${profile.id} username: ${profile.username}`)
 
       // Clean up the user profile data
-      const {id, ...userData} = normalizeProfile(profile)
-      const data = {id, accessToken} // the session data
+      const user = normalizeProfile(profile)
+      // The session data:
+      const data = {id: user.id, accessToken}
 
-      User.upsert({id, json: userData}).
+      User.upsert({id: user.id, json: user}).
       then(() => done(null, data)).
       catch(done)
     }

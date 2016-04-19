@@ -4,6 +4,6 @@ export default class Check {
    * @returns {boolean}
    */
   static isEvent(event) {
-    return this.hookEvents.indexOf(event) !== -1
+    return this.HOOK_EVENTS.indexOf(event) !== -1
   }
 }

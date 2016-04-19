@@ -65,48 +65,38 @@ class RepositoryHandler {
   }
 
   /**
-   * Load all repositories of a user.
-   * Fetch and save repositories from Github if necessary.
+   * Loads the repositories of a user.
+   * (Re)loads repositories from Github if necessary and updates the database.
    *
    * @param {Object} user - Current user object
-   * @param {Boolean} [refresh = false] - Force reloading from Github
-   * @returns {Promise<Array.<Object>>}
+   * @param {Boolean} [loadAll = false] - (Re)load all available repositories from Github
+   * @param {Boolean} [includeToken = false] - Include the Github access token in the returned data
+   * @returns {Promise<Array.<Repository>>}
    */
-  async onGetAll(user, all = false, includeToken = false) {
-    // load repos
-    // if no repos, fetch first page, save and return
-    // if repos and all=false, return repos
-    // if repos and all=true, fetch all from github, save and return
-
-    debug('load repositories from database...')
+  async onGetAll(user, loadAll = false, includeToken = false) {
+    debug('Load repos from database...')
     const repos = await Repository.userScope(user).findAllSorted({
       include: [{
         model: Check,
         attributes: {exclude: includeToken ? [] : ['token']}
       }]
     })
-    if (repos.length === 0) {
-      const firstPage = await this.githubService.fetchRepos(0, false, user.accessToken)
-      info(`${user.username}: Loaded first page from Github`)
-      await this.upsertRepos(db, user, firstPage)
-    } else if (all) {
-      const allPages = await this.githubService.fetchRepos(0, true, user.accessToken)
-      info(`${user.username}: Reloaded from Github`)
-      await this.upsertRepos(db, user, allPages)
-    } else {
-      return repos.map(repo => repo.flatten())
-    }
+
+    // No need to (re)load from Github. Return repositories from database.
+    if (repos.length > 0 && !loadAll) return repos
+
+    const pages = await this.githubService.fetchRepos(user.accessToken, loadAll)
+    await this.upsertRepos(db, user, pages)
+    info(`${user.username}: Loaded ${loadAll ? 'all' : 'some'} repos from Github`)
 
     // The previously merged repos are not sorted correctly
     // so we need to load them from the database again.
-    return Repository.userScope(user).
-      findAllSorted({
-        include: [{
-          model: Check,
-          attributes: {exclude: includeToken ? [] : ['token']}
-        }]
-      }).
-      then(repos => repos.map(repo => repo.flatten()))
+    return Repository.userScope(user).findAllSorted({
+      include: [{
+        model: Check,
+        attributes: {exclude: includeToken ? [] : ['token']}
+      }]
+    })
   }
 }
 

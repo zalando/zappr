@@ -38,13 +38,10 @@ function safeString(str, join = '-') {
 }
 
 export default class Autobranch extends Check {
-  static get type() {
-    return 'autobranch'
-  }
 
-  static get hookEvents() {
-    return [EVENTS.ISSUES]
-  }
+  static TYPE = 'autobranch'
+  static NAME = 'Automatic branch creation'
+  static HOOK_EVENTS = [EVENTS.ISSUES]
 
   static createBranchNameFromIssue({number, title, labels}, {length = 60, pattern = '{number}-{title}'}) {
     return pattern.replace('{number}', number)

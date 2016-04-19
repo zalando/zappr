@@ -35,9 +35,8 @@ npm start
 **Debug Client and Server:**
 
 ```
-npm run build-client -- -d
-npm run build-server -- -d
-npm run run-all
+npm run build
+npm run all
 ```
 
 Enable debug logs...
@@ -70,10 +69,6 @@ window.DEBUG.enable('zappr:*')
 ## Contributing to Zappr
 Please read our [contributor guidelines](https://github.com/zalando/zappr/blob/master/CONTRIBUTING.md) for more details.
 And please check [these open issues](https://github.com/zalando/zappr/issues) for specific tasks.
-
-## Documentation
-
-We're developing additional documentation [here](doc/readme.md). Check back for updates.
 
 ## License
 

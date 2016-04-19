@@ -3,7 +3,7 @@ import Sequelize from 'sequelize'
 import * as EncryptionServiceCreator from '../service/EncryptionServiceCreator'
 import { db } from './Database'
 import { deserializeJson } from './properties'
-import { TYPES } from '../checks'
+import { CHECK_TYPES } from '../checks'
 import { logger } from '../../common/debug'
 
 const debug = logger('check')
@@ -25,7 +25,7 @@ export default db.define('check', {
     allowNull: false
   },
   type: {
-    type: Sequelize.ENUM(...TYPES),
+    type: Sequelize.ENUM(...CHECK_TYPES),
     allowNull: false
   },
   arguments: {
@@ -35,6 +35,19 @@ export default db.define('check', {
   }
 }, {
   schema: db.schema,
+  instanceMethods: {
+    /**
+     * Never return the token in JSON.
+     *
+     * @override
+     * @returns {object}
+     */
+    toJSON: function () {
+      const json = this.get({plain: true})
+      delete json.token
+      return json
+    }
+  },
   hooks: {
     beforeUpdate: encryptTokenHook,
     beforeCreate: encryptTokenHook
