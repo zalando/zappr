@@ -73,28 +73,30 @@ class HookHandler {
       }
     }
 
-    const {name, id, owner} = payload.repository
-    const repo = await repositoryHandler.onGetOne(id, null, true)
-    const zapprUserConfig = repo.checks.length ?
-      await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
-      : {}
+    if (payload.repository) {
+      const {name, id, owner} = payload.repository
+      const repo = await repositoryHandler.onGetOne(id, null, true)
+      const zapprUserConfig = repo.checks.length ?
+        await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
+        : {}
 
-    const config = merge({}, DEFAULT_CONFIG, zapprUserConfig)
+      const config = merge({}, DEFAULT_CONFIG, zapprUserConfig)
 
-    if (Approval.dependsOn(event)) {
-      getToken(repo, Approval.TYPE).then(token =>
-        Approval.execute(this.github, config, payload, token, repo.id, pullRequestHandler)
-      )
-    }
-    if (Autobranch.dependsOn(event)) {
-      getToken(repo, Autobranch.TYPE).then(token =>
-        Autobranch.execute(this.github, config, payload, token)
-      )
-    }
-    if (CommitMessage.dependsOn(event)) {
-      getToken(repo, CommitMessage.TYPE).then(token =>
-        CommitMessage.execute(this.github, config, payload, token)
-      )
+      if (Approval.dependsOn(event)) {
+        getToken(repo, Approval.TYPE).then(token =>
+          Approval.execute(this.github, config, payload, token, repo.id, pullRequestHandler)
+        )
+      }
+      if (Autobranch.dependsOn(event)) {
+        getToken(repo, Autobranch.TYPE).then(token =>
+          Autobranch.execute(this.github, config, payload, token)
+        )
+      }
+      if (CommitMessage.dependsOn(event)) {
+        getToken(repo, CommitMessage.TYPE).then(token =>
+          CommitMessage.execute(this.github, config, payload, token)
+        )
+      }
     }
     return {
       message: "THANKS"
