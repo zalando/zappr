@@ -92,7 +92,7 @@
     "fuzzysearch": "1.0.3",
     "glob": "7.0.3",
     "isomorphic-fetch": "2.2.1",
-    "js-yaml": "3.5.5",
+    "js-yaml": "3.6.0",
     "koa": "2.0.0",
     "koa-bodyparser": "3.0.0",
     "koa-convert": "1.2.0",
