@@ -86,12 +86,12 @@ class HookHandler {
     }
 
     if (Approval.isEvent(event)) {
-      await selectCheck(Approval.type, (check, repo, config) =>
+      await selectCheck(Approval.TYPE, (check, repo, config) =>
         Approval.execute(this.github, config, payload, check.token, repo.id, pullRequestHandler)
       )
     }
     else if (Autobranch.isEvent(event)) {
-      await selectCheck(Autobranch.type, (check, repo, config) =>
+      await selectCheck(Autobranch.TYPE, (check, repo, config) =>
         Autobranch.execute(this.github, config, payload, check.token)
       )
     }
