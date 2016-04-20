@@ -83,14 +83,14 @@ export default class Approval extends Check {
    * - PR open/reopen:
    *   1. set status to pending
    *   2. count approvals since last commit
-   *   3. set status to ok or fail
+   *   3. set status to ok when there are enough approvals
    * - IssueComment create/delete:
    *   1. verify it's on an open pull request
    *   2. set status to pending for open PR
    *   3. count approvals since last commit
-   *   4. set status to ok or fail
-   * - PR synchronize:
-   *   1. set status to fail (b/c there can't be comments afterwards already)
+   *   4. set status to ok when there are enough approvals
+   * - PR synchronize (new commits on top):
+   *   1. set status back to pending (b/c there can't be comments afterwards already)
    */
 
   static async execute(github, config, hookPayload, token, dbRepoId, pullRequestHandler) {
@@ -119,7 +119,7 @@ export default class Approval extends Check {
             dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
           }
           if (action === 'opened' && minimum > 0) {
-            // if it was opened, set to fail
+            // if it was opened, set to pending
             await github.setCommitStatus(user, repo, pull_request.head.sha, {
               state: 'pending',
               description: this.generateStatusMessage(0, minimum),
@@ -146,7 +146,7 @@ export default class Approval extends Check {
         } else if (action === 'synchronize') {
           // update last push in db
           await pullRequestHandler.onAddCommit(dbRepoId, number)
-          // set status to failure (has to be unlocked with further comments)
+          // set status to pending (has to be unlocked with further comments)
           await github.setCommitStatus(user, repo, pull_request.head.sha, {
             state: 'pending',
             description: this.generateStatusMessage(0, minimum),
