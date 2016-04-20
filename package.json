@@ -64,7 +64,7 @@
     "karma-sourcemap-loader": "0.3.x",
     "karma-webpack": "1.7.x",
     "mocha": "2.4.x",
-    "mountebank": "1.5.0-beta.1086",
+    "mountebank": "1.5.0",
     "nodemon": "1.9.x",
     "parallelshell": "2.0.x",
     "passport-strategy": "1.0.x",
