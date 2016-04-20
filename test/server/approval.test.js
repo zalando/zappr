@@ -89,7 +89,7 @@ describe('Approval#execute', () => {
     context: 'zappr'
   }
   const ZERO_APPROVALS_STATUS = {
-    state: 'failure',
+    state: 'pending',
     context: 'zappr',
     description: Approval.generateStatusMessage(0, DEFAULT_CONFIG.approvals.minimum)
   }
@@ -180,14 +180,14 @@ describe('Approval#execute', () => {
     done()
   })
 
-  it('should set status to failure on PR:opened', async (done) => {
+  it('should set status to pending on PR:opened', async (done) => {
     PR_PAYLOAD.action = 'opened'
     try {
     await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
     expect(github.setCommitStatus.callCount).to.equal(2)
     expect(github.getComments.callCount).to.equal(0)
     const pendingCallArgs = github.setCommitStatus.args[0]
-    const failureCallArgs = github.setCommitStatus.args[1]
+    const missingApprovalsCallArgs = github.setCommitStatus.args[1]
 
       expect(pendingCallArgs).to.deep.equal([
         'mfellner',
@@ -196,7 +196,7 @@ describe('Approval#execute', () => {
         PENDING_STATUS,
         TOKEN
       ])
-      expect(failureCallArgs).to.deep.equal([
+      expect(missingApprovalsCallArgs).to.deep.equal([
         'mfellner',
         'hello-world',
         PR_PAYLOAD.pull_request.head.sha,
@@ -244,7 +244,7 @@ describe('Approval#execute', () => {
     }
   })
 
-  it('should set status to failure on PR:synchronize', async (done) => {
+  it('should set status to pending on PR:synchronize', async (done) => {
     PR_PAYLOAD.action = 'synchronize'
     await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
     expect(github.setCommitStatus.callCount).to.equal(1)
