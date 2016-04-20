@@ -23,6 +23,10 @@ const API_URL_TEMPLATES = {
   CREATE_REF: '/repos/${owner}/${repo}/git/refs'
 }
 
+function fromBase64(encoded) {
+  return new Buffer(encoded, 'base64').toString('utf8')
+}
+
 export default class GithubService {
 
   getOptions(method, path, body, accessToken) {
@@ -132,26 +136,24 @@ export default class GithubService {
 
     this.fetchPath('POST', path, payload, accessToken)
   }
-
-
+  
   async readZapprFile(user, repo, accessToken) {
-    const repoContentUrl = API_URL_TEMPLATES.REPO_CONTENT.replace('${owner}', user).replace('${repo}', repo)
+    const repoContentUrl = API_URL_TEMPLATES.REPO_CONTENT
+                                            .replace('${owner}', user)
+                                            .replace('${repo}', repo)
     const validZapprFileUrls = VALID_ZAPPR_FILE_PATHS
                                     .map(zapprFilePath => path.join(repoContentUrl, zapprFilePath))
 
     const zapprFileRequests = validZapprFileUrls.map(zapprFileUrl => this.fetchPath('GET', zapprFileUrl, null, accessToken))
 
     try {
-        const resp = await promiseFirst(zapprFileRequests)
-        const file = new Buffer(resp.content, 'base64').toString('utf8')
-        return yaml.safeLoad(file)
+        const {content} = await promiseFirst(zapprFileRequests)
+        return yaml.safeLoad(fromBase64(content))
+    } catch (e) {
+      // No .zappr file found, fall back to default configuration.
+      return {}
     }
-    catch(error) {
-        return {}
-    }
-
   }
-
 
   async updateWebhookFor(user, repo, events, accessToken) {
     debug(`${user}/${repo}: updating webhook with events: ${events.join(", ")}`)

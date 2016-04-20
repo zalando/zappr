@@ -30,12 +30,12 @@ export default class RepositoryList extends Component {
 
   render() {
     const {selected, repositories, isUpdating, filterBy} = this.props
+    const repoCount = Object.keys(repositories).length
     const filteredRepos = Object.keys(repositories)
                                 .filter(key => fuzzysearch(filterBy, key))
                                 .map(key => repositories[key])
-
     const header = <header>
-      Repositories {isUpdating ? <i className='fa fa-refresh fa-spin'/> : `(${repositories.length})`}
+      Repositories {isUpdating ? <i className='fa fa-refresh fa-spin'/> : `(${repoCount})`}
     </header>
 
     return (
