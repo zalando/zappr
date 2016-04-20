@@ -62,9 +62,14 @@ window.DEBUG.enable('zappr:*')
 
 **Docker Image:**
 
-```
-./tools/build.sh
-```
+1. Check out `master` and clean up your `git status`
+2. Run the build script:
+
+        ./tools/build.sh (<tag>)
+
+* `NPM_BUILD_INSIDE_CONTAINER` "true" to build inside a container
+* `DOCKER_ARTIFACT_FILE` file to store docker artifact name in
+
 
 ## Contributing to Zappr
 Please read our [contributor guidelines](https://github.com/zalando/zappr/blob/master/CONTRIBUTING.md) for more details.
