@@ -4,8 +4,9 @@
   "description": "Approvals for Github pull requests.",
   "main": "dist/server/server.min.js",
   "scripts": {
-    "test": "npm run lint && npm run test-client && npm run test-server",
+    "test": "npm run lint && npm run test-common && npm run test-client && npm run test-server",
     "lint": "eslint client/ server/ common/ test/",
+    "test-common": "DEBUG='zappr:test' MORGAN_THRESH=999 NODE_ENV=test BABEL_ENV=test BABEL_DISABLE_CACHE=1 SQLITE_FILE=':memory:' mocha --recursive --compilers js:babel-register test/common/",
     "test-client": "DEBUG='zappr:test' BABEL_ENV=test BABEL_DISABLE_CACHE=1 mocha --recursive --compilers js:babel-register test/client/",
     "test-server": "DEBUG='zappr:test' MORGAN_THRESH=999 NODE_ENV=test BABEL_ENV=test BABEL_DISABLE_CACHE=1 SQLITE_FILE=':memory:' mocha --recursive --compilers js:babel-register test/server/",
     "test-karma": "DEBUG='zappr:test' BABEL_ENV=test BABEL_DISABLE_CACHE=1 babel-node ./test/karma/karma.run.js",

@@ -1,5 +1,6 @@
 import Check from './Check'
 import { logger } from '../../common/debug'
+import { getIn } from '../../common/util'
 import * as EVENTS from '../model/GithubEvents'
 
 const CHECK_TYPE = 'commitmessage'
@@ -16,7 +17,7 @@ const context = 'zappr-commitmessage'
  * @returns {Function} A matcher function that takes a string to test
  */
 export function getMatchFn(regexes) {
-  return function(string) {
+  return function (string) {
     return regexes.reduce((result, regex) => result || regex.test(string), false)
   }
 }
@@ -31,17 +32,15 @@ export default class CommitMessage extends Check {
     const {state} = pull_request
     const {name, full_name} = repository
     const owner = repository.owner.login
-    const {patterns} = config.commit.message
     const pendingPayload = {
       state: 'pending',
       description: 'Commit message validation in progress.',
       context
     }
     let sha = pull_request.head.sha
-    debug(`${full_name}: Executing hook`)
-    if (state !== 'open' || action !== 'opened' || action !== 'synchronize') {
+    if (state !== 'open' || (action !== 'opened' && action !== 'synchronize')) {
       // this is not the action we are looking for
-      debug(`${full_name}#${number}: Nothing to do, action was ${action} with state ${state}.`)
+      info(`${full_name}#${number}: Nothing to do, action was "${action}" with state "${state}".`)
       return
     }
     try {
@@ -49,7 +48,9 @@ export default class CommitMessage extends Check {
        * Strategy: On every pull request that is opened or synced,
        * check that all commit messages match at least one of one or more patterns.
        */
-      if (patterns && patterns.length) {
+      // safely get deep property
+      const patterns = getIn(config, ['commit', 'message', 'patterns'], [])
+      if (patterns && Array.isArray(patterns) && patterns.length > 0) {
         // set commit state to pending
         await github.setCommitStatus(owner, name, sha, pendingPayload)
         // get all the commits in the PR
@@ -65,6 +66,7 @@ export default class CommitMessage extends Check {
             description: 'All commit messages match configured patterns.',
             context
           })
+          info(`${full_name}#${number}: Set status to success (all messages match at least one pattern).`)
         } else {
           // YOU ARE A BAD PERSON
           const evilSHAs = evilCommits.map(c => c.sha.substring(0, 6)).join(', ')
@@ -73,6 +75,7 @@ export default class CommitMessage extends Check {
             description: `Commits ${evilSHAs} do not match configured patterns.`,
             context
           })
+          info(`${full_name}#${number}: Set status to failure (${evilCommits.length} commit(s) do not match any pattern).`)
         }
       } else {
         // CRICKETS
@@ -81,10 +84,11 @@ export default class CommitMessage extends Check {
           description: 'No patterns configured to match commit messages against.',
           context
         })
+        info(`${full_name}#${number}: Set status to success (no patterns configured).`)
       }
     }
     catch (e) {
-      error(e)
+      error(`${full_name}#${number}: Set status to error (${e.message}, ${e}).`)
       github.setCommitStatus(owner, name, sha, {
         state: 'error',
         context,
