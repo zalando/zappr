@@ -1,8 +1,9 @@
 import yaml from 'js-yaml'
 import path from 'path'
 import nconf from '../nconf'
-import { request, promiseFirst } from '../../common/util'
+import { promiseFirst } from '../../common/util'
 import { logger } from '../../common/debug'
+import { request } from '../util'
 
 const debug = logger('github')
 const info = logger('github', 'info')

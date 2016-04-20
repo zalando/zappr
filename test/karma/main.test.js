@@ -3,7 +3,6 @@ import 'babel-polyfill'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import TestUtils from 'react/lib/ReactTestUtils'
-import couldbe from 'couldbe'
 import { expect } from 'chai'
 import { browserHistory } from 'react-router'
 
@@ -12,6 +11,7 @@ import RepositoryList from '../../client/components/RepositoryList.jsx'
 import RepositoryDetail from '../../client/containers/RepositoryDetail.jsx'
 import configureStore from '../../client/store/configureStore'
 import { waitFor } from '../utils'
+import { getIn } from '../../common/util'
 
 // Import styles as in client/main.js.
 // The CSS will be extracted by webpack.
@@ -47,7 +47,7 @@ describe('Root', function () {
   async function waitForMockDataToLoad(store, done) {
     try {
       await waitFor(() => {
-        return Object.keys(couldbe(store.getState())('repos')('items', {})).length > 0
+        return Object.keys(getIn(store.getState(), ['repos', 'items'], {})).length > 0
       }, 1000)
     } catch (e) {
       return done('mock data did not load for 1 second')

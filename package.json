@@ -51,7 +51,6 @@
     "babel-preset-stage-1": "6.5.x",
     "babel-register": "6.7.2",
     "chai": "3.5.x",
-    "couldbe": "1.0.0",
     "css-loader": "0.23.x",
     "eslint": "2.5.1",
     "extract-text-webpack-plugin": "1.0.x",

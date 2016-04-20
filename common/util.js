@@ -1,17 +1,3 @@
-import requestFn from 'request'
-
-export function request(...args) {
-  return new Promise((resolve, reject) => {
-    requestFn(...args, (err, ...rest) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(rest)
-      }
-    })
-  })
-}
-
 export function promiseFirst(promises) {
   function tryResolve([x, ...xs], resolve, reject) {
     if (xs.length > 0)
