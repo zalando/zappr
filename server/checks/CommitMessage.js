@@ -52,7 +52,7 @@ export default class CommitMessage extends Check {
       const patterns = getIn(config, ['commit', 'message', 'patterns'], [])
       if (patterns && Array.isArray(patterns) && patterns.length > 0) {
         // set commit state to pending
-        await github.setCommitStatus(owner, name, sha, pendingPayload)
+        await github.setCommitStatus(owner, name, sha, pendingPayload, token)
         // get all the commits in the PR
         const commits = await github.fetchPullRequestCommits(owner, name, number, token)
         // get matcher function for all those patterns
@@ -65,7 +65,7 @@ export default class CommitMessage extends Check {
             state: 'success',
             description: 'All commit messages match configured patterns.',
             context
-          })
+          }, token)
           info(`${full_name}#${number}: Set status to success (all messages match at least one pattern).`)
         } else {
           // YOU ARE A BAD PERSON
@@ -74,7 +74,7 @@ export default class CommitMessage extends Check {
             state: 'failure',
             description: `Commits ${evilSHAs} do not match configured patterns.`,
             context
-          })
+          }, token)
           info(`${full_name}#${number}: Set status to failure (${evilCommits.length} commit(s) do not match any pattern).`)
         }
       } else {
@@ -83,7 +83,7 @@ export default class CommitMessage extends Check {
           state: 'success',
           description: 'No patterns configured to match commit messages against.',
           context
-        })
+        }, token)
         info(`${full_name}#${number}: Set status to success (no patterns configured).`)
       }
     }
