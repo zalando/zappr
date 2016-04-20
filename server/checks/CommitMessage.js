@@ -63,16 +63,16 @@ export default class CommitMessage extends Check {
           // YAY
           github.setCommitStatus(owner, name, sha, {
             state: 'success',
-            description: 'All commit messages match configured patterns.',
+            description: 'All commit messages match at least one configured pattern.',
             context
           }, token)
-          info(`${full_name}#${number}: Set status to success (all messages match at least one pattern).`)
+          info(`${full_name}#${number}: Set status to success (all commit messages match at least one pattern).`)
         } else {
           // YOU ARE A BAD PERSON
           const evilSHAs = evilCommits.map(c => c.sha.substring(0, 6)).join(', ')
           github.setCommitStatus(owner, name, sha, {
             state: 'failure',
-            description: `Commits ${evilSHAs} do not match configured patterns.`,
+            description: `${evilCommits.length > 1 ? 'Commits' : 'Commit'} ${evilSHAs} do not match configured patterns.`,
             context
           }, token)
           info(`${full_name}#${number}: Set status to failure (${evilCommits.length} commit(s) do not match any pattern).`)

@@ -97,7 +97,8 @@ describe('CommitMessage', () => {
             state: 'success',
             description: 'No patterns configured to match commit messages against.',
             context: 'zappr-commitmessage'
-          }
+          },
+          TOKEN
         ])
         expect(github.fetchPullRequestCommits.callCount).to.equal(0)
         done()
@@ -129,7 +130,7 @@ describe('CommitMessage', () => {
         expect(github.fetchPullRequestCommits.callCount).to.equal(1)
         expect(github.setCommitStatus.callCount).to.equal(2)
         expect(github.setCommitStatus.args.map(a => a[3].state)).to.deep.equal(['pending', 'success'])
-        expect(github.setCommitStatus.args[1][3].description).to.equal("All commit messages match configured patterns.")
+        expect(github.setCommitStatus.args[1][3].description).to.equal("All commit messages match at least one configured pattern.")
         done()
       } catch (e) {
         done(e)
@@ -170,8 +171,7 @@ describe('CommitMessage', () => {
         ])
         expect(github.setCommitStatus.callCount).to.equal(2)
         expect(github.setCommitStatus.args.map(a => a[3].state)).to.deep.equal(['pending', 'failure'])
-        expect(github.setCommitStatus.args[1][3].description).to.contain('1commi')
-        expect(github.setCommitStatus.args[1][3].description).to.contain('3commi')
+        expect(github.setCommitStatus.args[1][3].description).to.equal('Commits 1commi, 3commi do not match configured patterns.')
         done()
       } catch(e) {
         done(e)
