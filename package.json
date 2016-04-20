@@ -111,7 +111,7 @@
     "react-dom": "0.14.7",
     "react-redux": "4.4.1",
     "react-router": "2.0.1",
-    "redux": "3.3.1",
+    "redux": "3.5.0",
     "redux-router": "1.0.0-beta8",
     "redux-thunk": "2.0.1",
     "request": "2.69.0",
