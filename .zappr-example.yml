@@ -1,8 +1,10 @@
 approvals:
-  # PR needs at least 4 approvals
-  minimum: 4
+  # PR needs at least 2 approvals
+  minimum: 2
   # approval = comment that matches this regex
-  pattern: "^:\\+1:$"
+  pattern: "^(:\\+1:|👍)$"
+  # note that `from` is by default empty,
+  # accepting any matching comment as approval
   from:
     # commenter must be either one of:
     orgs:

@@ -1,0 +1,10 @@
+site_name: Zappr
+site_favicon: img/favicon.ico
+repo_url: https://github.com/zalando/zappr
+docs_dir: docs
+pages:
+  - Overview: index.md
+  - Setup: setup.md
+  - FAQ: faq.md
+extra_css:
+  - images.css

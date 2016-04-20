@@ -21,12 +21,15 @@ export default class Approval extends Check {
   }
 
   static async countApprovals(github, repository, comments, config, token) {
+
     const {pattern, ignore} = config
+
     const fullName = `${repository.full_name}`
     let filtered = comments
                     // filter ignored users
                     .filter(c => (ignore || []).indexOf(c.user.login) === -1)
                     // get comments that match specified approval pattern
+                    // TODO add unicode flag once available in node
                     .filter(c => (new RegExp(pattern)).test(c.body.trim()))
                     // slightly unperformant filtering here:
                     // kicking out multiple approvals from same person

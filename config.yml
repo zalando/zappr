@@ -37,7 +37,7 @@ SQLITE_FILE: ./zappr.sqlite
 # Token encryption
 # Options: [~, kms]
 ENCRYPTION_ENGINE: ~
-# ENCRYPTION_KEY: arn:aws:kms:eu-west-1:082194939997:key/913dc389-7399-436d-94b8-16ed31d88be7
+# ENCRYPTION_KEY: [aws kms arn]
 # KMS_REGION: eu-west-1
 
 # HTTP logging
@@ -51,18 +51,13 @@ LOG_LEVEL: debug
 # ===================
 
 # path to zapprfile in repository
-ZAPPR_FILE_PATH: "/.zappr.yml"
+VALID_ZAPPR_FILE_PATHS:
+  - "/.zappr.yaml"
+  - "/.zappr.yml"
 ZAPPR_DEFAULT_CONFIG:
   autobranch:
     pattern: "{number}-{title}"
     length: 60
   approvals:
     minimum: 2
-    pattern: "^:\\+1:$"
-    # from:
-    #   orgs:
-    #     - zalando
-    #   collaborators: true
-    #   users:
-    #     - prayerslayer
-    #     - mfellner
+    pattern: "^(:\\+1:|👍)$"
