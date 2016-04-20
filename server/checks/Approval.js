@@ -12,7 +12,7 @@ export default class Approval extends Check {
   static TYPE = 'approval'
   static NAME = 'Approval check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
-  
+
   static generateStatusMessage(actual, needed) {
     if (actual < needed) {
       return `This PR needs ${needed - actual} more approvals (${actual}/${needed} given).`
@@ -121,11 +121,11 @@ export default class Approval extends Check {
           if (action === 'opened' && minimum > 0) {
             // if it was opened, set to fail
             await github.setCommitStatus(user, repo, pull_request.head.sha, {
-              state: 'failure',
+              state: 'pending',
               description: this.generateStatusMessage(0, minimum),
               context
             }, token)
-            info(`${repository.full_name}#${number}: PR was opened, set state to failure`)
+            info(`${repository.full_name}#${number}: PR was opened, set state to pending`)
             return
           }
           // get approvals for pr
@@ -133,7 +133,7 @@ export default class Approval extends Check {
           const comments = await github.getComments(user, repo, number, formatDate(dbPR.last_push), token)
           const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
           const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
-          const state = approvals < minimum ? 'failure' : 'success'
+          const state = approvals < minimum ? 'pending' : 'success'
           let status = {
             state,
             context,
@@ -148,11 +148,11 @@ export default class Approval extends Check {
           await pullRequestHandler.onAddCommit(dbRepoId, number)
           // set status to failure (has to be unlocked with further comments)
           await github.setCommitStatus(user, repo, pull_request.head.sha, {
-            state: 'failure',
+            state: 'pending',
             description: this.generateStatusMessage(0, minimum),
             context
           }, token)
-          info(`${repository.full_name}#${number}: PR was synced, set state to failure`)
+          info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
       // on an issue comment
       } else if (!!issue) {
@@ -175,7 +175,7 @@ export default class Approval extends Check {
         const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
         const comments = await github.getComments(user, repo, issue.number, formatDate(dbPR.last_push), token)
         const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
-        const state = approvals < minimum ? 'failure' : 'success'
+        const state = approvals < minimum ? 'pending' : 'success'
         let status = {
           state,
           context,
