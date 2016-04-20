@@ -9,7 +9,7 @@ const info = logger('github', 'info')
 const error = logger('github', 'error')
 const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
 const VALID_ZAPPR_FILE_PATHS = nconf.get('VALID_ZAPPR_FILE_PATHS')
-
+const HOST_ADDR = nconf.get('HOST_ADDR')
 
 const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
@@ -20,7 +20,8 @@ const API_URL_TEMPLATES = {
   COLLABORATOR: '/repos/${owner}/${repo}/collaborators/${user}',
   REPO_CONTENT: '/repos/${owner}/${repo}/contents',
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
-  CREATE_REF: '/repos/${owner}/${repo}/git/refs'
+  CREATE_REF: '/repos/${owner}/${repo}/git/refs',
+  PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits'
 }
 
 function fromBase64(encoded) {
@@ -37,7 +38,7 @@ export default class GithubService {
       method: method,
       url,
       headers: {
-        'User-Agent': 'ZAPPR/1.0 (+https://zappr.hackweek.zalan.do)',
+        'User-Agent': `Zappr (+${HOST_ADDR})`,
         'Authorization': `token ${accessToken}`
       },
       body: body
@@ -233,5 +234,18 @@ export default class GithubService {
       pages.forEach(p => Array.prototype.push.apply(repos, p.body))
     }
     return repos
+  }
+
+  async fetchPullRequestCommits(owner, repo, number, accessToken) {
+    const path = API_URL_TEMPLATES.PR_COMMITS
+                                  .replace('${owner}', owner)
+                                  .replace('${repo}', repo)
+                                  .replace('${number}', number)
+    try {
+      return this.fetchPath('GET', path, null, accessToken)
+    } catch(e) {
+      // might happen if there is no pull request with this number
+      return []
+    }
   }
 }
