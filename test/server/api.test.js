@@ -1,14 +1,17 @@
-import nconf from 'nconf'
 import supertest from 'supertest-as-promised'
 import { expect } from 'chai'
 import crypto from 'crypto'
 
+import nconf from '../../server/nconf'
 import MountebankClient from '../MountebankClient'
-import MockStrategy from '../passport/MockStrategy'
+import MockStrategy, { setUserId, setUserName } from '../passport/MockStrategy'
 import { init as initApp } from '../../server/server'
 import { db, Repository, Check } from '../../server/model'
 
 describe('API', () => {
+  const testUser = require('../fixtures/github.user.a.json')
+  setUserId(testUser.id)
+  setUserName(testUser.login)
   const app = initApp({PassportStrategy: MockStrategy})
   const mountebank = new MountebankClient()
   const request = supertest.agent(app.listen())
@@ -25,7 +28,8 @@ describe('API', () => {
 
   before(async (done) => {
     // Override config values
-    nconf.set('GITHUB_URL', `http://localhost:${imposter.port}`)
+    nconf.set('GITHUB_UI_URL', `http://localhost:${imposter.port}`)
+    nconf.set('GITHUB_API_URL', `http://localhost:${imposter.port}`)
     nconf.set('HOST_ADDR', 'http://127.0.0.1:8080')
 
     try {
@@ -33,6 +37,7 @@ describe('API', () => {
       await db.sync()
 
       // Load fixtures
+      fixtures.user = testUser
       fixtures.repos = require('../fixtures/github.user.a.repos.json')
       fixtures.repo = fixtures.repos[0]
       fixtures.repoOwner = fixtures.repo.owner.login
@@ -80,6 +85,17 @@ describe('API', () => {
         add().
         predicate().
           setPath('/user/repos').
+          setMethod('GET').
+        add().
+      add().
+      stub().
+        response().
+          setStatusCode(200).
+          setHeader('Content-Type', 'application/json').
+          setBody(fixtures.user).
+        add().
+        predicate().
+          setPath('/user').
           setMethod('GET').
         add().
       add().
@@ -144,10 +160,9 @@ describe('API', () => {
     it('should cache the response in the database', async (done) => {
       try {
         const {body} = await request.get('/api/repos')
-        const user = MockStrategy.props.user
         // Load repos from the database and transform
         // them into a format equal to the HTTP response.
-        const repos = await Repository.userScope(user)
+        const repos = await Repository.userScope(fixtures.user)
           .findAllSorted({include: [Check]})
           .then(repos => repos.map(r => r.toJSON()))
           .then(repos => repos.map(r => JSON.stringify(r)))
