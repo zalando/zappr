@@ -30,14 +30,12 @@ function fromBase64(encoded) {
 export default class GithubService {
 
   getOptions(method, path, body, accessToken) {
-    let url = nconf.get('GITHUB_URL') + path
-
     return {
       json: true,
       method: method,
-      url,
+      url: nconf.get('GITHUB_API_URL') + path,
       headers: {
-        'User-Agent': 'ZAPPR/1.0 (+https://zappr.hackweek.zalan.do)',
+        'User-Agent': `Zappr (+${nconf.get('HOST_ADDR')})`,
         'Authorization': `token ${accessToken}`
       },
       body: body
@@ -209,6 +207,7 @@ export default class GithubService {
   async fetchRepoPage(page, accessToken) {
     let links = {}
     const [resp, body] = await request(this.getOptions('GET', `/user/repos?page=${page}&visibility=public`, null, accessToken))
+    debug('fetched repository page response headers: %o body: %o', resp.headers, body)
     if (resp.headers && resp.headers.link) {
       links = this.parseLinkHeader(resp.headers.link)
     }
@@ -232,6 +231,7 @@ export default class GithubService {
       const pages = await Promise.all(pageDefs.map(async (page) => await that.fetchRepoPage(page, accessToken)))
       pages.forEach(p => Array.prototype.push.apply(repos, p.body))
     }
+    info('Loaded %d repos from Github', repos.length)
     return repos
   }
 }
