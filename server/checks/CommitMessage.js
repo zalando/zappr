@@ -6,7 +6,7 @@ import * as EVENTS from '../model/GithubEvents'
 const CHECK_TYPE = 'commitmessage'
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
-const context = 'zappr-commitmessage'
+const context = 'zappr/commit/message'
 const SHORT_SHA_LENGTH = 7
 
 /**
@@ -64,7 +64,7 @@ export default class CommitMessage extends Check {
        * Strategy: On every pull request that is opened or synced,
        * check that all commit messages match at least one of one or more patterns.
        */
-      
+
       // safely get deep property
       const patterns = getIn(config, ['commit', 'message', 'patterns'], [])
       if (patterns && Array.isArray(patterns) && patterns.length > 0) {

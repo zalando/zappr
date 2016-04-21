@@ -103,7 +103,7 @@ describe('CommitMessage', () => {
           PR.head.sha, {
             state: 'success',
             description: 'No patterns configured to match commit messages against.',
-            context: 'zappr-commitmessage'
+            context: 'zappr/commit/message'
           },
           TOKEN
         ])
