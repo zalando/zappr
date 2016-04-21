@@ -74,20 +74,21 @@ class RepositoryHandler {
    * @returns {Promise<Array.<Repository>>}
    */
   async onGetAll(user, loadAll = false, includeToken = false) {
-    debug('Load repos from database...')
-    const repos = await Repository.userScope(user).findAllSorted({
+    debug('Load repositories for user %s from database', user.json.username)
+    let repos = await Repository.userScope(user).findAllSorted({
       include: [{
         model: Check,
         attributes: {exclude: includeToken ? [] : ['token']}
       }]
     })
+    debug('Loaded %d repositories for user %s from database', repos.length, user.json.username)
 
     // No need to (re)load from Github. Return repositories from database.
     if (repos.length > 0 && !loadAll) return repos
 
-    const pages = await this.githubService.fetchRepos(user.accessToken, loadAll)
-    await this.upsertRepos(db, user, pages)
-    info(`${user.username}: Loaded ${loadAll ? 'all' : 'some'} repos from Github`)
+    repos = await this.githubService.fetchRepos(user.accessToken, loadAll)
+    await this.upsertRepos(db, user, repos)
+    info(`Loaded ${loadAll ? 'all' : 'some'} repos for user ${user.json.username} from Github`)
 
     // The previously merged repos are not sorted correctly
     // so we need to load them from the database again.
