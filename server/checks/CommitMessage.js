@@ -7,6 +7,7 @@ const CHECK_TYPE = 'commitmessage'
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
 const context = 'zappr-commitmessage'
+const SHORT_SHA_LENGTH = 7
 
 /**
  * Takes RegExps and returns a function that takes a string
@@ -22,6 +23,13 @@ export function getAnyMatcherFn(regexes) {
   }
 }
 
+/**
+ * Takes a commit object from the Github API and decides if it is
+ * a merge commit. Merge commits are commits with more than 1 parent.
+ *
+ * @param commit The commit object from Github API
+ * @returns {boolean} True iff this commit has more than one parent
+ */
 function isMergeCommit({parents}) {
   return Array.isArray(parents) && parents.length > 1
 }
@@ -56,6 +64,7 @@ export default class CommitMessage extends Check {
        * Strategy: On every pull request that is opened or synced,
        * check that all commit messages match at least one of one or more patterns.
        */
+      
       // safely get deep property
       const patterns = getIn(config, ['commit', 'message', 'patterns'], [])
       if (patterns && Array.isArray(patterns) && patterns.length > 0) {
@@ -66,19 +75,21 @@ export default class CommitMessage extends Check {
         // get matcher function for all those patterns
         const matcherFn = getAnyMatcherFn(patterns.map(pattern => new RegExp(pattern)))
         // gather non-merge commits with bad messages
-        const evilCommits = commits.filter(c => !isMergeCommit(c) && !matcherFn(c.commit.message))
-        if (evilCommits.length === 0) {
-          // YAY
+        const badCommits = commits.filter(c => !isMergeCommit(c) && !matcherFn(c.commit.message.trim()))
+
+        if (badCommits.length === 0) {
+          // all commits are fine
           github.setCommitStatus(owner, name, sha, createStatePayload('All commit messages match at least one configured pattern.'), token)
           info(`${full_name}#${number}: Set status to success (all commit messages match at least one pattern).`)
         } else {
-          // YOU ARE A BAD PERSON
-          const evilSHAs = evilCommits.map(({sha}) => sha.substring(0, 6)).join(', ')
-          github.setCommitStatus(owner, name, sha, createStatePayload( `${evilCommits.length > 1 ? 'Commits' : 'Commit'} ${evilSHAs} do not match configured patterns.`, 'failure'), token)
-          info(`${full_name}#${number}: Set status to failure (${evilCommits.length} commit(s) do not match any pattern).`)
+          // there are some bad commits
+          const badSHAs = badCommits.map(({sha}) => sha.substring(0, SHORT_SHA_LENGTH - 1)).join(', ')
+          const usePlural = badCommits.length > 1
+          github.setCommitStatus(owner, name, sha, createStatePayload( `${usePlural ? 'Commits' : 'Commit'} ${badSHAs} ${usePlural ? 'do' : 'does'} not match configured patterns.`, 'failure'), token)
+          info(`${full_name}#${number}: Set status to failure (${badCommits.length} commit(s) do not match any pattern).`)
         }
       } else {
-        // CRICKETS
+        // no patterns were configured
         github.setCommitStatus(owner, name, sha, createStatePayload('No patterns configured to match commit messages against.'), token)
         info(`${full_name}#${number}: Set status to success (no patterns configured).`)
       }

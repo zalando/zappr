@@ -237,6 +237,15 @@ export default class GithubService {
     return repos
   }
 
+  /**
+   * Gets first 250 commits on a pull request.
+   *
+   * @param owner The repo owner, e.g. zalando
+   * @param repo The repo name, e.g. zappr
+   * @param number The PR number, e.g. 207
+   * @param accessToken The Github access token to use
+   * @returns {*} See https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
+   */
   async fetchPullRequestCommits(owner, repo, number, accessToken) {
     const path = API_URL_TEMPLATES.PR_COMMITS
                                   .replace('${owner}', owner)
@@ -246,6 +255,7 @@ export default class GithubService {
       return this.fetchPath('GET', path, null, accessToken)
     } catch(e) {
       // might happen if there is no pull request with this number
+      debug(`${owner}/${repo}#${number}: Call failed or not a pull request`)
       return []
     }
   }

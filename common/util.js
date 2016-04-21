@@ -10,9 +10,23 @@ export function promiseFirst(promises) {
   )
 }
 
+/**
+ * Safely gets a nested property from an object, returning
+ * a default value if the provided path does not exist.
+ * This is to avoid accessing undefined properties along
+ * the way e.g. when calling something like `foo.bar.baz[0].quux`.
+ *
+ * @param obj The object to get nested properties from
+ * @param path The path of properties, will be converted to an Array if it's not already
+ * @param returnDefault The default value to return if the path does not exist
+ * @returns {*}
+ */
 export function getIn(obj, path, returnDefault = null) {
-  if (!obj || !path || !Array.isArray(path)) {
+  if (!obj || typeof path === 'undefined') {
     return returnDefault
+  }
+  if (!Array.isArray(path)) {
+    path = [path]
   }
   const [head, ...tail] = path
   if (obj.hasOwnProperty(head)) {
