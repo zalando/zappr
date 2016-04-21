@@ -8,7 +8,7 @@ WORKDIR $ZAPPR_HOME
 COPY package.json $ZAPPR_HOME
 
 RUN npm install --production && \
-    npm install pg
+    npm install pg source-map
 
 COPY dist/ $ZAPPR_HOME/dist
 COPY config.yml $ZAPPR_HOME/config.yml

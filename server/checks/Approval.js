@@ -27,10 +27,20 @@ export default class Approval extends Check {
     const fullName = `${repository.full_name}`
     let filtered = comments
                     // filter ignored users
-                    .filter(c => (ignore || []).indexOf(c.user.login) === -1)
+                    .filter(comment => {
+                       const {login} = comment.user
+                       const include = (ignore || []).indexOf(login) === -1
+                       if (!include) info('%s: Ignoring user: %s.', fullName, login)
+                       return include
+                    })
                     // get comments that match specified approval pattern
                     // TODO add unicode flag once available in node
-                    .filter(c => (new RegExp(pattern)).test(c.body.trim()))
+                    .filter(comment => {
+                      const text = comment.body.trim()
+                      const include = (new RegExp(pattern)).test(text)
+                      if (!include) info('%s: Comment "%s" does not match pattern "%s".', fullName, text, pattern)
+                      return include
+                    })
                     // slightly unperformant filtering here:
                     // kicking out multiple approvals from same person
                     .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
