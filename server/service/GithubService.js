@@ -150,7 +150,7 @@ export default class GithubService {
         const {content} = await promiseFirst(zapprFileRequests)
         return yaml.safeLoad(fromBase64(content))
     } catch (e) {
-      // No .zappr file found, fall back to default configuration.
+      info('%s/%s: Falling back to default configuration.', user, repo)
       return {}
     }
   }
