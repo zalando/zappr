@@ -1,6 +1,6 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
-import CommitMessage, {getMatchFn} from '../../server/checks/CommitMessage'
+import CommitMessage, {getAnyMatcherFn} from '../../server/checks/CommitMessage'
 
 const CONFIG = {
   commit: {
@@ -26,9 +26,9 @@ const PR = {
 }
 
 describe('CommitMessage', () => {
-  describe('#getMatchFn', () => {
+  describe('#getAnyMatcherFn', () => {
     it('should match one pattern', () => {
-      const fn = getMatchFn(CONFIG.commit.message.patterns.map(p => new RegExp(p)))
+      const fn = getAnyMatcherFn(CONFIG.commit.message.patterns.map(p => new RegExp(p)))
       expect(fn('#123')).to.be.true
       expect(fn('123')).to.be.false
       expect(fn('#0')).to.be.true
@@ -36,7 +36,7 @@ describe('CommitMessage', () => {
       expect(fn('foo')).to.be.false
     })
     it('should match one of multiple patterns', () => {
-      const fn = getMatchFn(CONFIG.commit.message.patterns.concat(['foo']).map(p => new RegExp(p)))
+      const fn = getAnyMatcherFn(CONFIG.commit.message.patterns.concat(['foo']).map(p => new RegExp(p)))
       expect(fn('#123')).to.be.true
       expect(fn('123')).to.be.false
       expect(fn('#0')).to.be.true
@@ -118,6 +118,12 @@ describe('CommitMessage', () => {
           commit: {
             message: '#123 polizei'
           }
+        }, {
+          sha: '4commit',
+          commit: {
+            message: 'not matching, but merge commit'
+          },
+          parents: [{}, {}]
         }]
         const payload = {
           pull_request: PR,
@@ -142,17 +148,26 @@ describe('CommitMessage', () => {
           sha: '1commit',
           commit: {
             message: 'not matching'
-          }
+          },
+          parents: [{}]
         }, {
           sha: '2commit',
           commit: {
             message: '#134 i am fine'
-          }
+          },
+          parents: [{}]
         }, {
           sha: '3commit',
           commit: {
             message: 'also not matching'
-          }
+          },
+          parents: [{}]
+        }, {
+          sha: '4commit',
+          commit: {
+            message: 'not matching either, but merge commit'
+          },
+          parents: [{}, {}]
         }]
         const payload = {
           pull_request: PR,
