@@ -8,7 +8,6 @@ const ZAPPR_SCM_URL = 'https://github.com/zalando/zappr.git'
 const ZAPPR_IMAGE = 'registry-write.opensource.zalan.do/opensource/zappr'
 const BASE_IMAGE = 'registry.opensource.zalan.do/stups/node:5.10-23'
 const VOLUME = '/opt/zappr'
-const CWD = process.cwd()
 
 /**
  * Run a shell command.
@@ -71,9 +70,12 @@ function writeScmSourceJson(callback) {
 /**
  * Run the npm build from within a Docker container.
  *
+ * @param {string} mountDirectory - Local directory to mount inside the container.
  * @param {function} callback
  */
-function npmBuild(callback) {
+function npmBuild(mountDirectory, callback) {
+  if (!mountDirectory) return callback(new Error('mountDirectory not set'))
+
   docker.run(BASE_IMAGE, ['bash', '-c', 'npm install && npm run dist'], null,
     {
       Volumes: {
@@ -86,7 +88,7 @@ function npmBuild(callback) {
 
       // Start the container and mount the current working directory.
       container.start({
-        'Binds': [`${CWD}:${VOLUME}`]
+        'Binds': [`${mountDirectory}:${VOLUME}`]
       }, (err, data) => {
         if (err) console.error('Error:', err)
       })
@@ -118,7 +120,7 @@ function dockerBuild(version, callback) {
     /docs/,
     /\.idea/
   ]
-  const tarStream = tar.pack(CWD, {
+  const tarStream = tar.pack(process.cwd(), {
     ignore: name => (ignore.reduce((bool, pattern) => bool || pattern.test(name), false))
   })
 
@@ -133,8 +135,11 @@ function dockerBuild(version, callback) {
 
 switch (process.argv[2]) {
   case 'dist':
-    npmBuild(err => err ? console.error(err) : null)
+  {
+    const mountDirectory = process.env.DOCKER_RUN_WORKING_DIRECTORY || process.argv[3]
+    npmBuild(mountDirectory, err => err ? console.error(err) : null)
     break
+  }
   case 'build':
     readGitVersion((err, version) =>
       err ? console.error(err) : writeScmSourceJson(err =>
