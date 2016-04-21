@@ -60,7 +60,7 @@
     "karma-chrome-launcher": "0.2.x",
     "karma-firefox-launcher": "0.1.x",
     "karma-mocha": "0.2.x",
-    "karma-mocha-reporter": "2.0.0",
+    "karma-mocha-reporter": "2.0.1",
     "karma-sourcemap-loader": "0.3.x",
     "karma-webpack": "1.7.x",
     "mocha": "2.4.x",
