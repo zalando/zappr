@@ -32,8 +32,6 @@ function fromBase64(encoded) {
 export default class GithubService {
 
   getOptions(method, path, body, accessToken) {
-    let url = nconf.get('GITHUB_URL') + path
-
     return {
       json: true,
       method: method,
