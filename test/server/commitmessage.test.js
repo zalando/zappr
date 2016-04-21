@@ -43,6 +43,13 @@ describe('CommitMessage', () => {
       expect(fn('#')).to.be.false
       expect(fn('foo')).to.be.true
     })
+    it('should work with emojis', () => {
+      // because https://github.com/dannyfritz/commit-message-emoji
+      const regexString = '^(🎉|💩|🐛|📚)'
+      const fn = getAnyMatcherFn([new RegExp(regexString)])
+      const messages = ['🎉 tada', '💩', '🐛 bugfix', '📚']
+      messages.forEach(emoji => expect(fn(emoji)).to.be.true)
+    })
   })
   describe('#execute', () => {
     var github
