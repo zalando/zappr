@@ -23,6 +23,13 @@ git_scm_status() {
 }
 
 ########################################
+# Return author of the latest commit
+########################################
+git_author() {
+  echo $(git --no-pager show -s --format='%an <%ae>' HEAD)
+}
+
+########################################
 # Write the scm-source.json file.
 # See http://docs.stups.io/en/latest/user-guide/application-development.html
 # Arguments:
@@ -31,7 +38,7 @@ git_scm_status() {
 write_scm_source() {
   local scm_url=$1
   local scm_version=$(git rev-parse HEAD)
-  local scm_author=$USER
+  local scm_author=$(git_author)
   local scm_status=$(git_scm_status)
   printf "{
   \"url\": \"${scm_url}\",

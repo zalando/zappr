@@ -13,6 +13,8 @@
     "build": "parallelshell 'npm run build-client -- -d' 'npm run build-server'",
     "build-client": "webpack --config webpack.client.js",
     "build-server": "webpack --config webpack.server.js",
+    "docker-dist": "zappr-docker dist",
+    "docker-build": "zappr-docker build",
     "clean": "rm -rf dist",
     "all": "parallelshell 'npm run client -- -d' 'npm run build-server -- -dw' 'npm run server'",
     "client": "webpack-dev-server --history-api-fallback --inline --no-info --config webpack.client.js --content-base dist/client",
