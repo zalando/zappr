@@ -39,7 +39,7 @@ export default class GithubService {
       method: method,
       url: nconf.get('GITHUB_API_URL') + path,
       headers: {
-        'User-Agent': `Zappr (+${HOST_ADDR})`,
+        'User-Agent': `Zappr (+${nconf.get('HOST_ADDR')})`,
         'Authorization': `token ${accessToken}`
       },
       body: body
