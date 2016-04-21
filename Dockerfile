@@ -2,6 +2,7 @@ FROM registry.opensource.zalan.do/stups/node:5.10-23
 
 ENV ZAPPR_HOME /opt/zappr
 
+RUN mkdir -p $ZAPPR_HOME
 WORKDIR $ZAPPR_HOME
 
 COPY package.json $ZAPPR_HOME
