@@ -1,6 +1,6 @@
 import temp from 'temp'
 import rimraf from 'rimraf'
-import {request} from '../common/util'
+import {request} from '../server/util'
 import mountebank from 'mountebank'
 
 import { logger } from '../common/debug'

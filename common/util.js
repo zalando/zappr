@@ -1,17 +1,3 @@
-import requestFn from 'request'
-
-export function request(...args) {
-  return new Promise((resolve, reject) => {
-    requestFn(...args, (err, ...rest) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(rest)
-      }
-    })
-  })
-}
-
 export function promiseFirst(promises) {
   function tryResolve([x, ...xs], resolve, reject) {
     if (xs.length > 0)
@@ -22,4 +8,31 @@ export function promiseFirst(promises) {
   return new Promise((resolve, reject) =>
     tryResolve(promises, resolve, reject)
   )
+}
+
+/**
+ * Safely gets a nested property from an object, returning
+ * a default value if the provided path does not exist.
+ * This is to avoid accessing undefined properties along
+ * the way e.g. when calling something like `foo.bar.baz[0].quux`.
+ *
+ * @param obj The object to get nested properties from
+ * @param path The path of properties, will be converted to an Array if it's not already
+ * @param returnDefault The default value to return if the path does not exist
+ * @returns {*}
+ */
+export function getIn(obj, path, returnDefault = null) {
+  if (!obj || typeof path === 'undefined') {
+    return returnDefault
+  }
+  if (!Array.isArray(path)) {
+    path = [path]
+  }
+  const [head, ...tail] = path
+  if (obj.hasOwnProperty(head)) {
+    return tail.length === 0 ?
+              obj[head] :
+              getIn(obj[head], tail, returnDefault)
+  }
+  return returnDefault
 }

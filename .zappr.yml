@@ -3,3 +3,7 @@ approvals:
   from:
     orgs:
       - zalando
+commit:
+  message:
+    patterns:
+      - "^#[0-9]+"

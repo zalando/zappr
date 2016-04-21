@@ -2,7 +2,7 @@ import merge from 'lodash/merge'
 
 import GithubService from '../service/GithubService'
 import nconf from '../nconf'
-import { Approval, Autobranch } from '../checks'
+import { Approval, Autobranch, CommitMessage } from '../checks'
 import { logger } from '../../common/debug'
 import { checkHandler } from './CheckHandler'
 import { repositoryHandler } from './RepositoryHandler'
@@ -66,39 +66,38 @@ class HookHandler {
    * @return {object}
    */
   async onHandleHook(event, payload) {
-    const github = this.github
-
-    async function selectCheck(type, callback) {
-      const {name, id, owner, full_name} = payload.repository
-      const repo = await repositoryHandler.onGetOne(id, null, true)
-      const check = repo.checks.filter(check => check.type === type && !!check.token)[0]
-
-      if (check) {
-        // read zappr configuration
-        const zapprFileContent = await github.readZapprFile(owner.login, name, repo.checks[0].token)
-        const config = merge({}, DEFAULT_CONFIG, zapprFileContent)
-
-        await callback(check, repo, config)
-        info(`Executed ${type} hook for ${full_name}`)
-      } else {
-        info(`Received event "${event}" for ${full_name} but no check with type "${type}" is enabled.`)
+    async function getToken(dbRepo, checkType) {
+      const check = dbRepo.checks.filter(check => check.type === checkType && !!check.token)[0]
+      if (!!check) {
+        return Promise.resolve(check.token)
       }
     }
 
-    if (Approval.isEvent(event)) {
-      await selectCheck(Approval.TYPE, (check, repo, config) =>
-        Approval.execute(this.github, config, payload, check.token, repo.id, pullRequestHandler)
-      )
-    }
-    else if (Autobranch.isEvent(event)) {
-      await selectCheck(Autobranch.TYPE, (check, repo, config) =>
-        Autobranch.execute(this.github, config, payload, check.token)
-      )
-    }
-    else {
-      info(`Received event "${event}" for ${payload.repository.full_name} but there is no handler for this event.`)
-    }
+    if (payload.repository) {
+      const {name, id, owner} = payload.repository
+      const repo = await repositoryHandler.onGetOne(id, null, true)
+      const zapprUserConfig = repo.checks.length ?
+        await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
+        : {}
 
+      const config = merge({}, DEFAULT_CONFIG, zapprUserConfig)
+
+      if (Approval.isTriggeredBy(event)) {
+        getToken(repo, Approval.TYPE).then(token =>
+          Approval.execute(this.github, config, payload, token, repo.id, pullRequestHandler)
+        )
+      }
+      if (Autobranch.isTriggeredBy(event)) {
+        getToken(repo, Autobranch.TYPE).then(token =>
+          Autobranch.execute(this.github, config, payload, token)
+        )
+      }
+      if (CommitMessage.isTriggeredBy(event)) {
+        getToken(repo, CommitMessage.TYPE).then(token =>
+          CommitMessage.execute(this.github, config, payload, token)
+        )
+      }
+    }
     return {
       message: "THANKS"
     }

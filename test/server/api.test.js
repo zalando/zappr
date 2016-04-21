@@ -199,7 +199,16 @@ describe('API', () => {
   })
 
   describe('POST /api/hook', () => {
-    it('should return THANKS')
+    it('should return THANKS', async(done) => {
+      try {
+        const response = await request.post('/api/hook').send({})
+        expect(response.status).to.equal(200)
+        expect(response.body).to.deep.equal({ message: 'THANKS' })
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
 
     it('should validate x-hub-signature if provided', async(done) => {
       try {

@@ -4,22 +4,16 @@ import { Alert, Panel, Well } from 'react-bootstrap'
 import Toggle from './Toggle.jsx'
 
 const INFO_TEXT = {
-  approval: <p>Once you enabled the Approval check, ZAPPR will set a
-               commit status on every PR in your repository, much like <a href='https://travis-ci.org'>Travis</a>.
-               It will look for comments that match a regex (default: <code>/^:\+1:$/</code>) and count
-               those as approvals to merge. If your PR has enough approvals
-               (default: <code>2</code>) the status will be set to successful.
-               By default ZAPPR will count comments from anyone, but you can
-               configure this in your <a href='https://github.com/zalando/zappr/tree/master/.zappr-example.yml'>
-               <code>.zappr.yml</code></a> file.
+  approval: <p>The approval feature (<a href='https://zappr.readthedocs.org/en/latest/setup/#approvals'>docs</a>) blocks a pull request (if you
+               enabled <a href='https://github.com/blog/2051-protected-branches-and-required-status-checks'>protected branches</a>)
+               until it has the required amount of approvals.
             </p>,
-  autobranch: <p>When enabling automatic branch creation, ZAPPR will automatically
-                 create a branch in your repository for every opened issue. By
-                 default the branch name will be <code>{'{issue.number}-{issue.title}'}</code>
-                 and maximum 60 characters long, but you can configure this in your
-                 <code>.zappr.yml</code>. Note that non-ASCII characters and
-                 punctuation will be removed.
-              </p>
+  autobranch: <p>When enabling automatic branch creation (<a href='https://zappr.readthedocs.org/en/latest/setup/#autobranch'>docs</a>), ZAPPR will automatically
+                 create a branch in your repository for every opened issue.
+              </p>,
+  commitmessage: <p>The commit message feature (<a href='https://zappr.readthedocs.org/en/latest/setup/#commitmessages'>docs</a>) will check that commit messages
+                    in a pull request match at least one of some patterns you provide.
+                 </p>
 }
 
 export default class RepositoryCheck extends Component {

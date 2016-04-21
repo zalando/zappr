@@ -7,14 +7,23 @@ approvals:
   # accepting any matching comment as approval
   from:
     # commenter must be either one of:
-    # a public zalando org member
     orgs:
+      # a public zalando org member
+      # (any org in here counts)
       - zalando
-    # a collaborator of the repo
+    # OR a collaborator of the repo
     collaborators: true
-    # this guy
+    # OR one of these guys
     users:
+      - prayerslayer
       - mfellner
+commit:
+  message:
+    # note that there are no default patterns for commit messages
+    patterns:
+      - "^#[0-9]+" # has to begin with hash # and at least one number
+        # OR
+      - "^💩💩💩$" # be three piles of poo
 autobranch:
   # things in curly brackets are variables that
   # will be replaced. possible variables:

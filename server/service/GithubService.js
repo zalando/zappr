@@ -1,8 +1,9 @@
 import yaml from 'js-yaml'
 import path from 'path'
 import nconf from '../nconf'
-import { request, promiseFirst } from '../../common/util'
+import { promiseFirst } from '../../common/util'
 import { logger } from '../../common/debug'
+import { request } from '../util'
 
 const debug = logger('github')
 const info = logger('github', 'info')
@@ -20,7 +21,8 @@ const API_URL_TEMPLATES = {
   COLLABORATOR: '/repos/${owner}/${repo}/collaborators/${user}',
   REPO_CONTENT: '/repos/${owner}/${repo}/contents',
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
-  CREATE_REF: '/repos/${owner}/${repo}/git/refs'
+  CREATE_REF: '/repos/${owner}/${repo}/git/refs',
+  PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits'
 }
 
 function fromBase64(encoded) {
@@ -134,7 +136,7 @@ export default class GithubService {
 
     this.fetchPath('POST', path, payload, accessToken)
   }
-  
+
   async readZapprFile(user, repo, accessToken) {
     const repoContentUrl = API_URL_TEMPLATES.REPO_CONTENT
                                             .replace('${owner}', user)
@@ -233,5 +235,28 @@ export default class GithubService {
     }
     info('Loaded %d repos from Github', repos.length)
     return repos
+  }
+
+  /**
+   * Gets first 250 commits on a pull request.
+   *
+   * @param owner The repo owner, e.g. zalando
+   * @param repo The repo name, e.g. zappr
+   * @param number The PR number, e.g. 207
+   * @param accessToken The Github access token to use
+   * @returns {*} See https://developer.github.com/v3/pulls/#list-commits-on-a-pull-request
+   */
+  async fetchPullRequestCommits(owner, repo, number, accessToken) {
+    const path = API_URL_TEMPLATES.PR_COMMITS
+                                  .replace('${owner}', owner)
+                                  .replace('${repo}', repo)
+                                  .replace('${number}', number)
+    try {
+      return this.fetchPath('GET', path, null, accessToken)
+    } catch(e) {
+      // might happen if there is no pull request with this number
+      debug(`${owner}/${repo}#${number}: Call failed or not a pull request`)
+      return []
+    }
   }
 }

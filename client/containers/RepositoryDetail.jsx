@@ -32,7 +32,7 @@ class RepositoryDetail extends Component {
             <a href={repository.html_url}>
               <Badge>
                 <i style={{color: 'white'}} className="fa fa-github">&nbsp;</i>
-              </Badge>
+              </Badge>&nbsp;
             </a>
             <Badge><i className="fa fa-star">&nbsp;</i>{repository.stargazers_count}</Badge>&nbsp;
             <Badge><i className="fa fa-code-fork">&nbsp;</i>{repository.forks_count}</Badge>&nbsp;
