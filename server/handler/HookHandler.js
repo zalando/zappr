@@ -82,17 +82,17 @@ class HookHandler {
 
       const config = merge({}, DEFAULT_CONFIG, zapprUserConfig)
 
-      if (Approval.dependsOn(event)) {
+      if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
           Approval.execute(this.github, config, payload, token, repo.id, pullRequestHandler)
         )
       }
-      if (Autobranch.dependsOn(event)) {
+      if (Autobranch.isTriggeredBy(event)) {
         getToken(repo, Autobranch.TYPE).then(token =>
           Autobranch.execute(this.github, config, payload, token)
         )
       }
-      if (CommitMessage.dependsOn(event)) {
+      if (CommitMessage.isTriggeredBy(event)) {
         getToken(repo, CommitMessage.TYPE).then(token =>
           CommitMessage.execute(this.github, config, payload, token)
         )
