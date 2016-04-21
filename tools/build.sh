@@ -4,9 +4,9 @@ readonly DOCKER_REGISTRY=${DOCKER_REGISTRY-"registry-write.opensource.zalan.do"}
 readonly DOCKER_USER=${DOCKER_USER-"opensource"}
 readonly DOCKER_REPO=${DOCKER_REPO-"zappr"}
 readonly DOCKER_IMG=${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_REPO}
-readonly DOCKER_ARTIFACT_FILE=${DOCKER_ARTIFACT_FILE-""}
 readonly DOCKER_BASE_IMAGE="registry.opensource.zalan.do/stups/node:5.10-23"
-readonly NPM_BUILD_INSIDE_CONTAINER=${NPM_BUILD_INSIDE_CONTAINER-""}
+# If set, run the Node.js build inside a Docker container and mount this directory.
+readonly DOCKER_RUN_WORKING_DIRECTORY=${DOCKER_RUN_WORKING_DIRECTORY-""}
 
 ########################################
 # Return the current git version
@@ -59,15 +59,15 @@ npm_build_inside_container() {
   echo >&2 "npm build inside container..."
   local workdir="/opt/zappr"
   docker run --rm \
-    -v ${PWD}:${workdir} \
+    -v $1:${workdir} \
     -w ${workdir} \
     ${DOCKER_BASE_IMAGE} \
     /bin/bash -c "npm install && npm run dist"
 }
 
 npm_build() {
-  if [ -n "$NPM_BUILD_INSIDE_CONTAINER" ]; then
-    npm_build_inside_container
+  if [ -n "$DOCKER_RUN_WORKING_DIRECTORY" ]; then
+    npm_build_inside_container ${DOCKER_RUN_WORKING_DIRECTORY}
   else
     npm_build_local
   fi
@@ -94,26 +94,13 @@ docker_build() {
   local img=${DOCKER_IMG}:${version}
 
   docker build ${args} -t ${img} . \
-  && docker_after_build ${img}
-}
-
-########################################
-# Actions to perform after a build
-# Arguments:
-#  img - Full Docker artifact string
-########################################
-docker_after_build() {
-  if [ -n "$DOCKER_ARTIFACT_FILE" ]; then
-        echo $1 > ${DOCKER_ARTIFACT_FILE}
-  fi
-  echo $1
+  && echo ${img}
 }
 
 # Usage: ./build.sh (<tag>) ([args])
 #
 # Options:
-#     NPM_BUILD_INSIDE_CONTAINER - build inside a container
-#     DOCKER_ARTIFACT_FILE - write the created image identifier to this file
+#     DOCKER_RUN_WORKING_DIRECTORY - build inside a container with this directory mounted
 #
 npm_build \
 && write_scm_source \
