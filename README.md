@@ -13,7 +13,7 @@ halt "rogue" pull requests before they're merged into the master branch.
 
 ### Setup, FAQ and further information
 
-Please refer to [our documentation](https://zappr.rtfd.org/).
+Please refer to [our documentation](https://zappr.readthedocs.org/).
 
 ### Development
 
