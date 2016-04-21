@@ -74,7 +74,7 @@
     "source-map-support": "0.4.x",
     "style-loader": "0.13.x",
     "supertest": "1.2.x",
-    "supertest-as-promised": "3.0.x",
+    "supertest-as-promised": "3.1.0",
     "temp": "0.8.x",
     "url-loader": "0.5.x",
     "webpack": "1.13.0",
