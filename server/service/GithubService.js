@@ -1,23 +1,30 @@
 import yaml from 'js-yaml'
+import path from 'path'
 import nconf from '../nconf'
-import { request } from '../../common/util'
+import { request, promiseFirst } from '../../common/util'
 import { logger } from '../../common/debug'
 
 const debug = logger('github')
 const info = logger('github', 'info')
 const error = logger('github', 'error')
 const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
+const VALID_ZAPPR_FILE_PATHS = nconf.get('VALID_ZAPPR_FILE_PATHS')
 
-const PATHS = {
+
+const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
   PR: '/repos/${owner}/${repo}/pulls/${number}',
   ORG_MEMBER: '/orgs/${org}/public_members/${user}',
   STATUS: '/repos/${owner}/${repo}/statuses/${sha}',
   COMMENT: '/repos/${owner}/${repo}/issues/${number}/comments',
   COLLABORATOR: '/repos/${owner}/${repo}/collaborators/${user}',
-  ZAPPR_FILE_REPO: '/repos/${owner}/${repo}/contents' + nconf.get('ZAPPR_FILE_PATH'),
+  REPO_CONTENT: '/repos/${owner}/${repo}/contents',
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
   CREATE_REF: '/repos/${owner}/${repo}/git/refs'
+}
+
+function fromBase64(encoded) {
+  return new Buffer(encoded, 'base64').toString('utf8')
 }
 
 export default class GithubService {
@@ -49,7 +56,7 @@ export default class GithubService {
   }
 
   setCommitStatus(user, repo, sha, status, accessToken) {
-    let path = PATHS.STATUS
+    let path = API_URL_TEMPLATES.STATUS
                 .replace('${owner}', user)
                 .replace('${repo}', repo)
                 .replace('${sha}', sha)
@@ -57,7 +64,7 @@ export default class GithubService {
   }
 
   async isCollaborator(owner, repo, user, accessToken) {
-    let path = PATHS.COLLABORATOR
+    let path = API_URL_TEMPLATES.COLLABORATOR
                 .replace('${owner}', owner)
                 .replace('${repo}', repo)
                 .replace('${user}', user)
@@ -70,7 +77,7 @@ export default class GithubService {
   }
 
   async isMemberOfOrg(org, user, accessToken) {
-    let path = PATHS.ORG_MEMBER
+    let path = API_URL_TEMPLATES.ORG_MEMBER
                 .replace('${org}', org)
                 .replace('${user}', user)
     try {
@@ -82,7 +89,7 @@ export default class GithubService {
   }
 
   getComments(user, repo, number, since, accessToken) {
-    let path = PATHS.COMMENT
+    let path = API_URL_TEMPLATES.COMMENT
                   .replace('${owner}', user)
                   .replace('${repo}', repo)
                   .replace('${number}', number)
@@ -93,7 +100,7 @@ export default class GithubService {
   }
 
   async getPullRequest(user, repo, number, accessToken) {
-    const path = PATHS.PR
+    const path = API_URL_TEMPLATES.PR
                   .replace('${owner}', user)
                   .replace('${repo}', repo)
                   .replace('${number}', number)
@@ -108,7 +115,7 @@ export default class GithubService {
   }
 
   async getHead(owner, repo, branch, accessToken) {
-    const path = PATHS.REF
+    const path = API_URL_TEMPLATES.REF
                   .replace('${owner}', owner)
                   .replace('${repo}', repo)
                   .replace('${branch}', branch)
@@ -117,7 +124,7 @@ export default class GithubService {
   }
 
   createBranch(owner, repo, branch, sha, accessToken) {
-    const path = PATHS.CREATE_REF
+    const path = API_URL_TEMPLATES.CREATE_REF
                   .replace('${owner}', owner)
                   .replace('${repo}', repo)
     const payload = {
@@ -127,19 +134,19 @@ export default class GithubService {
 
     this.fetchPath('POST', path, payload, accessToken)
   }
-
+  
   async readZapprFile(user, repo, accessToken) {
-    // fetch file info
-    const path = PATHS.ZAPPR_FILE_REPO.replace('${owner}', user).replace('${repo}', repo)
+    const repoContentUrl = API_URL_TEMPLATES.REPO_CONTENT
+                                            .replace('${owner}', user)
+                                            .replace('${repo}', repo)
+    const validZapprFileUrls = VALID_ZAPPR_FILE_PATHS
+                                    .map(zapprFilePath => path.join(repoContentUrl, zapprFilePath))
+
+    const zapprFileRequests = validZapprFileUrls.map(zapprFileUrl => this.fetchPath('GET', zapprFileUrl, null, accessToken))
+
     try {
-      let {content} = await this.fetchPath('GET', path, null, accessToken)
-      // short circuit if there is no such file
-      if (!content) {
-        return {}
-      }
-      // decode file content
-      let file = Buffer(content, 'base64').toString('utf8')
-      return yaml.safeLoad(file)
+        const {content} = await promiseFirst(zapprFileRequests)
+        return yaml.safeLoad(fromBase64(content))
     } catch (e) {
       // No .zappr file found, fall back to default configuration.
       return {}
@@ -148,7 +155,7 @@ export default class GithubService {
 
   async updateWebhookFor(user, repo, events, accessToken) {
     debug(`${user}/${repo}: updating webhook with events: ${events.join(", ")}`)
-    let path = PATHS.HOOK.replace('${owner}', user).replace('${repo}', repo)
+    let path = API_URL_TEMPLATES.HOOK.replace('${owner}', user).replace('${repo}', repo)
     let hook_url = nconf.get('HOST_ADDR') + '/api/hook'
     // payload for hook
     let payload = {
