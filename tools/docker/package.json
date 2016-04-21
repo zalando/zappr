@@ -1,0 +1,13 @@
+{
+  "name": "zappr-docker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "bin": {
+    "zappr-docker": "./index.js"
+  },
+  "dependencies": {
+    "dockerode": "^2.2.10",
+    "tar-fs": "^1.12.0"
+  }
+}

@@ -67,8 +67,7 @@ window.DEBUG.enable('zappr:*')
 
         ./tools/build.sh (<tag>)
 
-* `NPM_BUILD_INSIDE_CONTAINER` "true" to build inside a container
-* `DOCKER_ARTIFACT_FILE` file to store docker artifact name in
+* `DOCKER_RUN_WORKING_DIRECTORY` if set, run the npm build inside a Docker container from this directory
 
 
 ## Contributing to Zappr

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const fs = require('fs')
 const exec = require('child_process').exec
 const Docker = require('dockerode')
@@ -146,5 +147,5 @@ switch (process.argv[2]) {
         err ? console.error(err) : dockerBuild(version)))
     break
   default:
-    console.error('Usage: docker.js (dist|build)')
+    console.error('Usage: zappr-docker (dist|build)')
 }
