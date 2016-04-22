@@ -1,0 +1,18 @@
+# Zappr application configuration: enterprise
+
+# path to zapprfile in repository
+VALID_ZAPPR_FILE_PATHS:
+  - "/.zappr.yaml"
+  - "/.zappr.yml"
+ZAPPR_DEFAULT_CONFIG:
+  autobranch:
+    pattern: "{number}-{title}"
+    length: 60
+  commit:
+    message:
+      patterns:
+        - "^(?:(?:[a-zA-Z0-9_\\-]*|[a-zA-Z0-9_\\-]+\\/[a-zA-Z0-9_\\-]+)#|GH-)\\d+$"
+        - "^#?[A-Z]+-[0-9]+"
+  approvals:
+    minimum: 2
+    pattern: "^(:\\+1:|👍)$"

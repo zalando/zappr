@@ -7,6 +7,8 @@ readonly DOCKER_IMG=${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_REPO}
 readonly DOCKER_BASE_IMAGE="registry.opensource.zalan.do/stups/node:5.10-23"
 # If set, run the Node.js build inside a Docker container and mount this directory.
 readonly DOCKER_RUN_WORKING_DIRECTORY=${DOCKER_RUN_WORKING_DIRECTORY-""}
+# Which app configuration to use (opensource, enterprise).
+readonly APP_CONFIG=${APP_CONFIG-"opensource"}
 
 ########################################
 # Return the current git version
@@ -66,8 +68,9 @@ docker_build() {
   fi
 
   local img=${DOCKER_IMG}:${version}
+  echo >&2 "building $img"
 
-  docker build ${args} -t ${img} . \
+  docker build ${args} --build-arg APP_CONFIG=${APP_CONFIG} -t ${img} . \
   && echo ${img}
 }
 
