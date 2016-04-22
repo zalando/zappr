@@ -7,7 +7,7 @@ const CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 nconf.env()
-     .defaults(yaml.safeLoad(fs.readFileSync('./config/system.yml', 'utf8')))
+     .defaults(yaml.safeLoad(fs.readFileSync('./config/system.yaml', 'utf8')))
 
 module.exports = {
   entry: {
