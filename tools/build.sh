@@ -68,6 +68,7 @@ docker_build() {
   fi
 
   local img=${DOCKER_IMG}:${version}
+  echo >&2 "building $img"
 
   docker build ${args} --build-arg APP_CONFIG=${APP_CONFIG} -t ${img} . \
   && echo ${img}

@@ -11,7 +11,7 @@ const debug = logger('nconf')
  * @param {Array.<string>} files
  */
 function readFirstFile(files) {
-  for (let file in files) {
+  for (let file of files) {
     try {
       return fs.readFileSync(file, 'utf8')
     } catch (e) {

@@ -3,6 +3,8 @@ FROM registry.opensource.zalan.do/stups/node:5.10-23
 ENV ZAPPR_HOME /opt/zappr
 
 RUN mkdir -p $ZAPPR_HOME
+ARG APP_CONFIG=opensource
+
 WORKDIR $ZAPPR_HOME
 
 COPY package.json $ZAPPR_HOME
