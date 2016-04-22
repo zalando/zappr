@@ -9,7 +9,7 @@
     "test-client": "DEBUG='zappr:test' BABEL_ENV=test BABEL_DISABLE_CACHE=1 mocha --recursive --compilers js:babel-register test/client/",
     "test-server": "DEBUG='zappr:test' MORGAN_THRESH=999 NODE_ENV=test BABEL_ENV=test BABEL_DISABLE_CACHE=1 SQLITE_FILE=':memory:' mocha --recursive --compilers js:babel-register test/server/",
     "test-karma": "DEBUG='zappr:test' BABEL_ENV=test BABEL_DISABLE_CACHE=1 babel-node ./test/karma/karma.run.js",
-    "dist": "export NODE_ENV='production' && export LOG_LEVEL='info' && npm run clean && npm run build-client -- -p && npm run build-server",
+    "dist": "export NODE_ENV='production' && export LOG_LEVEL='info' && npm run clean && npm run scm && npm run build-client -- -p && npm run build-server",
     "build": "parallelshell 'npm run build-client -- -d' 'npm run build-server'",
     "build-client": "webpack --config webpack.client.js",
     "build-server": "webpack --config webpack.server.js",
@@ -17,7 +17,8 @@
     "all": "parallelshell 'npm run client -- -d' 'npm run build-server -- -dw' 'npm run server'",
     "client": "webpack-dev-server --history-api-fallback --inline --no-info --config webpack.client.js --content-base dist/client",
     "server": "nodemon dist/server/server.min.js --watch dist",
-    "start": "node dist/server/server.min.js"
+    "start": "node dist/server/server.min.js",
+    "scm": "scm-source > scm-source.json"
   },
   "engines": {
     "node": ">=5.0"
@@ -62,6 +63,7 @@
     "karma-webpack": "1.7.x",
     "mocha": "2.4.x",
     "mountebank": "1.5.1",
+    "node-scm-source": "0.2.x",
     "nodemon": "1.9.x",
     "parallelshell": "2.0.x",
     "passport-strategy": "1.0.x",
