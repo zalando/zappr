@@ -16,14 +16,6 @@ git_version() {
 }
 
 ########################################
-# Write the scm-source.json file.
-# See http://docs.stups.io/en/latest/user-guide/application-development.html
-########################################
-write_scm_source() {
-  npm run scm
-}
-
-########################################
 # Build the node application locally.
 ########################################
 npm_build_local() {
@@ -85,5 +77,4 @@ docker_build() {
 #     DOCKER_RUN_WORKING_DIRECTORY - build inside a container with this directory mounted
 #
 npm_build \
-&& write_scm_source \
 && docker_build ${@}
