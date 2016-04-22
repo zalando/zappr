@@ -63,7 +63,7 @@
     "karma-webpack": "1.7.x",
     "mocha": "2.4.x",
     "mountebank": "1.5.1",
-    "node-scm-source": "^0.2.0",
+    "node-scm-source": "0.2.x",
     "nodemon": "1.9.x",
     "parallelshell": "2.0.x",
     "passport-strategy": "1.0.x",
