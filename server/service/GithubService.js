@@ -1,7 +1,7 @@
 import yaml from 'js-yaml'
 import path from 'path'
 import nconf from '../nconf'
-import { promiseFirst } from '../../common/util'
+import { joinURL, promiseFirst } from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
 
@@ -10,7 +10,6 @@ const info = logger('github', 'info')
 const error = logger('github', 'error')
 const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
 const VALID_ZAPPR_FILE_PATHS = nconf.get('VALID_ZAPPR_FILE_PATHS')
-
 
 const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
@@ -22,7 +21,8 @@ const API_URL_TEMPLATES = {
   REPO_CONTENT: '/repos/${owner}/${repo}/contents',
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
   CREATE_REF: '/repos/${owner}/${repo}/git/refs',
-  PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits'
+  PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits',
+  REPOS: '/user/repos?page=${page}&visibility=public'
 }
 
 function fromBase64(encoded) {
@@ -35,7 +35,7 @@ export default class GithubService {
     return {
       json: true,
       method: method,
-      url: nconf.get('GITHUB_API_URL') + path,
+      url: joinURL(nconf.get('GITHUB_API_URL'), path),
       headers: {
         'User-Agent': `Zappr (+${nconf.get('HOST_ADDR')})`,
         'Authorization': `token ${accessToken}`
@@ -203,13 +203,15 @@ export default class GithubService {
               links[matches[2]] = parseInt(matches[1], 10)
               return links
             }, {})
-
   }
 
   async fetchRepoPage(page, accessToken) {
     let links = {}
-    const [resp, body] = await request(this.getOptions('GET', `/user/repos?page=${page}&visibility=public`, null, accessToken))
+    const url = API_URL_TEMPLATES.REPOS.replace('${page}', page)
+    const [resp, body] = await request(this.getOptions('GET', url, null, accessToken))
+
     debug('fetched repository page response headers: %o body: %o', resp.headers, body)
+
     if (resp.headers && resp.headers.link) {
       links = this.parseLinkHeader(resp.headers.link)
     }

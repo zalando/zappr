@@ -3,15 +3,15 @@ import { Strategy as GithubStrategy } from 'passport-github'
 
 import nconf from './nconf'
 import { User } from './model'
-
+import { joinURL } from '../common/util'
 import { logger } from '../common/debug'
-const log = logger('passport')
 
 const GITHUB_CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
 const GITHUB_CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
 const GITHUB_UI_URL = nconf.get('GITHUB_UI_URL')
 const GITHUB_API_URL = nconf.get('GITHUB_API_URL')
 const HOST_ADDR = nconf.get('HOST_ADDR')
+const log = logger('passport')
 
 /**
  * Merge Passport and Github user profiles.
@@ -23,15 +23,6 @@ function normalizeProfile(profile) {
   const {_raw, _json, ...rest} = profile
   const normalizedProfile = {...rest, ..._json}
   return normalizedProfile
-}
-
-/**
- * @param {string} root - http(s)://domain
- * @param {string} path - /some/path
- * @returns {string} - http(s)://domain/some/path
- */
-function joinURL(root, path) {
-  return `${root.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
 }
 
 /**
