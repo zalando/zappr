@@ -1,3 +1,10 @@
+/**
+ * Tries to resolve one Promise after another and
+ * returns a Promise with the first resolved result.
+ *
+ * @param {Array.<Promise>} promises
+ * @returns {Promise}
+ */
 export function promiseFirst(promises) {
   function tryResolve([x, ...xs], resolve, reject) {
     if (xs.length > 0)
@@ -8,6 +15,17 @@ export function promiseFirst(promises) {
   return new Promise((resolve, reject) =>
     tryResolve(promises, resolve, reject)
   )
+}
+
+/**
+ * Joins to parts of a URL.
+ *
+ * @param {string} root - http(s)://domain
+ * @param {string} path - /some/path
+ * @returns {string} - http(s)://domain/some/path
+ */
+export function joinURL(root, path) {
+  return `${root.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
 }
 
 /**
