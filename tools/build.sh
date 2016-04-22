@@ -16,29 +16,11 @@ git_version() {
 }
 
 ########################################
-# Return 'dirty' or an empty string
-########################################
-git_scm_status() {
-  if [ -n "$(git status --porcelain)" ]; then echo "dirty"; else echo ""; fi
-}
-
-########################################
 # Write the scm-source.json file.
 # See http://docs.stups.io/en/latest/user-guide/application-development.html
-# Arguments:
-#  SCM URL - URL of the code repository
 ########################################
 write_scm_source() {
-  local scm_url=$1
-  local scm_version=$(git rev-parse HEAD)
-  local scm_author=$USER
-  local scm_status=$(git_scm_status)
-  printf "{
-  \"url\": \"${scm_url}\",
-  \"revision\": \"${scm_version}\",
-  \"author\": \"${scm_author}\",
-  \"status\": \"${scm_status}\"
-}" > scm-source.json
+  npm run scm
 }
 
 ########################################
