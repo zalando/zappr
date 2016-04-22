@@ -1,4 +1,4 @@
-# ZAPPR default configuration.
+# ZAPPR default system configuration.
 # All values can be overriden via commandline arguments
 # or environment variables using the nconf module.
 
@@ -49,22 +49,3 @@ MORGAN_THRESH: 0
 
 # Logging level
 LOG_LEVEL: debug
-
-# Zappr configuration
-# ===================
-
-# path to zapprfile in repository
-VALID_ZAPPR_FILE_PATHS:
-  - "/.zappr.yaml"
-  - "/.zappr.yml"
-ZAPPR_DEFAULT_CONFIG:
-  autobranch:
-    pattern: "{number}-{title}"
-    length: 60
-  commit:
-    message:
-      patterns:
-        - "^#[0-9]+"
-  approvals:
-    minimum: 2
-    pattern: "^(:\\+1:|👍)$"

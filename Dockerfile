@@ -11,9 +11,11 @@ RUN npm install --production && \
     npm install pg source-map
 
 COPY dist/ $ZAPPR_HOME/dist
-COPY config.yml $ZAPPR_HOME/config.yml
+COPY config $ZAPPR_HOME/config
 COPY migrations/ $ZAPPR_HOME/migrations
 COPY scm-source.json /scm-source.json
+
+RUN mv config/app-${APP_CONFIG}.yaml config/app.yaml
 
 ENV DB_DRIVER postgres
 ENV DB_NAME postgres
