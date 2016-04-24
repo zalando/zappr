@@ -20,12 +20,20 @@ function deleteCheck(status, payload = null) {
   }
 }
 
+function constructError(check, error) {
+  return {
+    ...error,
+    message: error.message,
+    checkId: check.checkId
+  }
+}
+
 function enableCheck(check) {
   return (dispatch) => {
     dispatch(putCheck(PENDING, check))
     CheckService.enableCheck(check)
                 .then(json => dispatch(putCheck(SUCCESS, json)))
-                .catch(err => dispatch(putCheck(ERROR, err)))
+                .catch(err => dispatch(putCheck(ERROR, constructError(check, err))))
   }
 }
 
@@ -34,7 +42,7 @@ function disableCheck(check) {
     dispatch(putCheck(PENDING, check))
     CheckService.disableCheck(check)
                 .then(() => dispatch(deleteCheck(SUCCESS, check)))
-                .catch(err => dispatch(deleteCheck(ERROR, err)))
+                .catch(err => dispatch(deleteCheck(ERROR, constructError(check, err))))
   }
 }
 
