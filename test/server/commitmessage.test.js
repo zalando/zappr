@@ -1,5 +1,7 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
+import zipWith from 'lodash/zipWith'
+import merge from 'lodash/merge'
 import CommitMessage, {getAnyMatcherFn} from '../../server/checks/CommitMessage'
 
 const CONFIG = {
@@ -29,26 +31,28 @@ describe('CommitMessage', () => {
   describe('#getAnyMatcherFn', () => {
     it('should match one pattern', () => {
       const fn = getAnyMatcherFn(CONFIG.commit.message.patterns.map(p => new RegExp(p)))
-      expect(fn('#123')).to.be.true
-      expect(fn('123')).to.be.false
-      expect(fn('#0')).to.be.true
-      expect(fn('#')).to.be.false
-      expect(fn('foo')).to.be.false
+      expect(fn('#123')).to.equal('#123')
+      expect(fn('123')).to.be.null
+      expect(fn('#0')).to.equal('#0')
+      expect(fn('#')).to.be.null
+      expect(fn('foo')).to.be.null
     })
     it('should match one of multiple patterns', () => {
       const fn = getAnyMatcherFn(CONFIG.commit.message.patterns.concat(['foo']).map(p => new RegExp(p)))
-      expect(fn('#123')).to.be.true
-      expect(fn('123')).to.be.false
-      expect(fn('#0')).to.be.true
-      expect(fn('#')).to.be.false
-      expect(fn('foo')).to.be.true
+      expect(fn('#123')).to.equal('#123')
+      expect(fn('123')).to.be.null
+      expect(fn('#0')).to.equal('#0')
+      expect(fn('#')).to.be.null
+      expect(fn('foo')).to.equal('foo')
     })
     it('should work with emojis', () => {
       // because https://github.com/dannyfritz/commit-message-emoji
       const regexString = '^(🎉|💩|🐛|📚)'
       const fn = getAnyMatcherFn([new RegExp(regexString)])
       const messages = ['🎉 tada', '💩', '🐛 bugfix', '📚']
-      messages.forEach(emoji => expect(fn(emoji)).to.be.true)
+      const expected = ['🎉', '💩', '🐛', '📚']
+      zipWith(messages, expected, (m, e) => { return {'message': m, 'expected': e } })
+        .forEach(test => expect(fn(test.message)).to.equal(test.expected))
     })
   })
   describe('#execute', () => {
@@ -194,6 +198,50 @@ describe('CommitMessage', () => {
         expect(github.setCommitStatus.callCount).to.equal(2)
         expect(github.setCommitStatus.args.map(a => a[3].state)).to.deep.equal(['pending', 'failure'])
         expect(github.setCommitStatus.args[1][3].description).to.equal('Commits 1commi, 3commi do not match configured patterns.')
+        done()
+      } catch(e) {
+        done(e)
+      }
+    })
+    it('should set status to failure when there are nonuniform commits', async (done) => {
+      try {
+        const config = merge(CONFIG, { commit: { message: { uniform: true } } })
+        const commits = [{
+          sha: '1commit',
+          commit: {
+            message: '#134 I am one'
+          },
+          parents: [{}]
+        }, {
+          sha: '2commit',
+          commit: {
+            message: '#134 I am two'
+          },
+          parents: [{}]
+        }, {
+          sha: '3commit',
+          commit: {
+            message: '#135 I am wrong'
+          },
+          parents: [{}]
+        }, {
+          sha: '4commit',
+          commit: {
+            message: 'not matching either, but merge commit'
+          },
+          parents: [{}, {}]
+        }]
+        const payload = {
+          pull_request: PR,
+          action: 'synchronize',
+          number: PR.number,
+          repository: REPO
+        }
+        github.fetchPullRequestCommits = sinon.stub().returns(commits)
+        await CommitMessage.execute(github, config, payload, TOKEN)
+        expect(github.setCommitStatus.callCount).to.equal(2)
+        expect(github.setCommitStatus.args.map(a => a[3].state)).to.deep.equal(['pending', 'failure'])
+        expect(github.setCommitStatus.args[1][3].description).to.equal('Commits are not formatted uniformly ("#134", "#135").')
         done()
       } catch(e) {
         done(e)
