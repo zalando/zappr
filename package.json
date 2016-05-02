@@ -69,7 +69,7 @@
     "passport-strategy": "1.0.x",
     "react-addons-test-utils": "15.0.1",
     "rimraf": "2.5.x",
-    "sinon": "1.17.3",
+    "sinon": "1.17.4",
     "source-map-support": "0.4.x",
     "style-loader": "0.13.x",
     "supertest": "1.2.x",
