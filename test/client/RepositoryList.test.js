@@ -3,6 +3,7 @@ import { createRenderer } from 'react-addons-test-utils'
 import { expect } from 'chai'
 
 import RepositoryList from '../../client/components/RepositoryList.jsx'
+import { unit } from '../utils'
 
 describe('RepositoryList', () => {
 
@@ -11,11 +12,14 @@ describe('RepositoryList', () => {
       'zappr/aaa': {
         full_name: 'zappr/aaa'
       },
-      'zappr/ccc': {
-        full_name: 'zappr/ccc'
+      'zappr/CCC': {
+        full_name: 'zappr/CCC'
       },
       'zappr/bbb': {
         full_name: 'zappr/bbb'
+      },
+      'xappr/DDD': {
+        full_name: 'xappr/DDD'
       }
     }
   }
@@ -26,8 +30,8 @@ describe('RepositoryList', () => {
       repositories,
       selected: '',
       isUpdating: false,
-      filterRepos: (() => null),
-      fetchAll: (() => null)
+      filterRepos: unit,
+      fetchAll: unit
     }
     const shallowRenderer = createRenderer()
     shallowRenderer.render(<RepositoryList {...props}/>)
@@ -38,17 +42,17 @@ describe('RepositoryList', () => {
     const repositoryList = renderRepositoryList(fixtures.repositories)
     const listGroup = repositoryList.props.children.find(e => e.props.componentClass === 'ul')
     const actual = listGroup.props.children.map(child => child.props.repository.full_name)
-    const expected = Object.keys(fixtures.repositories).sort()
+    const expected = ['xappr/DDD','zappr/aaa','zappr/bbb','zappr/CCC']
 
     expect(actual).to.deep.equal(expected)
   })
 
   it('should render filtered repositories', () => {
-    const filterBy = 'zappr/aaa'
+    const filterBy = 'xappr'
     const repositoryList = renderRepositoryList(fixtures.repositories, filterBy)
     const listGroup = repositoryList.props.children.find(e => e.props.componentClass === 'ul')
     const actual = listGroup.props.children.map(child => child.props.repository)
-    const expected = [fixtures.repositories['zappr/aaa']]
+    const expected = [fixtures.repositories['xappr/DDD']]
 
     expect(actual).to.deep.equal(expected)
   })
