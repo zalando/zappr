@@ -18,7 +18,7 @@ See below how to customize Zappr to your needs.
 
 ## Zappr features and their configuration options
 
-You can customize Zappr by adding a [`.zappr.yml`](https://github.com/zalando/zappr/blob/master/.zappr-example.yml) file to your repository (top-level), similar to Travis. It [takes](https://github.com/zalando/zappr/blob/master/.zappr-example.yml) a couple of different options. We keep an [example configuration file](https://github.com/zalando/zappr/blob/master/.zappr-example.yml) in our repository.
+You can customize Zappr by adding a [`.zappr.yaml`](https://github.com/zalando/zappr/blob/master/.zappr-example.yaml) file to your repository (top-level), similar to Travis. It [takes](https://github.com/zalando/zappr/blob/master/.zappr-example.yaml) a couple of different options. We keep an [example configuration file](https://github.com/zalando/zappr/blob/master/.zappr-example.yaml) in our repository.
 
 ### Approvals
 
