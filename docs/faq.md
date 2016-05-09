@@ -10,7 +10,7 @@ The email address we need to inform you in case of an emergency, if it ever happ
 
 ### Read and write access to your public repositories
 
-We need read access to your repository because otherwise you cannot provide us with custom configuration options (this is done by a `.zappr.yml` file in your repository). The write access is necessary to automatically create branches and being able to verify if a user is a contributor to your repository.
+We need read access to your repository because otherwise you cannot provide us with custom configuration options (this is done by a `.zappr.yaml` file in your repository). The write access is necessary to automatically create branches and being able to verify if a user is a contributor to your repository.
 
 ### Admin access for web hooks
 
