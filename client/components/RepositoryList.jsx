@@ -12,13 +12,13 @@ export default class RepositoryList extends Component {
     filterBy: PropTypes.string.isRequired,
     filterRepos: PropTypes.func.isRequired,
     fetchAll: PropTypes.func.isRequired
-  };
+  }
 
   static defaultProps = {
     repositories: {},
     filterBy: '',
     isUpdating: true
-  };
+  }
 
   onFetchAll() {
     this.props.fetchAll(true)
@@ -28,14 +28,30 @@ export default class RepositoryList extends Component {
     this.props.filterRepos(evt.target.value)
   }
 
+  filteredRepositories() {
+    return Object.keys(this.props.repositories)
+                 .filter(key => fuzzysearch(this.props.filterBy, key))
+                 .map(key => this.props.repositories[key])
+  }
+
+  sortedRepositories() {
+    return this.filteredRepositories().sort((a, b) => {
+      a = a.full_name.toLowerCase()
+      b = b.full_name.toLowerCase()
+      return a < b ? -1 : (b < a ? 1 : 0)
+    })
+  }
+
+  repositoryCount() {
+    return Object.keys(this.props.repositories).length
+  }
+
   render() {
-    const {selected, repositories, isUpdating, filterBy} = this.props
-    const repoCount = Object.keys(repositories).length
-    const filteredRepos = Object.keys(repositories)
-                                .filter(key => fuzzysearch(filterBy, key))
-                                .map(key => repositories[key])
+    const {selected, isUpdating, filterBy} = this.props
+    const repos = this.sortedRepositories()
+
     const header = <header>
-      Repositories {isUpdating ? <i className='fa fa-refresh fa-spin'/> : `(${repoCount})`}
+      Repositories {isUpdating ? <i className='fa fa-refresh fa-spin'/> : `(${this.repositoryCount()})`}
     </header>
 
     return (
@@ -46,8 +62,8 @@ export default class RepositoryList extends Component {
                placeholder='zalando/zappr'
                label={'Search for a repository'}/>
         <ListGroup componentClass="ul">
-          {filteredRepos.length > 0
-            ? filteredRepos.map((repo, i) =>
+          {repos.length > 0
+            ? repos.map((repo, i) =>
             <RepositoryListItem key={i} repository={repo} active={repo.full_name === selected}/>)
             : <ListGroupItem>Oops, no repository found! Try the button below, it could help.</ListGroupItem>}
         </ListGroup>

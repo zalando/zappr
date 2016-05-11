@@ -16,3 +16,13 @@ export function waitFor(test, timeLeft = 100) {
   }
   return new Promise((resolve, reject) => wait(test, timeLeft, resolve, reject))
 }
+
+/**
+ * Unit or NoOp function.
+ * 
+ * @param {*} x
+ * @returns {*} x
+ */
+export function unit(x) {
+  return x
+}
