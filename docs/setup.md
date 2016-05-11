@@ -22,7 +22,10 @@ You can customize Zappr by adding a [`.zappr.yaml`](https://github.com/zalando/z
 
 ### Approvals
 
-The approval feature blocks a pull request (if you enabled [protected branches](https://github.com/blog/2051-protected-branches-and-required-status-checks)) until it has the required amount of approvals (essentialy people confirming that the changes are good to merge).
+The approval feature blocks a pull request until it has the required amount of approvals (essentialy people confirming that the changes are good to merge).
+In order to achieve it [protected branches](https://github.com/blog/2051- aprotected-branches-and-required-status-checks) should be enabled and "zappr" check should be selected:
+
+![IMAGE](img/setup/check_setup.png)
 
 It is customized by everything under `approvals`. The following options are supported:
 
