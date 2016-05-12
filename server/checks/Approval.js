@@ -1,5 +1,6 @@
 import Check from './Check'
 import { logger, formatDate } from '../../common/debug'
+import { promiseReduce } from '../../common/util'
 import * as EVENTS from '../model/GithubEvents'
 
 const context = 'zappr'
@@ -13,79 +14,138 @@ export default class Approval extends Check {
   static NAME = 'Approval check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
 
-  static generateStatusMessage(actual, needed) {
-    if (actual < needed) {
-      return `This PR needs ${needed - actual} more approvals (${actual}/${needed} given).`
+  static generateStatus(approvals, {from, groups}) {
+    // check group requirements
+    const unsatisfied = approvals.groups.find(approvalGroup => {
+      const needed = groups[approvalGroup].minimum
+      const given = approvals.groups[approvalGroup]
+      const diff = needed - given
+      if (diff > 0) {
+        return {approvalGroup, diff, needed, given}
+      } else {
+        return false
+      }
+    })
+
+    if (unsatisfied) {
+      return {
+        description: `This PR misses ${unsatisfied.diff} approvals from group ${unsatisfied.approvalGroup} (${unsatisfied.given}/${unsatisfied.needed}).`,
+        status: 'pending',
+        context
+      }
     }
-    return `This PR has ${actual}/${needed} approvals since the last commit.`
+
+    if (approvals.total < from.minimum) {
+      return {
+        description: `This PR needs ${from.minimum - approvals.total} more approvals (${approvals.total}/${from.minimum} given).`,
+        status: 'pending',
+        context
+      }
+    }
+
+    return {
+      description: `This PR has ${approvals.total}/${from.minimum} approvals since the last commit.`,
+      status: 'success',
+      context
+    }
+  }
+
+  /**
+   * Returns the comment if it matches the config, null otherwise.
+   */
+  static async doesCommentMatchConfig(github, repository, comment, {orgs, collaborators, users}, token) {
+    // persons must either be listed explicitly in users OR
+    // be a collaborator OR
+    // member of at least one of listed orgs
+    const username = comment.user.login
+    const {full_name} = repository
+    // first do the quick username check
+    if (users && users.indexOf(username) >= 0) {
+      debug(`${full_name}: ${username} is listed explicitly`)
+      return comment
+    }
+    // now collaborators
+    if (collaborators) {
+      const isCollaborator = await github.isCollaborator(repository.owner.login, repository.name, username, token)
+      if (isCollaborator) {
+        debug(`${full_name}: ${username} is collaborator`)
+        return comment
+      }
+    }
+    // and orgs
+    if (orgs) {
+      const orgMember = await Promise.all(orgs.map(o => github.isMemberOfOrg(o, username, token)))
+      if (orgMember.indexOf(true) >= 0) {
+        debug(`${full_name}: ${username} is org member`)
+        return comment
+      }
+    }
+    debug(`${full_name}: ${username}'s approval does not count`)
+    // okay, no member of anything
+    return null
+  }
+
+  static async getApprovalsForConfig(github, repository, comments, config, token) {
+    async function checkComment(stats, comment) {
+      const matchesTotal = await this.doesCommentMatchConfig(github, repository, comment, config.from, token)
+      if (matchesTotal) {
+        info(`${repository.full_name}: Counting ${comment.user.login}'s approval`)
+        stats.total += 1
+      }
+      await Promise.all(config.groups.map(async(group) => {
+        const matchesGroup = await this.doesCommentMatchConfig(github, repository, comment, config.groups[group], token)
+        if (matchesGroup) {
+          // counting this as total as well if it didn't before
+          if (!matchesTotal) {
+            info(`${repository.full_name}: Counting ${comment.user.login}'s approval`)
+            stats.total += 1
+          }
+          // update group counter
+          if (!stats.groups[group]) {
+            stats.groups[group] = 0
+          }
+          info(`${repository.full_name}: Counting ${comment.user.login}'s for group ${group}`)
+          stats.groups[group] += 1
+        }
+      }))
+      return stats
+    }
+
+    return promiseReduce(comments, checkComment, {total: 0, groups: {}})
   }
 
   static async countApprovals(github, repository, comments, config, token) {
-
     const {pattern, ignore} = config
-
-    const fullName = `${repository.full_name}`
     let filtered = comments
-                    // filter ignored users
-                    .filter(comment => {
-                       const {login} = comment.user
-                       const include = (ignore || []).indexOf(login) === -1
-                       if (!include) info('%s: Ignoring user: %s.', fullName, login)
-                       return include
-                    })
-                    // get comments that match specified approval pattern
-                    // TODO add unicode flag once available in node
-                    .filter(comment => {
-                      const text = comment.body.trim()
-                      const include = (new RegExp(pattern)).test(text)
-                      if (!include) info('%s: Comment "%s" does not match pattern "%s".', fullName, text, pattern)
-                      return include
-                    })
-                    // slightly unperformant filtering here:
-                    // kicking out multiple approvals from same person
-                    .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
+    // filter ignored users
+    .filter(comment => {
+      const {login} = comment.user
+      const include = (ignore || []).indexOf(login) === -1
+      if (!include) info('%s: Ignoring user: %s.', repository.full_name, login)
+      return include
+    })
+    // get comments that match specified approval pattern
+    // TODO add unicode flag once available in node
+    .filter(comment => {
+      const text = comment.body.trim()
+      const include = (new RegExp(pattern)).test(text)
+      if (!include) info('%s: Comment "%s" does not match pattern "%s".', repository.full_name, text, pattern)
+      return include
+    })
+    // slightly unperformant filtering here:
+    // kicking out multiple approvals from same person
+    .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
     // don't proceed if nothing is left
     if (filtered.length === 0) {
-      return 0
+      return {total: 0}
     }
     // we now have approvals from a set of persons
     // check membership requirements
-    if (config.from) {
-      const {orgs, collaborators, users} = config.from
-      // persons must either be listed explicitly in users OR
-      // be a collaborator OR
-      // member of at least one of listed orgs
-      filtered = await Promise.all(filtered.map(async (comment) => {
-        const username = comment.user.login
-        // first do the quick username check
-        if (users && users.indexOf(username) >= 0) {
-          debug(`${fullName}: ${username} is listed explicitly`)
-          return Promise.resolve(comment)
-        }
-        // now collaborators
-        if (collaborators) {
-          const isCollaborator = await github.isCollaborator(repository.owner.login, repository.name, username, token)
-          if (isCollaborator) {
-            debug(`${fullName}: ${username} is collaborator`)
-            return Promise.resolve(comment)
-          }
-        }
-        // and orgs
-        if (orgs) {
-          const orgMember = await Promise.all(orgs.map(o => github.isMemberOfOrg(o, username, token)))
-          if (orgMember.indexOf(true) >= 0) {
-            debug(`${fullName}: ${username} is org member`)
-            return Promise.resolve(comment)
-          }
-        }
-        debug(`${fullName}: ${username}'s approval does not count`)
-        // okay, no member of anything
-        return Promise.resolve(null)
-      }))
-      // return count non-null comments
-      return filtered.filter(c => !!c).length
+    if (config.from || config.groups) {
+      // check if any comments match those configs
+      return await this.getApprovalsForConfig(github, repository, filtered, config, token)
     } else {
-      return filtered.length
+      return {total: filtered.length}
     }
   }
 
@@ -130,11 +190,7 @@ export default class Approval extends Check {
           }
           if (action === 'opened' && minimum > 0) {
             // if it was opened, set to pending
-            await github.setCommitStatus(user, repo, pull_request.head.sha, {
-              state: 'pending',
-              description: this.generateStatusMessage(0, minimum),
-              context
-            }, token)
+            await github.setCommitStatus(user, repo, pull_request.head.sha, this.generateStatus({total: 0}, config.approvals), token)
             info(`${repository.full_name}#${number}: PR was opened, set state to pending`)
             return
           }
@@ -143,28 +199,19 @@ export default class Approval extends Check {
           const comments = await github.getComments(user, repo, number, formatDate(dbPR.last_push), token)
           const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
           const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
-          const state = approvals < minimum ? 'pending' : 'success'
-          let status = {
-            state,
-            context,
-            description: this.generateStatusMessage(approvals, minimum)
-          }
+          const status = this.generateStatus(approvals, config.approvals)
           // update status
           await github.setCommitStatus(user, repo, pull_request.head.sha, status, token)
-          info(`${repository.full_name}#${number}: PR was reopened, set state to ${state} (${approvals}/${minimum})`)
-        // if it was synced, ie a commit added to it
+          info(`${repository.full_name}#${number}: PR was reopened, set state to ${status.state} (${approvals}/${minimum})`)
+          // if it was synced, ie a commit added to it
         } else if (action === 'synchronize') {
           // update last push in db
           await pullRequestHandler.onAddCommit(dbRepoId, number)
           // set status to pending (has to be unlocked with further comments)
-          await github.setCommitStatus(user, repo, pull_request.head.sha, {
-            state: 'pending',
-            description: this.generateStatusMessage(0, minimum),
-            context
-          }, token)
+          await github.setCommitStatus(user, repo, pull_request.head.sha, this.generateStatus({total: 0}, config.approvals), token)
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
-      // on an issue comment
+        // on an issue comment
       } else if (!!issue) {
         // check it belongs to an open pr
         const pr = await github.getPullRequest(user, repo, issue.number, token)
@@ -185,18 +232,13 @@ export default class Approval extends Check {
         const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
         const comments = await github.getComments(user, repo, issue.number, formatDate(dbPR.last_push), token)
         const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
-        const state = approvals < minimum ? 'pending' : 'success'
-        let status = {
-          state,
-          context,
-          description: this.generateStatusMessage(approvals, minimum)
-        }
+        const status = this.generateStatus(approvals, config.approvals)
         // update status
         await github.setCommitStatus(user, repo, pr.head.sha, status, token)
-        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${state} (${approvals}/${minimum})`)
+        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals}/${minimum})`)
       }
     }
-    catch(e) {
+    catch (e) {
       error(e)
       await github.setCommitStatus(user, repo, sha, {
         state: 'error',

@@ -17,6 +17,18 @@ export function promiseFirst(promises) {
   )
 }
 
+export function promiseReduce(array, fn, initialValue) {
+  function reduce(aggregator, index, array) {
+    return new Promise(resolve => {
+      if (index >= array.length) {
+        return resolve(aggregator)
+      }
+      return fn(aggregator, array[index], index, array).then(newAgg => reduce(newAgg, index + 1, array))
+    });
+  }
+  return reduce(initialValue, 0, array)
+}
+
 /**
  * Joins to parts of a URL.
  *

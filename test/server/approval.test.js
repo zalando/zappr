@@ -80,7 +80,7 @@ describe('Approval#execute', () => {
   }
   const SUCCESS_STATUS = {
     state: 'success',
-    description: Approval.generateStatusMessage(2, DEFAULT_CONFIG.approvals.minimum),
+    description: Approval.generateStatus(2, DEFAULT_CONFIG.approvals.minimum),
     context: 'zappr'
   }
   const PENDING_STATUS = {
@@ -91,7 +91,7 @@ describe('Approval#execute', () => {
   const ZERO_APPROVALS_STATUS = {
     state: 'pending',
     context: 'zappr',
-    description: Approval.generateStatusMessage(0, DEFAULT_CONFIG.approvals.minimum)
+    description: Approval.generateStatus(0, DEFAULT_CONFIG.approvals.minimum)
   }
   const DB_PR = {
     last_push: new Date(),
@@ -233,7 +233,7 @@ describe('Approval#execute', () => {
         PR_PAYLOAD.pull_request.head.sha,
         {
           state: 'success',
-          description: Approval.generateStatusMessage(4, 2),
+          description: Approval.generateStatus(4, 2),
           context: 'zappr'
         },
         TOKEN
