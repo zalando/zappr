@@ -14,37 +14,39 @@ export default class Approval extends Check {
   static NAME = 'Approval check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
 
-  static generateStatus(approvals, {from, groups}) {
-    // check group requirements
-    const unsatisfied = approvals.groups.find(approvalGroup => {
-      const needed = groups[approvalGroup].minimum
-      const given = approvals.groups[approvalGroup]
-      const diff = needed - given
-      if (diff > 0) {
-        return {approvalGroup, diff, needed, given}
-      } else {
-        return false
-      }
-    })
+  static generateStatus(approvals, {minimum, from, groups}) {
+    if (Object.keys(approvals.groups || {}).length > 0) {
+      // check group requirements
+      const unsatisfied = approvals.groups.find(approvalGroup => {
+        const needed = groups[approvalGroup].minimum
+        const given = approvals.groups[approvalGroup]
+        const diff = needed - given
+        if (diff > 0) {
+          return {approvalGroup, diff, needed, given}
+        } else {
+          return false
+        }
+      })
 
-    if (unsatisfied) {
-      return {
-        description: `This PR misses ${unsatisfied.diff} approvals from group ${unsatisfied.approvalGroup} (${unsatisfied.given}/${unsatisfied.needed}).`,
-        status: 'pending',
-        context
+      if (unsatisfied) {
+        return {
+          description: `This PR misses ${unsatisfied.diff} approvals from group ${unsatisfied.approvalGroup} (${unsatisfied.given}/${unsatisfied.needed}).`,
+          status: 'pending',
+          context
+        }
       }
     }
 
-    if (approvals.total < from.minimum) {
+    if (approvals.total < minimum) {
       return {
-        description: `This PR needs ${from.minimum - approvals.total} more approvals (${approvals.total}/${from.minimum} given).`,
+        description: `This PR needs ${minimum - approvals.total} more approvals (${approvals.total}/${minimum} given).`,
         status: 'pending',
         context
       }
     }
 
     return {
-      description: `This PR has ${approvals.total}/${from.minimum} approvals since the last commit.`,
+      description: `This PR has ${approvals.total}/${minimum} approvals since the last commit.`,
       status: 'success',
       context
     }
