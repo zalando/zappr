@@ -1,7 +1,21 @@
 import { expect } from 'chai'
-import { getIn } from '../../common/util'
+import { getIn, promiseReduce } from '../../common/util'
 
 describe('common/util', () => {
+
+  describe('promiseReduce', () => {
+    it('should async build a sum over an array', done => {
+      const numbers = [1, 2, 3, 4, 5]
+      const reducer = (sum, item) => new Promise(resolve => setTimeout(() => resolve(sum + item), 50))
+      promiseReduce(numbers, reducer, 5).then(sum => {
+        expect(sum).to.equal(20)
+        done()
+      })
+      .catch(done)
+
+    })
+  })
+
   describe('getIn', () => {
     const obj = {
       commit: {
