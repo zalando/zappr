@@ -25,25 +25,24 @@ export default class Approval extends Check {
     const {pattern, ignore} = config
 
     const fullName = `${repository.full_name}`
-    let filtered = comments
-                    // filter ignored users
-                    .filter(comment => {
-                       const {login} = comment.user
-                       const include = (ignore || []).indexOf(login) === -1
-                       if (!include) info('%s: Ignoring user: %s.', fullName, login)
-                       return include
-                    })
-                    // get comments that match specified approval pattern
-                    // TODO add unicode flag once available in node
-                    .filter(comment => {
-                      const text = comment.body.trim()
-                      const include = (new RegExp(pattern)).test(text)
-                      if (!include) info('%s: Comment "%s" does not match pattern "%s".', fullName, text, pattern)
-                      return include
-                    })
-                    // slightly unperformant filtering here:
-                    // kicking out multiple approvals from same person
-                    .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
+    // filter ignored users
+    let filtered = comments.filter(comment => {
+                             const {login} = comment.user
+                             const include = (ignore || []).indexOf(login) === -1
+                             if (!include) info('%s: Ignoring user: %s.', fullName, login)
+                             return include
+                           })
+                           // get comments that match specified approval pattern
+                           // TODO add unicode flag once available in node
+                           .filter(comment => {
+                             const text = comment.body.trim()
+                             const include = (new RegExp(pattern)).test(text)
+                             if (!include) info('%s: Comment "%s" does not match pattern "%s".', fullName, text, pattern)
+                             return include
+                           })
+                           // slightly unperformant filtering here:
+                           // kicking out multiple approvals from same person
+                           .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
     // don't proceed if nothing is left
     if (filtered.length === 0) {
       return 0
@@ -55,7 +54,7 @@ export default class Approval extends Check {
       // persons must either be listed explicitly in users OR
       // be a collaborator OR
       // member of at least one of listed orgs
-      filtered = await Promise.all(filtered.map(async (comment) => {
+      filtered = await Promise.all(filtered.map(async(comment) => {
         const username = comment.user.login
         // first do the quick username check
         if (users && users.indexOf(username) >= 0) {
@@ -139,9 +138,12 @@ export default class Approval extends Check {
             return
           }
           // get approvals for pr
-          const opener = pull_request.user.login
+          const commits = await github.fetchPullRequestCommits(user, repo, number, token)
+          const lastCommitter = commits.length === 0 ?
+            null :
+            commits[commits.length - 1].committer.login
           const comments = await github.getComments(user, repo, number, formatDate(dbPR.last_push), token)
-          const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
+          const countConfig = Object.assign({}, config.approvals, {ignore: lastCommitter ? [lastCommitter] : []})
           const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
           const state = approvals < minimum ? 'pending' : 'success'
           let status = {
@@ -152,7 +154,7 @@ export default class Approval extends Check {
           // update status
           await github.setCommitStatus(user, repo, pull_request.head.sha, status, token)
           info(`${repository.full_name}#${number}: PR was reopened, set state to ${state} (${approvals}/${minimum})`)
-        // if it was synced, ie a commit added to it
+          // if it was synced, ie a commit added to it
         } else if (action === 'synchronize') {
           // update last push in db
           await pullRequestHandler.onAddCommit(dbRepoId, number)
@@ -164,7 +166,7 @@ export default class Approval extends Check {
           }, token)
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
-      // on an issue comment
+        // on an issue comment
       } else if (!!issue) {
         // check it belongs to an open pr
         const pr = await github.getPullRequest(user, repo, issue.number, token)
@@ -181,8 +183,11 @@ export default class Approval extends Check {
           dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, issue.number)
         }
         // get approval count
-        const opener = pr.user.login
-        const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
+        const commits = await github.fetchPullRequestCommits(user, repo, issue.number, token)
+        const lastCommitter = commits.length === 0 ?
+          null :
+          commits[commits.length - 1].committer.login
+        const countConfig = Object.assign({}, config.approvals, {ignore: lastCommitter ? [lastCommitter] : []})
         const comments = await github.getComments(user, repo, issue.number, formatDate(dbPR.last_push), token)
         const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
         const state = approvals < minimum ? 'pending' : 'success'
@@ -196,7 +201,7 @@ export default class Approval extends Check {
         info(`${repository.full_name}#${issue.number}: Comment added, set state to ${state} (${approvals}/${minimum})`)
       }
     }
-    catch(e) {
+    catch (e) {
       error(e)
       await github.setCommitStatus(user, repo, sha, {
         state: 'error',
