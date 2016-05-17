@@ -14,6 +14,14 @@ export default class Approval extends Check {
   static NAME = 'Approval check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
 
+  static async getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, number) {
+    let dbPR = await pullRequestHandler.onGet(dbRepoId, number)
+    if (!dbPR) {
+      dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
+    }
+    return dbPR;
+  }
+
   static generateStatus(approvals, {minimum, groups}) {
     if (Object.keys(approvals.groups || {}).length > 0) {
       // check group requirements
@@ -166,6 +174,19 @@ export default class Approval extends Check {
     }
   }
 
+  static async fetchAndCountApprovals(github, repository, config, dbPR, number, token) {
+    const repoName = repository.name
+    const user = repository.owner.login
+    // get approval count
+    const commits = await github.fetchPullRequestCommits(user, repoName, number, token)
+    const lastCommitter = commits.length === 0 ?
+      null :
+      commits[commits.length - 1].committer.login
+    const countConfig = Object.assign({}, config.approvals, {ignore: lastCommitter ? [lastCommitter] : []})
+    const comments = await github.getComments(user, repoName, number, formatDate(dbPR.last_push), token)
+    return await this.countApprovals(github, repository, comments, countConfig, token)
+  }
+
   /**
    * - PR open/reopen:
    *   1. set status to pending
@@ -179,7 +200,6 @@ export default class Approval extends Check {
    * - PR synchronize (new commits on top):
    *   1. set status back to pending (b/c there can't be comments afterwards already)
    */
-
   static async execute(github, config, hookPayload, token, dbRepoId, pullRequestHandler) {
     const {action, repository, pull_request, number, issue} = hookPayload
     const repoName = repository.name
@@ -212,13 +232,7 @@ export default class Approval extends Check {
             return
           }
           // get approvals for pr
-          const commits = await github.fetchPullRequestCommits(user, repoName, number, token)
-          const lastCommitter = commits.length === 0 ?
-            null :
-            commits[commits.length - 1].committer.login
-          const countConfig = Object.assign({}, config.approvals, {ignore: lastCommitter ? [lastCommitter] : []})
-          const comments = await github.getComments(user, repoName, number, formatDate(dbPR.last_push), token)
-          const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
+          const approvals = await this.fetchAndCountApprovals(github, repository, config, dbPR, number, token)
           const status = this.generateStatus(approvals, config.approvals)
           // update status
           await github.setCommitStatus(user, repoName, sha, status, token)
@@ -241,20 +255,13 @@ export default class Approval extends Check {
         }
         sha = pr.head.sha
         // set status to pending first
-        await github.setCommitStatus(user, repoName,sha, pendingPayload, token)
+        await github.setCommitStatus(user, repoName, sha, pendingPayload, token)
         // read last push date from db
         let dbPR = await pullRequestHandler.onGet(dbRepoId, issue.number)
         if (!dbPR) {
           dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, issue.number)
         }
-        // get approval count
-        const commits = await github.fetchPullRequestCommits(user, repoName, issue.number, token)
-        const lastCommitter = commits.length === 0 ?
-          null :
-          commits[commits.length - 1].committer.login
-        const countConfig = Object.assign({}, config.approvals, {ignore: lastCommitter ? [lastCommitter] : []})
-        const comments = await github.getComments(user, repoName, issue.number, formatDate(dbPR.last_push), token)
-        const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
+        const approvals = await this.fetchAndCountApprovals(github, repository, config, dbPR, issue.number, token)
         const status = this.generateStatus(approvals, config.approvals)
         // update status
         await github.setCommitStatus(user, repoName, sha, status, token)
@@ -269,13 +276,5 @@ export default class Approval extends Check {
         description: e.message
       }, token)
     }
-  }
-
-  static async getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, number) {
-    let dbPR = await pullRequestHandler.onGet(dbRepoId, number)
-    if (!dbPR) {
-      dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
-    }
-    return dbPR;
   }
 }
