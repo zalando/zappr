@@ -14,23 +14,26 @@ export default class Approval extends Check {
   static NAME = 'Approval check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
 
-  static generateStatus(approvals, {minimum, from, groups}) {
+  static generateStatus(approvals, {minimum, groups}) {
     if (Object.keys(approvals.groups || {}).length > 0) {
       // check group requirements
-      const unsatisfied = approvals.groups.find(approvalGroup => {
-        const needed = groups[approvalGroup].minimum
-        const given = approvals.groups[approvalGroup]
-        const diff = needed - given
-        if (diff > 0) {
-          return {approvalGroup, diff, needed, given}
-        } else {
-          return false
-        }
-      })
+      const unsatisfied = Object.keys(approvals.groups)
+                                .map(approvalGroup => {
+                                  const needed = groups[approvalGroup].minimum
+                                  const given = approvals.groups[approvalGroup]
+                                  const diff = needed - given
+                                  if (diff > 0) {
+                                    return {approvalGroup, diff, needed, given}
+                                  } else {
+                                    return false
+                                  }
+                                })
+                                .filter(diff => !!diff)
 
-      if (unsatisfied) {
+      if (unsatisfied.length > 0) {
+        const firstUnsatisfied = unsatisfied[0]
         return {
-          description: `This PR misses ${unsatisfied.diff} approvals from group ${unsatisfied.approvalGroup} (${unsatisfied.given}/${unsatisfied.needed}).`,
+          description: `This PR misses ${firstUnsatisfied.diff} approvals from group ${firstUnsatisfied.approvalGroup} (${firstUnsatisfied.given}/${firstUnsatisfied.needed}).`,
           status: 'pending',
           context
         }
@@ -55,10 +58,11 @@ export default class Approval extends Check {
   /**
    * Returns the comment if it matches the config, null otherwise.
    */
-  static async doesCommentMatchConfig(github, repository, comment, {orgs, collaborators, users}, token) {
+  static async doesCommentMatchConfig(github, repository, comment, fromConfig, token) {
     // persons must either be listed explicitly in users OR
     // be a collaborator OR
     // member of at least one of listed orgs
+    const {orgs, collaborators, users} = fromConfig
     const username = comment.user.login
     const {full_name} = repository
     // first do the quick username check
@@ -88,28 +92,39 @@ export default class Approval extends Check {
   }
 
   static async getApprovalsForConfig(github, repository, comments, config, token) {
+    const that = this
+
     async function checkComment(stats, comment) {
-      const matchesTotal = await this.doesCommentMatchConfig(github, repository, comment, config.from, token)
-      if (matchesTotal) {
-        info(`${repository.full_name}: Counting ${comment.user.login}'s approval`)
-        stats.total += 1
-      }
-      await Promise.all(config.groups.map(async(group) => {
-        const matchesGroup = await this.doesCommentMatchConfig(github, repository, comment, config.groups[group], token)
-        if (matchesGroup) {
-          // counting this as total as well if it didn't before
-          if (!matchesTotal) {
-            info(`${repository.full_name}: Counting ${comment.user.login}'s approval`)
-            stats.total += 1
-          }
-          // update group counter
-          if (!stats.groups[group]) {
-            stats.groups[group] = 0
-          }
-          info(`${repository.full_name}: Counting ${comment.user.login}'s for group ${group}`)
-          stats.groups[group] += 1
+      let matchesTotal = false
+      if (config.from) {
+        matchesTotal = await that.doesCommentMatchConfig(github, repository, comment, config.from, token)
+        if (matchesTotal) {
+          info(`${repository.full_name}: Counting ${comment.user.login}'s approval`)
+          stats.total += 1
         }
-      }))
+      } else {
+        // if there is no from clause, every approval counts
+        stats.total += 1
+        matchesTotal = true
+      }
+      if (config.groups) {
+        await Promise.all(Object.keys(config.groups).map(async(group) => {
+          const matchesGroup = await that.doesCommentMatchConfig(github, repository, comment, config.groups[group].from, token)
+          if (matchesGroup) {
+            // counting this as total as well if it didn't before
+            if (!matchesTotal) {
+              info(`${repository.full_name}: Counting ${comment.user.login}'s approval`)
+              stats.total += 1
+            }
+            // update group counter
+            if (!stats.groups[group]) {
+              stats.groups[group] = 0
+            }
+            info(`${repository.full_name}: Counting ${comment.user.login}'s for group ${group}`)
+            stats.groups[group] += 1
+          }
+        }))
+      }
       return stats
     }
 
@@ -118,25 +133,25 @@ export default class Approval extends Check {
 
   static async countApprovals(github, repository, comments, config, token) {
     const {pattern, ignore} = config
-    let filtered = comments
     // filter ignored users
-    .filter(comment => {
-      const {login} = comment.user
-      const include = (ignore || []).indexOf(login) === -1
-      if (!include) info('%s: Ignoring user: %s.', repository.full_name, login)
-      return include
-    })
-    // get comments that match specified approval pattern
-    // TODO add unicode flag once available in node
-    .filter(comment => {
-      const text = comment.body.trim()
-      const include = (new RegExp(pattern)).test(text)
-      if (!include) info('%s: Comment "%s" does not match pattern "%s".', repository.full_name, text, pattern)
-      return include
-    })
-    // slightly unperformant filtering here:
-    // kicking out multiple approvals from same person
-    .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
+    let filtered = comments.filter(comment => {
+                             const {login} = comment.user
+                             const include = (ignore || []).indexOf(login) === -1
+                             if (!include) info('%s: Ignoring user: %s.', repository.full_name, login)
+                             return include
+                           })
+                           // get comments that match specified approval pattern
+                           // TODO add unicode flag once available in node
+                           .filter(comment => {
+                             const text = comment.body.trim()
+                             const include = (new RegExp(pattern)).test(text)
+                             if (!include) info('%s: Comment "%s" does not match pattern "%s".', repository.full_name, text, pattern)
+                             return include
+                           })
+                           // slightly unperformant filtering here:
+                           // kicking out multiple approvals from same person
+                           .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
+
     // don't proceed if nothing is left
     if (filtered.length === 0) {
       return {total: 0}

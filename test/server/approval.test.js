@@ -3,15 +3,60 @@ import { expect } from 'chai'
 import { formatDate } from '../../common/debug'
 import Approval from '../../server/checks/Approval'
 
-describe('Approval#countApprovals', () => {
-  const DEFAULT_REPO = {
-    name: 'hello-world',
-    full_name: 'mfellner/hello-world',
-    owner: {
-      login: 'mfellner'
+const DEFAULT_REPO = {
+  name: 'hello-world',
+  full_name: 'mfellner/hello-world',
+  owner: {
+    login: 'mfellner'
+  }
+}
+const TOKEN = 'abcd'
+const DB_REPO_ID = 341
+const ISSUE_PAYLOAD = {
+  action: 'create',
+  repository: DEFAULT_REPO,
+  issue: {
+    number: 2
+  },
+  comment: {}
+}
+const CLOSED_PR = {
+  number: 3,
+  state: 'closed'
+}
+const PR_PAYLOAD = {
+  action: 'synchronize',
+  number: 1,
+  repository: DEFAULT_REPO,
+  pull_request: {
+    number: 1,
+    updated_at: '2016-03-02T13:37:00Z',
+    state: 'open',
+    user: {login: 'stranger'},
+    head: {
+      sha: 'abcd1234'
     }
   }
+}
+const DEFAULT_CONFIG = {
+  approvals: {
+    minimum: 2,
+    pattern: '^:\\+1:$'
+  }
+}
+const SUCCESS_STATUS = Approval.generateStatus({total: 2}, DEFAULT_CONFIG.approvals)
+const PENDING_STATUS = {
+  state: 'pending',
+  description: 'Approval validation in progress.',
+  context: 'zappr'
+}
+const ZERO_APPROVALS_STATUS = Approval.generateStatus({total: 0}, DEFAULT_CONFIG.approvals)
+const DB_PR = {
+  last_push: new Date(),
+  number: 3
+}
 
+describe('Approval#countApprovals', () => {
   it('should honor the provided pattern', async(done) => {
     const comments = [{
       user: {login: 'prayerslayer'},
@@ -24,10 +69,105 @@ describe('Approval#countApprovals', () => {
       body: ':+1:' // is ignored because mfellner already approved
     }]
     try {
-      const approvals = await Approval.countApprovals(null, DEFAULT_REPO, comments, {pattern: '^:\\+1:$'}, null)
+      const approvals = await Approval.countApprovals(null, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, null)
       expect(approvals).to.deep.equal({total: 1})
       done()
     } catch (e) {
+      done(e)
+    }
+  })
+})
+
+describe('Approval#getApprovalsForConfig', () => {
+  var github
+
+  beforeEach(() => {
+    github = {
+      isMemberOfOrg: () => {
+      },
+      isCollaborator: () => {
+      }
+    }
+  })
+
+  it('should sum the total correctly', async(done) => {
+    try {
+      let comments = [{
+        body: 'awesome',
+        user: {login: 'user1'}
+      }, {
+        body: 'awesome',
+        user: {login: 'user2'}
+      }, {
+        body: 'lolz',
+        user: {login: 'user3'}
+      }]
+      let approvals = await Approval.getApprovalsForConfig(github, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
+      expect(approvals.total).to.equal(3)
+      // and with empty comments
+      comments = []
+      approvals = await Approval.getApprovalsForConfig(github, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
+      expect(approvals.total).to.equal(0)
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+  it('should honor from configuration', async(done) => {
+    try {
+      const comments = [{
+        body: 'awesome',
+        user: {login: 'user1'}
+      }, {
+        body: 'awesome',
+        user: {login: 'user2'}
+      }, {
+        body: 'lolz',
+        user: {login: 'user3'}
+      }]
+      sinon.stub(github, 'isMemberOfOrg', (org, user) => user === 'user3')
+      const config = Object.assign({}, DEFAULT_CONFIG.approvals, {from: {orgs: ['zalando']}})
+      const approvals = await Approval.getApprovalsForConfig(github, DEFAULT_REPO, comments, config, TOKEN)
+      expect(github.isMemberOfOrg.callCount).to.equal(3)
+      expect(approvals.total).to.equal(1)
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+  it('should contain group information', async(done) => {
+    try {
+      const comments = [{
+        body: 'awesome',
+        user: {login: 'user1'}
+      }, {
+        body: 'awesome',
+        user: {login: 'user2'}
+      }, {
+        body: 'lolz',
+        user: {login: 'user3'}
+      }]
+      github.isMemberOfOrg = sinon.stub().returns(true)
+      const config = Object.assign({}, DEFAULT_CONFIG.approvals, {
+          groups: {
+            zalando: {
+              minimum: 2,
+              from: {
+                orgs: ['zalando']
+              }
+            }
+          }
+        }
+      )
+      const approvals = await Approval.getApprovalsForConfig(github, DEFAULT_REPO, comments, config, TOKEN)
+      expect(github.isMemberOfOrg.callCount).to.equal(3)
+      expect(approvals.total).to.equal(3)
+      expect(approvals.groups.zalando).to.be.defined
+      expect(approvals.groups.zalando).to.equal(3)
+      done()
+    }
+    catch
+      (e) {
       done(e)
     }
   })
@@ -38,57 +178,6 @@ describe('Approval#execute', () => {
   var pullRequestHandler
   var approval
 
-  const DEFAULT_REPO = {
-    name: 'hello-world',
-    owner: {
-      login: 'mfellner'
-    }
-  }
-  const TOKEN = 'abcd'
-  const DB_REPO_ID = 341
-  const ISSUE_PAYLOAD = {
-    action: 'create',
-    repository: DEFAULT_REPO,
-    issue: {
-      number: 2
-    },
-    comment: {}
-  }
-  const CLOSED_PR = {
-    number: 3,
-    state: 'closed'
-  }
-  const PR_PAYLOAD = {
-    action: 'synchronize',
-    number: 1,
-    repository: DEFAULT_REPO,
-    pull_request: {
-      number: 1,
-      updated_at: '2016-03-02T13:37:00Z',
-      state: 'open',
-      user: {login: 'stranger'},
-      head: {
-        sha: 'abcd1234'
-      }
-    }
-  }
-  const DEFAULT_CONFIG = {
-    approvals: {
-      minimum: 2,
-      pattern: 'awesome'
-    }
-  }
-  const SUCCESS_STATUS = Approval.generateStatus({total: 2}, DEFAULT_CONFIG.approvals)
-  const PENDING_STATUS = {
-    state: 'pending',
-    description: 'Approval validation in progress.',
-    context: 'zappr'
-  }
-  const ZERO_APPROVALS_STATUS = Approval.generateStatus({total: 0}, DEFAULT_CONFIG.approvals)
-  const DB_PR = {
-    last_push: new Date(),
-    number: 3
-  }
 
   beforeEach(() => {
     pullRequestHandler = {
@@ -98,6 +187,8 @@ describe('Approval#execute', () => {
     }
     approval = Approval
     github = {
+      isMemberOfOrg: sinon.spy(),
+      isCollaborator: sinon.spy(),
       setCommitStatus: sinon.spy(),
       getApprovals: sinon.spy(),
       getPullRequest: sinon.spy(),
@@ -111,19 +202,73 @@ describe('Approval#execute', () => {
     expect(github.setCommitStatus.calledWith(1, 2, 3, 4)).to.be.true
   })
 
+  it('should set status to pending if there are required group approvals missing', async(done) => {
+    try {
+      github.getComments = sinon.stub().returns([{
+        body: ':+1:',
+        user: {login: 'foo'}
+      }, {
+        body: ':+1:',
+        user: {login: 'bar'}
+      }, {
+        body: ':+1:',
+        user: {login: 'baz'}
+      }, {
+        body: ':+1:',
+        user: {login: 'stranger'}
+      }])
+      github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+      approval.getApprovalsForConfig = sinon.stub().returns({
+        total: 4,
+        groups: {
+          zalando: 1
+        }
+      })
+      const config = {
+        approvals: {
+          minimum: 2,
+          pattern: '^:\\+1:$',
+          groups: {
+            zalando: {
+              minimum: 2,
+              from: {
+                orgs: ['zalando']
+              }
+            }
+          }
+        }
+      }
+      await approval.execute(github, config, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      const statusArgs = github.setCommitStatus.args[1]
+      expect(statusArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        {
+          status: 'pending',
+          context: 'zappr',
+          description: 'This PR misses 1 approvals from group zalando (1/2).'
+        },
+        TOKEN])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
   it('should set status to success on last issue comment', async(done) => {
-    github.setCommitStatus = sinon.spy()
     github.getComments = sinon.stub().returns([{
-      body: 'awesome',
+      body: ':+1:',
       user: {login: 'foo'}
     }, {
-      body: 'awesome',
+      body: ':+1:',
       user: {login: 'bar'}
     }, {
-      body: 'awesome',
+      body: ':+1:',
       user: {login: 'bar'}
     }, {
-      body: 'awesome',
+      body: ':+1:',
       user: {login: 'stranger'}
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
@@ -133,6 +278,7 @@ describe('Approval#execute', () => {
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
       expect(github.getPullRequest.callCount).to.equal(1)
+      expect(github.isMemberOfOrg.callCount).to.equal(0)
 
       const successStatusCallArgs = github.setCommitStatus.args[1]
       const commentCallArgs = github.getComments.args[0]
