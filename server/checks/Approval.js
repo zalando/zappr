@@ -212,13 +212,16 @@ export default class Approval extends Check {
             return
           }
           // get approvals for pr
-          const opener = pull_request.user.login
+          const commits = await github.fetchPullRequestCommits(user, repoName, number, token)
+          const lastCommitter = commits.length === 0 ?
+            null :
+            commits[commits.length - 1].committer.login
+          const countConfig = Object.assign({}, config.approvals, {ignore: lastCommitter ? [lastCommitter] : []})
           const comments = await github.getComments(user, repoName, number, formatDate(dbPR.last_push), token)
-          const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
           const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
           const status = this.generateStatus(approvals, config.approvals)
           // update status
-          await github.setCommitStatus(user, repo, pull_request.head.sha, status, token)
+          await github.setCommitStatus(user, repoName, sha, status, token)
           info(`${repository.full_name}#${number}: PR was reopened, set state to ${status.state} (${approvals}/${minimum})`)
           // if it was synced, ie a commit added to it
         } else if (action === 'synchronize') {
@@ -238,36 +241,41 @@ export default class Approval extends Check {
         }
         sha = pr.head.sha
         // set status to pending first
-        await github.setCommitStatus(user, repo, pr.head.sha, pendingPayload, token)
+        await github.setCommitStatus(user, repoName,sha, pendingPayload, token)
         // read last push date from db
         let dbPR = await pullRequestHandler.onGet(dbRepoId, issue.number)
         if (!dbPR) {
           dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, issue.number)
         }
         // get approval count
-        const opener = pr.user.login
-        const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
-        const comments = await github.getComments(user, repo, issue.number, formatDate(dbPR.last_push), token)
+        const commits = await github.fetchPullRequestCommits(user, repoName, issue.number, token)
+        const lastCommitter = commits.length === 0 ?
+          null :
+          commits[commits.length - 1].committer.login
+        const countConfig = Object.assign({}, config.approvals, {ignore: lastCommitter ? [lastCommitter] : []})
+        const comments = await github.getComments(user, repoName, issue.number, formatDate(dbPR.last_push), token)
         const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
         const status = this.generateStatus(approvals, config.approvals)
         // update status
-        await github.setCommitStatus(user, repo, pr.head.sha, status, token)
+        await github.setCommitStatus(user, repoName, sha, status, token)
         info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals}/${minimum})`)
       }
     }
     catch (e) {
       error(e)
-      await github.setCommitStatus(user, repo, sha, {
+      await github.setCommitStatus(user, repoName, sha, {
         state: 'error',
         context,
         description: e.message
       }, token)
+    }
+  }
 
   static async getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, number) {
-      let dbPR = await pullRequestHandler.onGet(dbRepoId, number)
-      if (!dbPR) {
-          dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
-      }
-      return dbPR;
+    let dbPR = await pullRequestHandler.onGet(dbRepoId, number)
+    if (!dbPR) {
+      dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
+    }
+    return dbPR;
   }
 }
