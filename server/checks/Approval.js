@@ -34,7 +34,7 @@ export default class Approval extends Check {
         const firstUnsatisfied = unsatisfied[0]
         return {
           description: `This PR misses ${firstUnsatisfied.diff} approvals from group ${firstUnsatisfied.approvalGroup} (${firstUnsatisfied.given}/${firstUnsatisfied.needed}).`,
-          status: 'pending',
+          state: 'pending',
           context
         }
       }
@@ -43,14 +43,14 @@ export default class Approval extends Check {
     if (approvals.total < minimum) {
       return {
         description: `This PR needs ${minimum - approvals.total} more approvals (${approvals.total}/${minimum} given).`,
-        status: 'pending',
+        state: 'pending',
         context
       }
     }
 
     return {
       description: `This PR has ${approvals.total}/${minimum} approvals since the last commit.`,
-      status: 'success',
+      state: 'success',
       context
     }
   }
@@ -109,16 +109,16 @@ export default class Approval extends Check {
       }
       if (config.groups) {
         await Promise.all(Object.keys(config.groups).map(async(group) => {
+          // update group counter
+          if (!stats.groups[group]) {
+            stats.groups[group] = 0
+          }
           const matchesGroup = await that.doesCommentMatchConfig(github, repository, comment, config.groups[group].from, token)
           if (matchesGroup) {
             // counting this as total as well if it didn't before
             if (!matchesTotal) {
               info(`${repository.full_name}: Counting ${comment.user.login}'s approval`)
               stats.total += 1
-            }
-            // update group counter
-            if (!stats.groups[group]) {
-              stats.groups[group] = 0
             }
             info(`${repository.full_name}: Counting ${comment.user.login}'s for group ${group}`)
             stats.groups[group] += 1
@@ -257,7 +257,7 @@ export default class Approval extends Check {
         const status = this.generateStatus(approvals, config.approvals)
         // update status
         await github.setCommitStatus(user, repoName, sha, status, token)
-        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals}/${minimum})`)
+        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals.total}/${minimum})`)
       }
     }
     catch (e) {
