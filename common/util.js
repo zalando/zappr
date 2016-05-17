@@ -29,13 +29,15 @@ export function promiseFirst(promises) {
  * @returns {*} Promise that is resolved when all values are processed
  */
 export function promiseReduce(array, fn, initialValue) {
-  function reduce(aggregator, index, array, resolve) {
+  function reduce(aggregator, index, array, resolve, reject) {
     if (index >= array.length) {
       return resolve(aggregator)
     }
-    return fn(aggregator, array[index], index, array).then(newAgg => reduce(newAgg, index + 1, array, resolve))
+    return fn(aggregator, array[index], index, array).then(newAgg => reduce(newAgg, index + 1, array, resolve, reject))
+                                                     .catch(reject)
   }
-  return new Promise(resolve => reduce(initialValue, 0, array, resolve))
+
+  return new Promise((resolve, reject) => reduce(initialValue, 0, array, resolve, reject))
 }
 
 /**

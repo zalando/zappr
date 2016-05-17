@@ -14,6 +14,14 @@ describe('common/util', () => {
       })
       .catch(done)
     })
+
+    it('should reject when a reduce iteration throws', done => {
+      function reducer() {
+        throw new Error("boo")
+      }
+      const numbers = [1, 2, 3, 4, 5]
+      promiseReduce(numbers, reducer, 0).then(done).catch(() => done())
+    })
   })
 
   describe('promiseFirst', () => {
