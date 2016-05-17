@@ -14,14 +14,6 @@ export default class Approval extends Check {
   static NAME = 'Approval check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
 
-  static async getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, number) {
-    let dbPR = await pullRequestHandler.onGet(dbRepoId, number)
-    if (!dbPR) {
-      dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
-    }
-    return dbPR;
-  }
-
   static generateStatus(approvals, {minimum, groups}) {
     if (Object.keys(approvals.groups || {}).length > 0) {
       // check group requirements
@@ -276,5 +268,13 @@ export default class Approval extends Check {
         description: e.message
       }, token)
     }
+  }
+
+  static async getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, number) {
+    let dbPR = await pullRequestHandler.onGet(dbRepoId, number)
+    if (!dbPR) {
+      dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
+    }
+    return dbPR;
   }
 }
