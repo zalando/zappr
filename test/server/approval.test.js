@@ -192,7 +192,8 @@ describe('Approval#execute', () => {
       setCommitStatus: sinon.spy(),
       getApprovals: sinon.spy(),
       getPullRequest: sinon.spy(),
-      getComments: sinon.spy()
+      getComments: sinon.spy(),
+      fetchPullRequestCommits: sinon.spy()
     }
   })
 
@@ -202,62 +203,12 @@ describe('Approval#execute', () => {
     expect(github.setCommitStatus.calledWith(1, 2, 3, 4)).to.be.true
   })
 
-  it('should set status to pending if there are required group approvals missing', async(done) => {
-    try {
-      github.getComments = sinon.stub().returns([{
-        body: ':+1:',
-        user: {login: 'foo'}
-      }, {
-        body: ':+1:',
-        user: {login: 'bar'}
-      }, {
-        body: ':+1:',
-        user: {login: 'baz'}
-      }, {
-        body: ':+1:',
-        user: {login: 'stranger'}
-      }])
-      github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
-      approval.getApprovalsForConfig = sinon.stub().returns({
-        total: 4,
-        groups: {
-          zalando: 1
-        }
-      })
-      const config = {
-        approvals: {
-          minimum: 2,
-          pattern: '^:\\+1:$',
-          groups: {
-            zalando: {
-              minimum: 2,
-              from: {
-                orgs: ['zalando']
-              }
-            }
-          }
-        }
+  it('should set status to success on last issue comment', async (done) => {
+    github.fetchPullRequestCommits = sinon.stub().returns([{
+      committer: {
+        login: "stranger"
       }
-      await approval.execute(github, config, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
-      expect(github.setCommitStatus.callCount).to.equal(2)
-      const statusArgs = github.setCommitStatus.args[1]
-      expect(statusArgs).to.deep.equal([
-        'mfellner',
-        'hello-world',
-        'abcd1234',
-        {
-          status: 'pending',
-          context: 'zappr',
-          description: 'This PR misses 1 approvals from group zalando (1/2).'
-        },
-        TOKEN])
-      done()
-    } catch (e) {
-      done(e)
-    }
-  })
-
-  it('should set status to success on last issue comment', async(done) => {
+    }])
     github.getComments = sinon.stub().returns([{
       body: ':+1:',
       user: {login: 'foo'}
@@ -277,12 +228,14 @@ describe('Approval#execute', () => {
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
+      expect(github.fetchPullRequestCommits.callCount).to.equal(1)
       expect(github.getPullRequest.callCount).to.equal(1)
       expect(github.isMemberOfOrg.callCount).to.equal(0)
 
       const successStatusCallArgs = github.setCommitStatus.args[1]
       const commentCallArgs = github.getComments.args[0]
       const prCallArgs = github.getPullRequest.args[0]
+      const prCommitsCallArgs = github.fetchPullRequestCommits.args[0]
 
       expect(prCallArgs).to.deep.equal([
         'mfellner',
@@ -304,13 +257,19 @@ describe('Approval#execute', () => {
         SUCCESS_STATUS,
         TOKEN
       ])
+      expect(prCommitsCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        2,
+        TOKEN
+      ])
       done()
-    } catch (e) {
+    } catch(e) {
       done(e)
     }
   })
 
-  it('should do nothing on comment on non-open pull_request', async(done) => {
+  it('should do nothing on comment on non-open pull_request', async (done) => {
     github.getPullRequest = sinon.stub().returns(CLOSED_PR)
     await Approval.execute(github, DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
     expect(github.setCommitStatus.callCount).to.equal(0)
@@ -318,7 +277,7 @@ describe('Approval#execute', () => {
     done()
   })
 
-  it('should set status to pending on PR:opened', async(done) => {
+  it('should set status to pending on PR:opened', async (done) => {
     PR_PAYLOAD.action = 'opened'
     try {
       await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
@@ -342,22 +301,24 @@ describe('Approval#execute', () => {
         TOKEN
       ])
       done()
-    } catch (e) {
+    } catch(e) {
       done(e)
     }
   })
 
-  it('should set status to success on PR:reopened with all approvals', async(done) => {
-    PR_PAYLOAD.action = 'reopened'
-    github.getComments = sinon.stub().returns(Promise.resolve([]))
-    approval.countApprovals = sinon.stub().returns(Promise.resolve({total: 4}))
-    await approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
-    expect(github.setCommitStatus.callCount).to.equal(2)
-    expect(github.getComments.callCount).to.equal(1)
-    const pendingCallArgs = github.setCommitStatus.args[0]
-    const successCallArgs = github.setCommitStatus.args[1]
-
+  it('should set status to success on PR:reopened with all approvals', async (done) => {
     try {
+      PR_PAYLOAD.action = 'reopened'
+      github.fetchPullRequestCommits = sinon.stub().returns([])
+      github.getComments = sinon.stub().returns([])
+      approval.countApprovals = sinon.stub().returns({total: 4})
+      await approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getComments.callCount).to.equal(1)
+      const pendingCallArgs = github.setCommitStatus.args[0]
+      const successCallArgs = github.setCommitStatus.args[1]
+
+
       expect(pendingCallArgs).to.deep.equal([
         'mfellner',
         'hello-world',
@@ -373,12 +334,12 @@ describe('Approval#execute', () => {
         TOKEN
       ])
       done()
-    } catch (e) {
+    } catch(e) {
       done(e)
     }
   })
 
-  it('should set status to pending on PR:synchronize', async(done) => {
+  it('should set status to pending on PR:synchronize', async (done) => {
     PR_PAYLOAD.action = 'synchronize'
     await Approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
     expect(github.setCommitStatus.callCount).to.equal(1)

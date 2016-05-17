@@ -133,11 +133,12 @@ export default class Approval extends Check {
 
   static async countApprovals(github, repository, comments, config, token) {
     const {pattern, ignore} = config
+    const fullName = `${repository.full_name}`
     // filter ignored users
     let filtered = comments.filter(comment => {
                              const {login} = comment.user
                              const include = (ignore || []).indexOf(login) === -1
-                             if (!include) info('%s: Ignoring user: %s.', repository.full_name, login)
+                             if (!include) info('%s: Ignoring user: %s.', fullName, login)
                              return include
                            })
                            // get comments that match specified approval pattern
@@ -145,13 +146,12 @@ export default class Approval extends Check {
                            .filter(comment => {
                              const text = comment.body.trim()
                              const include = (new RegExp(pattern)).test(text)
-                             if (!include) info('%s: Comment "%s" does not match pattern "%s".', repository.full_name, text, pattern)
+                             if (!include) info('%s: Comment "%s" does not match pattern "%s".', fullName, text, pattern)
                              return include
                            })
                            // slightly unperformant filtering here:
                            // kicking out multiple approvals from same person
                            .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
-
     // don't proceed if nothing is left
     if (filtered.length === 0) {
       return {total: 0}
@@ -182,7 +182,7 @@ export default class Approval extends Check {
 
   static async execute(github, config, hookPayload, token, dbRepoId, pullRequestHandler) {
     const {action, repository, pull_request, number, issue} = hookPayload
-    const repo = repository.name
+    const repoName = repository.name
     const user = repository.owner.login
     const {minimum} = config.approvals
     let sha = ''
@@ -191,29 +191,29 @@ export default class Approval extends Check {
       description: 'Approval validation in progress.',
       context
     }
+
     debug(`${repository.full_name}: Got hook`)
+
     try {
       // on an open pull request
       if (!!pull_request && pull_request.state === 'open') {
+        sha = pull_request.head.sha
         // if it was (re)opened
         if (action === 'opened' || action === 'reopened') {
           // set status to pending first
-          sha = pull_request.head.sha
-          await github.setCommitStatus(user, repo, pull_request.head.sha, pendingPayload, token)
-          // check if we have PR already and create if we don't
-          let dbPR = await pullRequestHandler.onGet(dbRepoId, number)
-          if (!dbPR) {
-            dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
-          }
+          await github.setCommitStatus(user, repoName, sha, pendingPayload, token)
+
+          let dbPR = await this.getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, number)
+
           if (action === 'opened' && minimum > 0) {
             // if it was opened, set to pending
-            await github.setCommitStatus(user, repo, pull_request.head.sha, this.generateStatus({total: 0}, config.approvals), token)
+            await github.setCommitStatus(user, repoName, sha, this.generateStatus({total: 0}, config.approvals), token)
             info(`${repository.full_name}#${number}: PR was opened, set state to pending`)
             return
           }
           // get approvals for pr
           const opener = pull_request.user.login
-          const comments = await github.getComments(user, repo, number, formatDate(dbPR.last_push), token)
+          const comments = await github.getComments(user, repoName, number, formatDate(dbPR.last_push), token)
           const countConfig = Object.assign({}, config.approvals, {ignore: [opener]})
           const approvals = await this.countApprovals(github, repository, comments, countConfig, token)
           const status = this.generateStatus(approvals, config.approvals)
@@ -225,13 +225,13 @@ export default class Approval extends Check {
           // update last push in db
           await pullRequestHandler.onAddCommit(dbRepoId, number)
           // set status to pending (has to be unlocked with further comments)
-          await github.setCommitStatus(user, repo, pull_request.head.sha, this.generateStatus({total: 0}, config.approvals), token)
+          await github.setCommitStatus(user, repoName, sha, this.generateStatus({total: 0}, config.approvals), token)
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
         // on an issue comment
       } else if (!!issue) {
         // check it belongs to an open pr
-        const pr = await github.getPullRequest(user, repo, issue.number, token)
+        const pr = await github.getPullRequest(user, repoName, issue.number, token)
         if (!pr || pr.state !== 'open') {
           debug(`${repository.full_name}#${issue.number}: Ignoring comment, not a PR`)
           return
@@ -263,6 +263,11 @@ export default class Approval extends Check {
         description: e.message
       }, token)
 
-    }
+  static async getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, number) {
+      let dbPR = await pullRequestHandler.onGet(dbRepoId, number)
+      if (!dbPR) {
+          dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, number)
+      }
+      return dbPR;
   }
 }
