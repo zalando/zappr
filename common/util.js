@@ -12,9 +12,32 @@ export function promiseFirst(promises) {
     else
       x.then(resolve).catch(reject)
   }
+
   return new Promise((resolve, reject) =>
     tryResolve(promises, resolve, reject)
   )
+}
+
+/**
+ * Takes an array of values, a promise-returning function and an initial value.
+ * Works like reduce, but is aware of async function. Returns a promise that
+ * will be resolved with the final aggregator.
+ *
+ * @param array
+ * @param fn Function to execute per value: fn(aggregator, item, index, array)
+ * @param initialValue
+ * @returns {*} Promise that is resolved when all values are processed
+ */
+export function promiseReduce(array, fn, initialValue) {
+  function reduce(aggregator, index, array, resolve, reject) {
+    if (index >= array.length) {
+      return resolve(aggregator)
+    }
+    return fn(aggregator, array[index], index, array).then(newAgg => reduce(newAgg, index + 1, array, resolve, reject))
+                                                     .catch(reject)
+  }
+
+  return new Promise((resolve, reject) => reduce(initialValue, 0, array, resolve, reject))
 }
 
 /**
@@ -49,8 +72,8 @@ export function getIn(obj, path, returnDefault = null) {
   const [head, ...tail] = path
   if (obj.hasOwnProperty(head)) {
     return tail.length === 0 ?
-              obj[head] :
-              getIn(obj[head], tail, returnDefault)
+      obj[head] :
+      getIn(obj[head], tail, returnDefault)
   }
   return returnDefault
 }
