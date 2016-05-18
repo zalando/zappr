@@ -215,7 +215,7 @@ export default class Approval extends Check {
           // set status to pending first
           await github.setCommitStatus(user, repoName, sha, pendingPayload, token)
 
-          let dbPR = await this.getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, number)
+          const dbPR = await this.getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, number)
 
           if (action === 'opened' && minimum > 0) {
             // if it was opened, set to pending
@@ -249,10 +249,7 @@ export default class Approval extends Check {
         // set status to pending first
         await github.setCommitStatus(user, repoName, sha, pendingPayload, token)
         // read last push date from db
-        let dbPR = await pullRequestHandler.onGet(dbRepoId, issue.number)
-        if (!dbPR) {
-          dbPR = await pullRequestHandler.onCreatePullRequest(dbRepoId, issue.number)
-        }
+        const dbPR = await this.getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, issue.number)
         const approvals = await this.fetchAndCountApprovals(github, repository, config, dbPR, issue.number, token)
         const status = this.generateStatus(approvals, config.approvals)
         // update status
