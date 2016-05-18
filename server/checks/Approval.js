@@ -3,6 +3,8 @@ import { logger, formatDate } from '../../common/debug'
 import { promiseReduce } from '../../common/util'
 import * as EVENTS from '../model/GithubEvents'
 
+import * as _ from 'lodash'
+
 const context = 'zappr'
 const info = logger('approval', 'info')
 const debug = logger('approval')
@@ -15,15 +17,26 @@ export default class Approval extends Check {
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
 
   /**
-   * Based on the Zappr approval configuration and the approval statistics,
-   * generates a commit status object that it consumed by the Github Status API
+   * Based on the Zappr approval configuration
+   * and the approval statistics and number of vetos.
+   * Generates a commit status object that it consumed by the Github Status API
    * (https://developer.github.com/v3/repos/statuses/#create-a-status).
    *
    * @param approvals Approval stats. Includes `total` approvals and group information.
+   * @param vetos Number of vetos.
    * @param approvalConfig Approval configuration
    * @returns {Object} Object consumable by Github Status API
    */
-  static generateStatus(approvals, {minimum, groups}) {
+  static generateStatus(approvals, vetos, {minimum, groups}) {
+    if (vetos >0)
+    {
+      return {
+          description: `This PR is blocked by vetos of ${vetos} user(s)`,
+          state: 'error',
+          context
+      }
+    }
+
     if (Object.keys(approvals.groups || {}).length > 0) {
       // check group requirements
       const unsatisfied = Object.keys(approvals.groups)
@@ -148,56 +161,101 @@ export default class Approval extends Check {
     return promiseReduce(comments, checkComment, {total: 0, groups: {}})
   }
 
+  static async getVetosForConfig(github, repository, comments, config, token) {
+    const that = this
+
+    async function checkComment(counter, comment) {
+      if (config.from) {
+        const matches = await that.doesCommentMatchConfig(github, repository, comment, config.from, token)
+        if (matches) {
+          info(`${repository.full_name}: Counting ${comment.user.login}'s veto`)
+          return counter + 1
+        }
+        else {
+            return counter
+        }
+      } else {
+        // if there is no from clause, every veto counts
+        return counter + 1
+      }
+    }
+
+    return promiseReduce(comments, checkComment, 0)
+  }
+
   /**
-   * Removes comments from ignored users, comments that do not match approval
-   * pattern as well as multiple approvals by the same person and counts the
-   * remaining approvals.
+   * Removes comments from ignored users for approvals, comments that do not match approval/veto
+   * pattern as well as multiple approvals/vetos by the same person and counts the
+   * remaining approvals/vetos.
    *
    * @param github The GithubService instance
    * @param repository The repository
    * @param comments The comments to process
    * @param config The approval configuration
    * @param token The access token to use
-   * @returns {Object} Object of the shape {total: int, groups: { groupName: int } }
+   * @returns {Object} Object of the shape {approvals: {total: int, groups: { groupName: int }}, vetos: int }
    */
-  static async countApprovals(github, repository, comments, config, token) {
-    const {pattern, ignore} = config
+  static async countApprovalsAndVetos(github, repository, comments, config, token) {
+    const ignore = config.ignore
+    const approvalPattern = config.pattern
+    const vetoPattern = _.get(config, 'veto.pattern')
+
     const fullName = `${repository.full_name}`
+    // slightly unperformant filtering here:
+    const containsAlreadyCommentByUser = (c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login)
+
     // filter ignored users
-    let filtered = comments.filter(comment => {
+    const commentsWithoutIgnoredUsers = comments.filter(comment => {
                              const {login} = comment.user
                              const include = (ignore || []).indexOf(login) === -1
                              if (!include) info('%s: Ignoring user: %s.', fullName, login)
                              return include
                            })
-                           // get comments that match specified approval pattern
-                           // TODO add unicode flag once available in node
-                           .filter(comment => {
-                             const text = comment.body.trim()
-                             const include = (new RegExp(pattern)).test(text)
-                             if (!include) info('%s: Comment "%s" does not match pattern "%s".', fullName, text, pattern)
-                             return include
-                           })
-                           // slightly unperformant filtering here:
-                           // kicking out multiple approvals from same person
-                           .filter((c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login))
-    // don't proceed if nothing is left
-    if (filtered.length === 0) {
-      return {total: 0}
+
+    const potentialApprovalComments = commentsWithoutIgnoredUsers
+                             // get comments that match specified approval pattern
+                             // TODO add unicode flag once available in node
+                             .filter(comment => {
+                               const text = comment.body.trim()
+                               const include = (new RegExp(approvalPattern)).test(text)
+                               if (!include) info('%s: Comment "%s" does not match pattern "%s".', fullName, text, approvalPattern)
+                               return include
+                             })
+                             // kicking out multiple approvals from same person
+                             .filter(containsAlreadyCommentByUser)
+
+    const approvals = (config.from || config.groups) ?
+                          await this.getApprovalsForConfig(github, repository, potentialApprovalComments, config, token) :
+                          {total: potentialApprovalComments.length}
+
+
+
+    let vetos
+    if (vetoPattern) {
+        const potentialVetoComments = comments
+                             .filter(comment => {
+                                 const text = comment.body.trim()
+                                 const include = (new RegExp(vetoPattern)).test(text)
+                                 return include
+                             })
+                             // kicking out multiple vetos from same person
+                             .filter(containsAlreadyCommentByUser)
+
+        vetos = config.from ?
+                           await this.getVetosForConfig(github, repository, potentialVetoComments, config, token) :
+                           potentialVetoComments.length
+
     }
-    // we now have approvals from a set of persons
-    // check membership requirements
-    if (config.from || config.groups) {
-      // check if any comments match those configs
-      return await this.getApprovalsForConfig(github, repository, filtered, config, token)
-    } else {
-      return {total: filtered.length}
+
+    return {
+        approvals,
+        vetos: vetos || 0
     }
   }
 
   /**
-   * Fetches data necessary to count approvals (e.g. when was last push on pull request,
-   * comments on this pull request from Github) and counts approvals.
+   * Fetches data necessary to count approvals/vetos (e.g. when was last push on pull request,
+   * comments on this pull request from Github) and counts approvals and vetos.
    *
    * @param github The GithubService instance
    * @param repository The repository
@@ -205,9 +263,9 @@ export default class Approval extends Check {
    * @param dbPR The pull request from the database
    * @param number The number of the pull request
    * @param token The access token to use
-   * @returns {Object} Object of the shape {total: int, groups: { groupName: int } }
+   * @returns {Object} Object of the shape {approvals: {total: int, groups: { groupName: int }}, vetos: int }
    */
-  static async fetchAndCountApprovals(github, repository, config, dbPR, number, token) {
+  static async fetchAndCountApprovalsAndVetos(github, repository, config, dbPR, number, token) {
     const repoName = repository.name
     const user = repository.owner.login
     // get approval count
@@ -217,7 +275,7 @@ export default class Approval extends Check {
       commits[commits.length - 1].committer.login
     const countConfig = Object.assign({}, config.approvals, {ignore: lastCommitter ? [lastCommitter] : []})
     const comments = await github.getComments(user, repoName, number, formatDate(dbPR.last_push), token)
-    return await this.countApprovals(github, repository, comments, countConfig, token)
+    return await this.countApprovalsAndVetos(github, repository, comments, countConfig, token)
   }
 
   /**
@@ -260,13 +318,13 @@ export default class Approval extends Check {
 
           if (action === 'opened' && minimum > 0) {
             // if it was opened, set to pending
-            await github.setCommitStatus(user, repoName, sha, this.generateStatus({total: 0}, config.approvals), token)
+            await github.setCommitStatus(user, repoName, sha, this.generateStatus({total: 0}, 0, config.approvals), token)
             info(`${repository.full_name}#${number}: PR was opened, set state to pending`)
             return
           }
           // get approvals for pr
-          const approvals = await this.fetchAndCountApprovals(github, repository, config, dbPR, number, token)
-          const status = this.generateStatus(approvals, config.approvals)
+          const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(github, repository, config, dbPR, number, token)
+          const status = this.generateStatus(approvals, vetos, config.approvals)
           // update status
           await github.setCommitStatus(user, repoName, sha, status, token)
           info(`${repository.full_name}#${number}: PR was reopened, set state to ${status.state} (${approvals}/${minimum})`)
@@ -275,7 +333,7 @@ export default class Approval extends Check {
           // update last push in db
           await pullRequestHandler.onAddCommit(dbRepoId, number)
           // set status to pending (has to be unlocked with further comments)
-          await github.setCommitStatus(user, repoName, sha, this.generateStatus({total: 0}, config.approvals), token)
+          await github.setCommitStatus(user, repoName, sha, this.generateStatus({total: 0}, 0, config.approvals), token)
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
         // on an issue comment
@@ -291,8 +349,8 @@ export default class Approval extends Check {
         await github.setCommitStatus(user, repoName, sha, pendingPayload, token)
         // read last push date from db
         const dbPR = await this.getOrCreateDbPullRequest(pullRequestHandler, dbRepoId, issue.number)
-        const approvals = await this.fetchAndCountApprovals(github, repository, config, dbPR, issue.number, token)
-        const status = this.generateStatus(approvals, config.approvals)
+        const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(github, repository, config, dbPR, issue.number, token)
+        const status = this.generateStatus(approvals, vetos, config.approvals)
         // update status
         await github.setCommitStatus(user, repoName, sha, status, token)
         info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals.total}/${minimum})`)
