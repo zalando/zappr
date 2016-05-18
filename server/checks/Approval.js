@@ -14,6 +14,15 @@ export default class Approval extends Check {
   static NAME = 'Approval check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
 
+  /**
+   * Based on the Zappr approval configuration and the approval statistics,
+   * generates a commit status object that it consumed by the Github Status API
+   * (https://developer.github.com/v3/repos/statuses/#create-a-status).
+   *
+   * @param approvals Approval stats. Includes `total` approvals and group information.
+   * @param approvalConfig Approval configuration
+   * @returns {Object} Object consumable by Github Status API
+   */
   static generateStatus(approvals, {minimum, groups}) {
     if (Object.keys(approvals.groups || {}).length > 0) {
       // check group requirements
@@ -89,6 +98,16 @@ export default class Approval extends Check {
     return null
   }
 
+  /**
+   * Counts how many approvals are there in total and per group.
+   *
+   * @param github The GithubService instance
+   * @param repository The repository
+   * @param comments The comments to process
+   * @param config The approval configuration
+   * @param token The access token to use
+   * @returns {Object} Object of the shape {total: int, groups: { groupName: int } }
+   */
   static async getApprovalsForConfig(github, repository, comments, config, token) {
     const that = this
 
@@ -118,7 +137,7 @@ export default class Approval extends Check {
               info(`${repository.full_name}: Counting ${comment.user.login}'s approval`)
               stats.total += 1
             }
-            info(`${repository.full_name}: Counting ${comment.user.login}'s for group ${group}`)
+            info(`${repository.full_name}: Counting ${comment.user.login}'s approval for group ${group}`)
             stats.groups[group] += 1
           }
         }))
@@ -129,6 +148,18 @@ export default class Approval extends Check {
     return promiseReduce(comments, checkComment, {total: 0, groups: {}})
   }
 
+  /**
+   * Removes comments from ignored users, comments that do not match approval
+   * pattern as well as multiple approvals by the same person and counts the
+   * remaining approvals.
+   *
+   * @param github The GithubService instance
+   * @param repository The repository
+   * @param comments The comments to process
+   * @param config The approval configuration
+   * @param token The access token to use
+   * @returns {Object} Object of the shape {total: int, groups: { groupName: int } }
+   */
   static async countApprovals(github, repository, comments, config, token) {
     const {pattern, ignore} = config
     const fullName = `${repository.full_name}`
@@ -164,6 +195,18 @@ export default class Approval extends Check {
     }
   }
 
+  /**
+   * Fetches data necessary to count approvals (e.g. when was last push on pull request,
+   * comments on this pull request from Github) and counts approvals.
+   *
+   * @param github The GithubService instance
+   * @param repository The repository
+   * @param config The approval configuration
+   * @param dbPR The pull request from the database
+   * @param number The number of the pull request
+   * @param token The access token to use
+   * @returns {Object} Object of the shape {total: int, groups: { groupName: int } }
+   */
   static async fetchAndCountApprovals(github, repository, config, dbPR, number, token) {
     const repoName = repository.name
     const user = repository.owner.login
