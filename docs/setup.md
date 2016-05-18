@@ -22,7 +22,7 @@ You can customize Zappr by adding a [`.zappr.yaml`](https://github.com/zalando/z
 
 ### Approvals
 
-The approval feature blocks a pull request (if you enabled [protected branches](https://github.com/blog/2051-protected-branches-and-required-status-checks)) until it has the required amount of approvals (essentialy people confirming that the changes are good to merge).
+The approval feature blocks a pull request (if you enabled [protected branches](https://github.com/blog/2051-protected-branches-and-required-status-checks)) until it has the required amount of approvals (essentially people confirming that the changes are good to merge).
 
 It is customized by everything under `approvals`. The following options are supported:
 
@@ -32,6 +32,7 @@ It is customized by everything under `approvals`. The following options are supp
 ** organization: list organizations under `orgs` that the author has to be a public member of
 ** usernames: list usernames under `users`
 ** collaborators: set the `collaborators` flag to `true`
+* `groups`: If there are sets of people you absolutely want to approve every pull request in your project, you can define groups and set a `minimum` amount of approvals required by its members. Use a `from` clause (see above) to specify who's a member and who isn't.
 
 ~~~ yaml
 # just an example how to configure it
@@ -42,9 +43,44 @@ approvals:
     orgs:
       - zalando
     collaborators: true
-    usernames:
+    users:
       - prayerslayer
       - mfellner
+  groups:
+    # mfellner is required approver on every PR
+    seniors:
+      minimum: 1
+      from:
+        users:
+          - mfellner
+~~~
+
+Since approvals from `group` members are counted against the total amount of approvals as well you can omit the `from` clause if you only have groups.
+
+~~~ yaml
+approvals:
+  # check will succeed if there are 4 approvals from
+  # backend or frontend people
+  minimum: 4
+  groups:
+    # check will fail if there is not at least 1 approval
+    # from backend persons
+    backend:
+      minimum: 1
+      from:
+        users:
+          - backendperson1
+          - backendperson2
+          - backendperson3
+    # check will fail if there is not at least 1 approval
+    # from frontend persons
+    frontend:
+      minimum: 1
+      from:
+        users:
+          - frontendperson1
+          - frontendperson2
+          - frontendperson3
 ~~~
 
 ### Autobranch
