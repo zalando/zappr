@@ -1,7 +1,51 @@
 import { expect } from 'chai'
-import { getIn } from '../../common/util'
+import { getIn, promiseReduce, promiseFirst } from '../../common/util'
 
 describe('common/util', () => {
+
+  describe('promiseReduce', () => {
+    it('should async build a sum over an array', done => {
+      const numbers = [1, 2, 3, 4, 5]
+      const reducer = (sum, item) => new Promise(resolve => setTimeout(() => resolve(sum + item), 50))
+      promiseReduce(numbers, reducer, 5)
+      .then(sum => {
+        expect(sum).to.equal(20)
+        done()
+      })
+      .catch(done)
+    })
+
+    it('should reject when a reduce iteration throws', done => {
+      function reducer() {
+        throw new Error("boo")
+      }
+      const numbers = [1, 2, 3, 4, 5]
+      promiseReduce(numbers, reducer, 0).then(done).catch(() => done())
+    })
+  })
+
+  describe('promiseFirst', () => {
+    it('should reject if all reject', done => {
+      const promises = [Promise.reject(1), Promise.reject(2)]
+      promiseFirst(promises)
+      .then(() => {
+        done(1)
+      })
+      .catch(e => {
+        done()
+      })
+    })
+    it('should return the first resolving promise', done => {
+      const promises = [Promise.reject(1), Promise.resolve(2)]
+      promiseFirst(promises)
+      .then(x => {
+        expect(x).to.equal(2)
+        done()
+      })
+      .catch(done)
+    })
+  })
+
   describe('getIn', () => {
     const obj = {
       commit: {
