@@ -18,17 +18,15 @@ export default class Approval extends Check {
     if (Object.keys(approvals.groups || {}).length > 0) {
       // check group requirements
       const unsatisfied = Object.keys(approvals.groups)
-                                .map(approvalGroup => {
+                                .reduce((result, approvalGroup) => {
                                   const needed = groups[approvalGroup].minimum
                                   const given = approvals.groups[approvalGroup]
                                   const diff = needed - given
                                   if (diff > 0) {
-                                    return {approvalGroup, diff, needed, given}
-                                  } else {
-                                    return false
+                                    result.push({approvalGroup, diff, needed, given})
                                   }
-                                })
-                                .filter(diff => !!diff)
+                                  return result
+                                }, [])
 
       if (unsatisfied.length > 0) {
         const firstUnsatisfied = unsatisfied[0]
