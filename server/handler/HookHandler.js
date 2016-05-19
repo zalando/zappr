@@ -1,16 +1,13 @@
-import merge from 'lodash/merge'
-
 import GithubService from '../service/GithubService'
-import nconf from '../nconf'
 import { Approval, Autobranch, CommitMessage } from '../checks'
 import { logger } from '../../common/debug'
 import { checkHandler } from './CheckHandler'
 import { repositoryHandler } from './RepositoryHandler'
 import { pullRequestHandler } from './PullRequestHandler'
+import ZapprConfiguration from '../zapprfile/Configuration'
 import { getCheckByType } from '../checks'
 
 const info = logger('hook', 'info')
-const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 
 /**
  * @param {Array.<string>} types - Zappr check types
@@ -76,11 +73,12 @@ class HookHandler {
     if (payload.repository) {
       const {name, id, owner} = payload.repository
       const repo = await repositoryHandler.onGetOne(id, null, true)
-      const zapprUserConfig = repo.checks.length ?
-        await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
-        : {}
-
-      const config = merge({}, DEFAULT_CONFIG, zapprUserConfig)
+      let config = {}
+      if (repo.checks.length) {
+        const zapprFileContent = await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
+        const zapprfile = new ZapprConfiguration(zapprFileContent)
+        config = zapprfile.isValid() ? zapprfile.getConfiguration() : config
+      }
 
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>

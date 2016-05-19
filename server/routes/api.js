@@ -2,6 +2,8 @@ import nconf from '../nconf'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
 import { repositoryHandler } from '../handler/RepositoryHandler'
+import GithubService from '../service/GithubService'
+import ZapprConfiguration from '../zapprfile/Configuration'
 import crypto from 'crypto'
 import { logger } from '../../common/debug'
 
@@ -81,9 +83,28 @@ export function repo(router) {
       ctx.throw(e)
     }
   })
+  .get('/api/repos/:id/verify', requireAuth, async(ctx) => {
+    const user = ctx.req.user
+    const id = parseInt(ctx.params.id, 10)
+    try {
+      const repo = await repositoryHandler.onGetOne(id, user)
+      if (!repo) ctx.throw(404)
+      const github = new GithubService()
+      const zapprFileContent = await github.readZapprFile(user.json.login, repo.json.name, '')
+      const config = new ZapprConfiguration(zapprFileContent)
+      ctx.response.type = 'application/json'
+      ctx.body = {
+        message: config.isValid() ? '' : config.getParseError()
+      }
+      ctx.response.status = config.isValid() ? 200 : 422
+    } catch (e) {
+      error(e)
+      ctx.throw(e)
+    }
+  })
   .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
     const user = ctx.req.user
-    const id = parseInt(ctx.params.id)
+    const id = parseInt(ctx.params.id, 10)
     const type = ctx.params.type
     const repo = await repositoryHandler.onGetOne(id, user)
     try {
@@ -98,7 +119,7 @@ export function repo(router) {
   })
   .delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
     const user = ctx.req.user
-    const id = parseInt(ctx.params.id)
+    const id = parseInt(ctx.params.id, 10)
     const repo = await repositoryHandler.onGetOne(id, user)
     const type = ctx.params.type
     try {
