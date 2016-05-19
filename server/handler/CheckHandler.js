@@ -1,19 +1,52 @@
-import { Check } from "../model"
+import CheckHandlerError from './CheckHandlerError'
+import { Check } from '../model'
+import { githubService } from '../service/GithubService'
+import { getCheckByType } from '../checks'
 import { logger } from "../../common/debug"
 
+const info = logger('check-handler', 'info')
 const debug = logger('check-handler')
 
+/**
+ * @param {Array.<String>} types - Zappr check types
+ * @returns {Array.<String>} Github event names
+ */
+function findHookEventsFor(types) {
+  return types.map(type => {
+                const check = getCheckByType(type)
+                if (!check) throw new CheckHandlerError(`No such such Check: ${type}`)
+                return check.HOOK_EVENTS
+              })
+              .reduce((arr, evts) => arr.concat(evts), [])         // flatten
+              .filter((evt, i, arr) => i === arr.lastIndexOf(evt)) // deduplicate
+}
+
 class CheckHandler {
-  onCreateCheck(repoId, type, token) {
+  constructor(github = githubService) {
+    this.github = github
+  }
+
+  /**
+   * @param {Number} repoId - Repository ID
+   * @param {String} type - Check type
+   * @param {String} token - Authentication token
+   * @returns {Promise.<Check>}
+   * @throws {CheckHandlerError}
+   */
+  async onCreateCheck(repoId, type, token) {
     debug(`create check ${type} for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'}`)
-    return Check.create({
-      repositoryId: repoId,
-      type,
-      token,
-      arguments: {}
-    }, {
-      attributes: {exclude: ['token']}
-    })
+    try {
+      return await Check.create({
+        repositoryId: repoId,
+        type,
+        token,
+        arguments: {}
+      }, {
+        attributes: {exclude: ['token']}
+      })
+    } catch (e) {
+      throw new CheckHandlerError(`Error creating Check ${type} for repository ${repoId}.`, e)
+    }
   }
 
   onRefreshTokens(repoIds, token) {
@@ -22,24 +55,92 @@ class CheckHandler {
     return Promise.resolve()
   }
 
-  onGetOne(repoId, type) {
-    debug(`find check ${type} for repo ${repoId}`)
-    return Check.findOne({
-      where: {
-        repositoryId: repoId,
-        type
-      }
-    })
+  /**
+   * @param {Number} repoId - Repository ID
+   * @param {String} type - Check type
+   * @returns {Promise.<Check>}
+   * @throws {CheckHandlerError}
+   */
+  async onGetOne(repoId, type) {
+    debug(`find Check ${type} for repo ${repoId}`)
+    let check
+    try {
+      check = await Check.findOne({
+        where: {
+          repositoryId: repoId,
+          type
+        }
+      })
+    } catch (e) {
+      throw new CheckHandlerError(`Error getting Check ${type} for repository ${repoId}.`, e)
+    }
+    if (!check) throw new CheckHandlerError(`No Check ${type} for repository ${repoId}.`)
+    return check
   }
 
-  onDeleteCheck(repoId, type) {
+  /**
+   * @param {Number} repoId - Repository ID
+   * @param {String} type - Check type
+   * @returns {Promise.<Number>} - Number of destroyed rows
+   * @throws {CheckHandlerError}
+   */
+  async onDeleteCheck(repoId, type) {
     debug(`delete check ${type} for repo ${repoId}`)
-    return Check.destroy({
-      where: {
-        repositoryId: repoId,
-        type
-      }
-    })
+    let check
+    try {
+      await Check.destroy({
+        where: {
+          repositoryId: repoId,
+          type
+        }
+      })
+    } catch (e) {
+      throw new CheckHandlerError(`Error deleting Check ${type} for repository ${repoId}.`, e)
+    }
+  }
+
+  /**
+   * @param {object} user - Current user
+   * @param {Repository} repository - Repository to enable Check for
+   * @param {String} type - Check type
+   * @returns {Promise.<Check>}
+   * @throws {CheckHandlerError}
+   */
+  async onEnableCheck(user, repository, type) {
+    const repo = repository.get('json')
+    const types = [type, ...repository.checks.map(c => c.type)]
+    const events = findHookEventsFor(types)
+
+    // TODO: could use a database constraint instead?
+    let existingCheck
+    try {
+      existingCheck = await checkHandler.onGetOne(repo.id, type)
+    } catch (e) {
+      // Expect check not to exist
+    }
+    if (existingCheck) throw new CheckHandlerError(`Check ${type} already exists for repo ${repo.id}`, 409)
+
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, events, user.accessToken)
+    const check = await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
+    info(`${repo.full_name}: enabled check ${type}`)
+    return check
+  }
+
+  /**
+   * @param {object} user - Current user
+   * @param {Repository} repository - Repository to disable Check for
+   * @param {String} type - Check type
+   * @returns {Promise}
+   * @throws {CheckHandlerError}
+   */
+  async onDisableCheck(user, repository, type) {
+    const repo = repository.get('json')
+    const types = repository.checks.map(c => c.type).filter(t => t !== type)
+    const evts = findHookEventsFor(types)
+
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
+    await checkHandler.onDeleteCheck(repo.id, type)
+    info(`${repo.full_name}: disabled check ${type}`)
   }
 }
 

@@ -1,6 +1,7 @@
 import yaml from 'js-yaml'
 import path from 'path'
 import nconf from '../nconf'
+import GithubServiceError from './GithubServiceError'
 import { joinURL, promiseFirst } from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
@@ -29,7 +30,7 @@ function fromBase64(encoded) {
   return new Buffer(encoded, 'base64').toString('utf8')
 }
 
-export default class GithubService {
+class GithubService {
 
   getOptions(method, path, body, accessToken) {
     return {
@@ -52,7 +53,7 @@ export default class GithubService {
     // 300 codes are for github membership checks
     if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
       error(`${statusCode} ${method} ${path}`, response.body)
-      throw new Error(response.body ? response.body.message : statusCode)
+      throw new GithubServiceError(response)
     }
     else return body
   }
@@ -262,3 +263,5 @@ export default class GithubService {
     }
   }
 }
+
+export const githubService = new GithubService()

@@ -3,10 +3,14 @@ import { expect } from 'chai'
 import crypto from 'crypto'
 
 import nconf from '../../server/nconf'
+import Problem from '../../common/Problem'
 import MountebankClient from '../MountebankClient'
 import MockStrategy, { setUserId, setUserName } from '../passport/MockStrategy'
 import { init as initApp } from '../../server/server'
 import { db, Repository, Check, UserRepository } from '../../server/model'
+import { logger } from '../../common/debug'
+
+const debug = logger('test:api')
 
 describe('API', () => {
   const testUser = require('../fixtures/github.user.a.json')
@@ -134,9 +138,9 @@ describe('API', () => {
     it('should exclude the github token from the checks', async(done)=> {
       try {
         // Reload repositories
-        await request.get('/api/repos')
+        await request.get('/api/repos').expect(200)
         // Enable a check
-        await request.put(`/api/repos/${fixtures.repo.id}/approval`)
+        await request.put(`/api/repos/${fixtures.repo.id}/approval`).expect(201)
 
         const repos = (await request.get('/api/repos')).body
         const repo = repos.find(repo => repo.id === fixtures.repo.id)
@@ -311,6 +315,36 @@ describe('API', () => {
         const body = JSON.parse(calls[2].body)
         expect(body).to.have.deep.property('config.secret')
         expect(body.config.secret).to.equal('captainHook')
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('should return a Problem when accessing a non-existing repository', async(done) => {
+      try {
+        const {body} = await request.put('/api/repos/4242/approval').send()
+        const problem = new Problem(body)
+        debug('Response: %o', body)
+        expect(problem).to.have.property('status').that.is.a('number').and.above(400)
+        expect(problem).to.have.property('title').that.is.a('string').and.not.empty
+        expect(problem).to.have.property('detail').that.is.a('string').and.not.empty
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('should return a Problem when accessing a non-existing check', async(done) => {
+      try {
+        const repos = (await request.get('/api/repos').expect(200)).body
+        const id = repos[0].id
+        const {body} = await request.put(`/api/repos/${id}/foobar`).send()
+        const problem = new Problem(body)
+        debug('Response: %o', body)
+        expect(problem).to.have.property('status').that.is.a('number').and.above(400)
+        expect(problem).to.have.property('title').that.is.a('string').and.not.empty
+        expect(problem).to.have.property('detail').that.is.a('string').and.not.empty
         done()
       } catch (e) {
         done(e)

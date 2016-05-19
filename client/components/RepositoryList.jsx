@@ -1,8 +1,17 @@
-import React, { Component, PropTypes } from 'react'
-import { Button, Panel, ListGroup, ListGroupItem, Input } from 'react-bootstrap'
-import fuzzysearch from 'fuzzysearch'
-import RepositoryListItem from './RepositoryListItem.jsx'
 import classes from 'classnames'
+import fuzzysearch from 'fuzzysearch'
+import React, { Component, PropTypes } from 'react'
+import {
+  Button,
+  Panel,
+  ListGroup,
+  ListGroupItem,
+  FormGroup,
+  ControlLabel,
+  FormControl
+} from 'react-bootstrap'
+
+import RepositoryListItem from './RepositoryListItem.jsx'
 
 export default class RepositoryList extends Component {
   static propTypes = {
@@ -32,6 +41,7 @@ export default class RepositoryList extends Component {
     return Object.keys(this.props.repositories)
                  .filter(key => fuzzysearch(this.props.filterBy, key))
                  .map(key => this.props.repositories[key])
+                 .filter(repo => !!repo.full_name)
   }
 
   sortedRepositories() {
@@ -56,11 +66,13 @@ export default class RepositoryList extends Component {
 
     return (
       <Panel collapsible defaultExpanded header={header}>
-        <Input type='search'
-               value={filterBy}
-               onChange={this.updateSearch.bind(this)}
-               placeholder='zalando/zappr'
-               label={'Search for a repository'}/>
+        <FormGroup controlId="search">
+          <ControlLabel>Search for a repository</ControlLabel>
+          <FormControl type='search'
+                       value={filterBy}
+                       onChange={this.updateSearch.bind(this)}
+                       placeholder='zalando/zappr'/>
+        </FormGroup>
         <ListGroup componentClass="ul">
           {repos.length > 0
             ? repos.map((repo, i) =>

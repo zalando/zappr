@@ -1,7 +1,5 @@
 import React, { Component, PropTypes } from 'react'
-import { Input } from 'react-bootstrap'
-
-import Optional from './Optional.jsx'
+import { FormGroup, Checkbox } from 'react-bootstrap'
 
 /**
  * Based on http://www.bootstraptoggle.com
@@ -39,7 +37,9 @@ export default class Toggle extends Component {
       <div className={`${className} toggle btn btn-${off} ${disabled}`.trim()}
            style={{width:'58px',height:'34px'}}
            onClick={this.onToggle.bind(this)}>
-        <Input type="checkbox" checked={checked} disabled={!!disabled} readOnly/>
+        <FormGroup controlId="toggle">
+          <Checkbox type="checkbox" checked={checked} disabled={!!disabled} readOnly/>
+        </FormGroup>
         <div className="toggle-group">
           <label className="btn btn-primary toggle-on">{spinner || 'On'}</label>
           <label className="btn btn-default active toggle-off">{spinner || 'Off'}</label>
