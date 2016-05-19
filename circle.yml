@@ -1,0 +1,32 @@
+general:
+  branches:
+    only:
+      - master
+
+machine:
+  node:
+    version: 5
+  services:
+    - docker
+
+dependencies:
+  override:
+    - npm install
+    - npm install pg
+    - npm run scm
+    - npm run dist
+    - docker info
+    - docker build -t zappr/zappr:${CIRCLE_SHA1} --build-arg APP_CONFIG=opensource .
+    - docker run -d --name postgres postgres:9.4
+
+test:
+  override:
+    - docker run -d -p 3000:3000 --link postgres:postgres -e DB_DRIVER=postgres -e DB_NAME=postgres -e DB_USER=postgres -e DB_PASS=postgres -e DB_HOST=postgres -e DB_PORT=5432 -e DB_SCHEMA=zappr -e NODE_ENV=production -e LOG_LEVEL=debug zappr/zappr:${CIRCLE_SHA1}
+    - curl --retry 10 --retry-delay 5 -v http://localhost:3000/health
+
+deployment:
+  hub:
+    branch: master
+    commands:
+      - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+      - docker push zappr/zappr:${CIRCLE_SHA1}
