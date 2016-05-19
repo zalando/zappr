@@ -39,7 +39,11 @@ export default class RepositoryCheck extends Component {
     )
     return (
       <Panel header={header}>
-        {check.error ? <Alert bsStyle='danger'>Error: {check.error.message}</Alert> : null}
+        {check.error ?
+          <Alert bsStyle='danger'>
+            <h4>{check.error.title}</h4>
+            <p>{check.error.detail}</p>
+          </Alert> : null}
         {INFO_TEXT[check.type]}
       </Panel>
     )

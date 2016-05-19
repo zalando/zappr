@@ -1,4 +1,5 @@
-import GithubService from '../service/GithubService'
+import RepositoryHandlerError from './RepositoryHandlerError'
+import { githubService } from '../service/GithubService'
 import { db, Repository, UserRepository, Check } from '../model'
 import { logger } from '../../common/debug'
 import { setDifference } from '../../common/util'
@@ -7,8 +8,8 @@ const info = logger('repo-handler', 'info')
 const debug = logger('repo-handler')
 
 class RepositoryHandler {
-  constructor(githubService = new GithubService()) {
-    this.githubService = githubService
+  constructor(github = githubService) {
+    this.github = github
   }
 
   /**
@@ -18,22 +19,32 @@ class RepositoryHandler {
    * @param {Object} user - Current user object
    * @param {boolean} includeToken
    * @returns {Promise.<Object|null>}
+   * @throws RepositoryHandlerError
    */
-  onGetOne(id, user = null, includeToken = false) {
-    if (user) {
-      return Repository.userScope(user).findById(id, {
-        include: [{
-          model: Check,
-          attributes: {exclude: includeToken ? [] : ['token']}
-        }]
-      })
+  async onGetOne(id, user = null, includeToken = false) {
+    debug(`get Repository ${id}`)
+    let repository
+    try {
+      if (user) {
+        repository = await Repository.userScope(user).findById(id, {
+          include: [{
+            model: Check,
+            attributes: {exclude: includeToken ? [] : ['token']}
+          }]
+        })
+      } else {
+        repository = await Repository.findById(id, {
+          include: [{
+            model: Check,
+            attributes: {exclude: includeToken ? [] : ['token']}
+          }]
+        })
+      }
+    } catch (e) {
+      throw new RepositoryHandlerError(`Error getting Repository ${id}.`, e.message)
     }
-    return Repository.findById(id, {
-      include: [{
-        model: Check,
-        attributes: {exclude: includeToken ? [] : ['token']}
-      }]
-    })
+    if (!repository) throw new RepositoryHandlerError(`Could not get Repository ${id}.`)
+    return repository
   }
 
   /**
@@ -137,13 +148,13 @@ class RepositoryHandler {
     // No need to (re)load from Github. Return repositories from database.
     if (repos.length > 0 && !loadAll) return repos
 
-    repos = await this.githubService.fetchRepos(user.accessToken, loadAll)
+    repos = await this.github.fetchRepos(user.accessToken, loadAll)
     await this.updateRepos(db, user, repos)
     info(`Loaded ${loadAll ? 'all' : 'some'} repos for user ${user.json.username} from Github`)
 
     // The previously merged repos are not sorted correctly
     // so we need to load them from the database again.
-    return Repository.userScope(user).findAllSorted({
+    return await Repository.userScope(user).findAllSorted({
       include: [{
         model: Check,
         attributes: {exclude: includeToken ? [] : ['token']}
