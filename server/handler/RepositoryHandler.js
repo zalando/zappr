@@ -1,6 +1,7 @@
 import GithubService from '../service/GithubService'
 import { db, Repository, UserRepository, Check } from '../model'
 import { logger } from '../../common/debug'
+import { setDifference } from '../../common/util'
 
 const info = logger('repo-handler', 'info')
 const debug = logger('repo-handler')
@@ -35,34 +36,84 @@ class RepositoryHandler {
     })
   }
 
-  upsertRepos(db, user, remoteRepos) {
-    return db.transaction(t =>
-      Promise.all(
-        remoteRepos.map(async(remoteRepo) => {
-          const [repo] = await Repository.findOrCreate({
-            where: {id: remoteRepo.id},
-            defaults: {
-              id: remoteRepo.id,
-              json: remoteRepo
-            },
-            transaction: t
-          })
-          // HACK: workaround for https://github.com/sequelize/sequelize/issues/3220
-          await UserRepository.findOrCreate({
-            where: {
-              userId: user.id,
-              repositoryId: repo.id
-            },
-            defaults: {
-              userId: user.id,
-              repositoryId: repo.id
-            },
-            transaction: t
-          })
+  /**
+   * Inserts or updates repositories for this user.
+   *
+   * @param transaction The database transaction to use
+   * @param userId The id of the user
+   * @param remoteRepos The repositories from Github API
+   * @returns {Promise}
+   */
+  upsertRepos(transaction, userId, remoteRepos) {
+    return Promise.all(
+      remoteRepos.map(async(remoteRepo) => {
+        const repositoryId = remoteRepo.id
+        await Repository.upsert({
+          id: repositoryId,
+          json: remoteRepo
+        }, {
+          transaction
         })
-      )
+        // HACK: workaround for https://github.com/sequelize/sequelize/issues/3220
+        await UserRepository.findOrCreate({
+          where: {
+            userId,
+            repositoryId
+          },
+          defaults: {
+            userId,
+            repositoryId
+          },
+          transaction
+        })
+      })
     )
   }
+
+  /**
+   * Removes repositories from the database that are not included
+   * in repositories from the Github API.
+   *
+   * @param transaction The database transaction to use
+   * @param user The user
+   * @param remoteRepos The repositories from the Github API
+   * @returns {Promise}
+   */
+  async removeMissingRepos(transaction, user, remoteRepos) {
+    const dbRepos = await Repository.userScope(user).findAll()
+    // find dbRepos that are not in remoteRepos
+    const dbIds = new Set(dbRepos.map(r => r.id))
+    const remoteIds = new Set(remoteRepos.map(r => r.id))
+    const diff = setDifference(dbIds, remoteIds)
+    return Promise.all([...diff].map(repoId =>
+      UserRepository
+      .find({
+        where: {
+          repositoryId: repoId,
+          userId: user.id
+        }
+      }, {
+        transaction
+      })
+      .then(dbRepo => dbRepo.destroy({transaction}))
+    ))
+  }
+
+  /**
+   * Updates repositories of this user in the database, e.g. adds, updates or removes.
+   *
+   * @param db The database
+   * @param user The user
+   * @param remoteRepos Repositories from Github
+   * @returns {Promise}
+   */
+  updateRepos(db, user, remoteRepos) {
+    return db.transaction(t => Promise.all([
+      this.upsertRepos(t, user.id, remoteRepos),
+      this.removeMissingRepos(t, user, remoteRepos)
+    ]))
+  }
+
 
   /**
    * Loads the repositories of a user.
@@ -87,7 +138,7 @@ class RepositoryHandler {
     if (repos.length > 0 && !loadAll) return repos
 
     repos = await this.githubService.fetchRepos(user.accessToken, loadAll)
-    await this.upsertRepos(db, user, repos)
+    await this.updateRepos(db, user, repos)
     info(`Loaded ${loadAll ? 'all' : 'some'} repos for user ${user.json.username} from Github`)
 
     // The previously merged repos are not sorted correctly

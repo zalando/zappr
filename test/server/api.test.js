@@ -6,7 +6,7 @@ import nconf from '../../server/nconf'
 import MountebankClient from '../MountebankClient'
 import MockStrategy, { setUserId, setUserName } from '../passport/MockStrategy'
 import { init as initApp } from '../../server/server'
-import { db, Repository, Check } from '../../server/model'
+import { db, Repository, Check, UserRepository } from '../../server/model'
 
 describe('API', () => {
   const testUser = require('../fixtures/github.user.a.json')
@@ -190,6 +190,16 @@ describe('API', () => {
 
         const repos2 = (await request.get('/api/repos?all=true')).body
         expect(repos2).to.have.property('length', 4)
+
+        // add fake repository
+        await Repository.upsert({id: 1, json: ''})
+        await UserRepository.upsert({userId: testUser.id, repositoryId: 1})
+        const repos3 = (await request.get('/api/repos')).body
+        expect(repos3).to.have.property('length', 5)
+
+        // sync with api should remove it again (because not in api)
+        const repos4 = (await request.get('/api/repos?all=true')).body
+        expect(repos4).to.have.property('length', 4)
 
         done()
       } catch (e) {
