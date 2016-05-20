@@ -262,6 +262,12 @@ class GithubService {
       return []
     }
   }
+
+  async fetchLastCommitter(owner, repo, number, accessToken) {
+    const commits = await this.fetchPullRequestCommits(owner, repo, number, accessToken)
+    const lastCommit = commits[commits.length - 1]
+    return getIn(lastCommit, ['committer', 'login'])
+  }
 }
 
 export const githubService = new GithubService()

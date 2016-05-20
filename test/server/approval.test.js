@@ -41,6 +41,7 @@ const PR_PAYLOAD = {
 const DEFAULT_CONFIG = {
   approvals: {
     minimum: 2,
+    ignore: 'none',
     pattern: '^:\\+1:$',
     veto: {
       pattern: '^:\\-1:$',
@@ -73,7 +74,7 @@ describe('Approval#countApprovalsAndVetos', () => {
       body: ':+1:' // is ignored because mfellner already approved
     }]
     try {
-      const {approvals} = await Approval.countApprovalsAndVetos(null, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, null)
+      const {approvals} = await Approval.countApprovalsAndVetos(null, DEFAULT_REPO, {}, comments, DEFAULT_CONFIG.approvals, null)
       expect(approvals).to.deep.equal({total: 1})
       done()
     } catch (e) {
@@ -208,11 +209,6 @@ describe('Approval#execute', () => {
   })
 
   it('should set status to failure on last issue comment when there is a veto comment', async (done) => {
-    github.fetchPullRequestCommits = sinon.stub().returns([{
-      committer: {
-        login: "stranger"
-      }
-    }])
     github.getComments = sinon.stub().returns([{
       body: ':+1:',
       user: {login: 'foo'}
@@ -225,9 +221,6 @@ describe('Approval#execute', () => {
     }, {
       body: ':-1:',
       user: {login: 'mr-foo'}
-    }, {
-      body: ':+1:',
-      user: {login: 'stranger'}
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
@@ -235,14 +228,12 @@ describe('Approval#execute', () => {
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
-      expect(github.fetchPullRequestCommits.callCount).to.equal(1)
       expect(github.getPullRequest.callCount).to.equal(1)
       expect(github.isMemberOfOrg.callCount).to.equal(0)
 
       const failureStatusCallArgs = github.setCommitStatus.args[1]
       const commentCallArgs = github.getComments.args[0]
       const prCallArgs = github.getPullRequest.args[0]
-      const prCommitsCallArgs = github.fetchPullRequestCommits.args[0]
 
       expect(prCallArgs).to.deep.equal([
         'mfellner',
@@ -253,7 +244,7 @@ describe('Approval#execute', () => {
       expect(commentCallArgs).to.deep.equal([
         'mfellner',
         'hello-world',
-        2,
+        1,
         formatDate(DB_PR.last_push),
         TOKEN
       ])
@@ -264,12 +255,6 @@ describe('Approval#execute', () => {
         BLOCKED_BY_VETO_STATUS,
         TOKEN
       ])
-      expect(prCommitsCallArgs).to.deep.equal([
-        'mfellner',
-        'hello-world',
-        2,
-        TOKEN
-      ])
       done()
     } catch(e) {
       done(e)
@@ -277,11 +262,6 @@ describe('Approval#execute', () => {
   })
 
   it('should set status to success on last issue comment', async (done) => {
-    github.fetchPullRequestCommits = sinon.stub().returns([{
-      committer: {
-        login: "stranger"
-      }
-    }])
     github.getComments = sinon.stub().returns([{
       body: ':+1:',
       user: {login: 'foo'}
@@ -291,9 +271,6 @@ describe('Approval#execute', () => {
     }, {
       body: ':+1:',
       user: {login: 'bar'}
-    }, {
-      body: ':+1:',
-      user: {login: 'stranger'}
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
@@ -301,14 +278,12 @@ describe('Approval#execute', () => {
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
-      expect(github.fetchPullRequestCommits.callCount).to.equal(1)
       expect(github.getPullRequest.callCount).to.equal(1)
       expect(github.isMemberOfOrg.callCount).to.equal(0)
 
       const successStatusCallArgs = github.setCommitStatus.args[1]
       const commentCallArgs = github.getComments.args[0]
       const prCallArgs = github.getPullRequest.args[0]
-      const prCommitsCallArgs = github.fetchPullRequestCommits.args[0]
 
       expect(prCallArgs).to.deep.equal([
         'mfellner',
@@ -319,7 +294,7 @@ describe('Approval#execute', () => {
       expect(commentCallArgs).to.deep.equal([
         'mfellner',
         'hello-world',
-        2,
+        1,
         formatDate(DB_PR.last_push),
         TOKEN
       ])
@@ -328,12 +303,6 @@ describe('Approval#execute', () => {
         'hello-world',
         'abcd1234',
         SUCCESS_STATUS,
-        TOKEN
-      ])
-      expect(prCommitsCallArgs).to.deep.equal([
-        'mfellner',
-        'hello-world',
-        2,
         TOKEN
       ])
       done()
