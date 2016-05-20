@@ -84,3 +84,20 @@ export function decode(string, encoding = 'base64') {
   }
   return new Buffer(string, encoding).toString('utf8')
 }
+
+/**
+ * Returns a new set that is the difference of the two sets provided (set1 - set2).
+ *
+ * @param set1
+ * @param set2
+ * @returns {Set} set1 - set2
+ */
+export function setDifference(set1, set2) {
+  if (!set1 || set1.size === 0) {
+    return new Set()
+  }
+  if (!set2 || set2.size === 0) {
+    return set1
+  }
+  return new Set([...set1].filter(item => !set2.has(item)))
+}

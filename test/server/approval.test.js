@@ -41,22 +41,26 @@ const PR_PAYLOAD = {
 const DEFAULT_CONFIG = {
   approvals: {
     minimum: 2,
-    pattern: '^:\\+1:$'
+    pattern: '^:\\+1:$',
+    veto: {
+      pattern: '^:\\-1:$',
+    }
   }
 }
-const SUCCESS_STATUS = Approval.generateStatus({total: 2}, DEFAULT_CONFIG.approvals)
+const SUCCESS_STATUS = Approval.generateStatus({approvals: {total: 2}, vetos: 0}, DEFAULT_CONFIG.approvals)
+const BLOCKED_BY_VETO_STATUS = Approval.generateStatus({approvals: {total: 2}, vetos: 1}, DEFAULT_CONFIG.approvals)
 const PENDING_STATUS = {
   state: 'pending',
   description: 'Approval validation in progress.',
   context: 'zappr'
 }
-const ZERO_APPROVALS_STATUS = Approval.generateStatus({total: 0}, DEFAULT_CONFIG.approvals)
+const ZERO_APPROVALS_STATUS = Approval.generateStatus({approvals: {total: 0}, vetos: 0}, DEFAULT_CONFIG.approvals)
 const DB_PR = {
   last_push: new Date(),
   number: 3
 }
 
-describe('Approval#countApprovals', () => {
+describe('Approval#countApprovalsAndVetos', () => {
   it('should honor the provided pattern', async(done) => {
     const comments = [{
       user: {login: 'prayerslayer'},
@@ -69,7 +73,7 @@ describe('Approval#countApprovals', () => {
       body: ':+1:' // is ignored because mfellner already approved
     }]
     try {
-      const approvals = await Approval.countApprovals(null, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, null)
+      const {approvals} = await Approval.countApprovalsAndVetos(null, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, null)
       expect(approvals).to.deep.equal({total: 1})
       done()
     } catch (e) {
@@ -78,7 +82,7 @@ describe('Approval#countApprovals', () => {
   })
 })
 
-describe('Approval#getApprovalsForConfig', () => {
+describe('Approval#getCommentStatsForConfig', () => {
   var github
 
   beforeEach(() => {
@@ -102,11 +106,11 @@ describe('Approval#getApprovalsForConfig', () => {
         body: 'lolz',
         user: {login: 'user3'}
       }]
-      let approvals = await Approval.getApprovalsForConfig(github, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
+      let approvals = await Approval.getCommentStatsForConfig(github, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
       expect(approvals.total).to.equal(3)
       // and with empty comments
       comments = []
-      approvals = await Approval.getApprovalsForConfig(github, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
+      approvals = await Approval.getCommentStatsForConfig(github, DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
       expect(approvals.total).to.equal(0)
       done()
     } catch (e) {
@@ -127,7 +131,7 @@ describe('Approval#getApprovalsForConfig', () => {
       }]
       sinon.stub(github, 'isMemberOfOrg', (org, user) => user === 'user3')
       const config = Object.assign({}, DEFAULT_CONFIG.approvals, {from: {orgs: ['zalando']}})
-      const approvals = await Approval.getApprovalsForConfig(github, DEFAULT_REPO, comments, config, TOKEN)
+      const approvals = await Approval.getCommentStatsForConfig(github, DEFAULT_REPO, comments, config, TOKEN)
       expect(github.isMemberOfOrg.callCount).to.equal(3)
       expect(approvals.total).to.equal(1)
       done()
@@ -159,7 +163,7 @@ describe('Approval#getApprovalsForConfig', () => {
           }
         }
       )
-      const approvals = await Approval.getApprovalsForConfig(github, DEFAULT_REPO, comments, config, TOKEN)
+      const approvals = await Approval.getCommentStatsForConfig(github, DEFAULT_REPO, comments, config, TOKEN)
       expect(github.isMemberOfOrg.callCount).to.equal(3)
       expect(approvals.total).to.equal(3)
       expect(approvals.groups.zalando).to.be.defined
@@ -201,6 +205,75 @@ describe('Approval#execute', () => {
     const result = github.setCommitStatus(1, 2, 3, 4)
     expect(result).to.be.undefined
     expect(github.setCommitStatus.calledWith(1, 2, 3, 4)).to.be.true
+  })
+
+  it('should set status to failure on last issue comment when there is a veto comment', async (done) => {
+    github.fetchPullRequestCommits = sinon.stub().returns([{
+      committer: {
+        login: "stranger"
+      }
+    }])
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: {login: 'foo'}
+    }, {
+      body: ':+1:',
+      user: {login: 'bar'}
+    }, {
+      body: ':+1:',
+      user: {login: 'bar'}
+    }, {
+      body: ':-1:',
+      user: {login: 'mr-foo'}
+    }, {
+      body: ':+1:',
+      user: {login: 'stranger'}
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    try {
+      await approval.execute(github, DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getComments.callCount).to.equal(1)
+      expect(github.fetchPullRequestCommits.callCount).to.equal(1)
+      expect(github.getPullRequest.callCount).to.equal(1)
+      expect(github.isMemberOfOrg.callCount).to.equal(0)
+
+      const failureStatusCallArgs = github.setCommitStatus.args[1]
+      const commentCallArgs = github.getComments.args[0]
+      const prCallArgs = github.getPullRequest.args[0]
+      const prCommitsCallArgs = github.fetchPullRequestCommits.args[0]
+
+      expect(prCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        2,
+        TOKEN
+      ])
+      expect(commentCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        2,
+        formatDate(DB_PR.last_push),
+        TOKEN
+      ])
+      expect(failureStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        BLOCKED_BY_VETO_STATUS,
+        TOKEN
+      ])
+      expect(prCommitsCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        2,
+        TOKEN
+      ])
+      done()
+    } catch(e) {
+      done(e)
+    }
   })
 
   it('should set status to success on last issue comment', async (done) => {
@@ -311,7 +384,7 @@ describe('Approval#execute', () => {
       PR_PAYLOAD.action = 'reopened'
       github.fetchPullRequestCommits = sinon.stub().returns([])
       github.getComments = sinon.stub().returns([])
-      approval.countApprovals = sinon.stub().returns({total: 4})
+      approval.countApprovalsAndVetos = sinon.stub().returns({approvals: {total: 4}})
       await approval.execute(github, DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID, pullRequestHandler)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -330,7 +403,7 @@ describe('Approval#execute', () => {
         'mfellner',
         'hello-world',
         PR_PAYLOAD.pull_request.head.sha,
-        Approval.generateStatus({total: 4}, {minimum: 2}),
+        Approval.generateStatus({approvals: {total: 4}, vetos: 0}, {minimum: 2}),
         TOKEN
       ])
       done()

@@ -1,58 +1,16 @@
-import GithubService from '../service/GithubService'
 import { Approval, Autobranch, CommitMessage } from '../checks'
 import { logger } from '../../common/debug'
-import { checkHandler } from './CheckHandler'
+import { githubService } from '../service/GithubService'
 import { repositoryHandler } from './RepositoryHandler'
 import { pullRequestHandler } from './PullRequestHandler'
 import ZapprConfiguration from '../zapprfile/Configuration'
-import { getCheckByType } from '../checks'
 
 const info = logger('hook', 'info')
-
-/**
- * @param {Array.<string>} types - Zappr check types
- * @returns {Array.<string>} Github event names
- */
-function findHookEventsFor(types) {
-  return types.map(getCheckByType)
-              .map(c => c.HOOK_EVENTS)
-              .reduce((arr, evts) => { // flatten
-                Array.prototype.push.apply(arr, evts)
-                return arr
-              }, [])
-              .filter((evt, i, arr) => i === arr.lastIndexOf(evt)) // deduplicate
-}
+const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 
 class HookHandler {
-  constructor(github = new GithubService()) {
+  constructor(github = githubService) {
     this.github = github
-  }
-
-  // TODO: should be part of CheckHandler as this is only called via the Zappr API
-  async onEnableCheck(user, repository, type) {
-    const repo = repository.get('json')
-    const types = [type, ...repository.checks.map(c => c.type)]
-    const events = findHookEventsFor(types)
-
-    // TODO: could use a database constraint instead?
-    const existingCheck = await checkHandler.onGetOne(repo.id, type)
-    if (existingCheck) throw new Error(`Check ${type} already exists for repo ${repo.id}`, 409)
-
-    await this.github.updateWebhookFor(repo.owner.login, repo.name, events, user.accessToken)
-    const check = await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
-    info(`${repo.full_name}: enabled check ${type}`)
-    return check
-  }
-
-  // TODO: should be part of CheckHandler as this is only called via the Zappr API
-  async onDisableCheck(user, repository, type) {
-    const repo = repository.get('json')
-    const types = repository.checks.map(c => c.type).filter(t => t !== type)
-    const evts = findHookEventsFor(types)
-
-    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
-    await checkHandler.onDeleteCheck(repo.id, type)
-    info(`${repo.full_name}: disabled check ${type}`)
   }
 
   /**
