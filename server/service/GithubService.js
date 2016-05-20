@@ -2,7 +2,7 @@ import yaml from 'js-yaml'
 import path from 'path'
 import nconf from '../nconf'
 import GithubServiceError from './GithubServiceError'
-import { joinURL, promiseFirst } from '../../common/util'
+import { joinURL, promiseFirst, getIn } from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
 
