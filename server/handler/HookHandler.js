@@ -6,7 +6,6 @@ import { pullRequestHandler } from './PullRequestHandler'
 import ZapprConfiguration from '../zapprfile/Configuration'
 
 const info = logger('hook', 'info')
-const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 
 class HookHandler {
   constructor(github = githubService) {

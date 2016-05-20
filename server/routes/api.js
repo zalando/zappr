@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import nconf from '../nconf'
+import {githubService} from '../service/GithubService'
 import Problem from '../../common/Problem'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
@@ -89,9 +90,10 @@ export function repo(router) {
       const id = parseInt(ctx.params.id, 10)
       try {
         const repo = await repositoryHandler.onGetOne(id, user)
-        if (!repo) ctx.throw(404)
-        const github = new GithubService()
-        const zapprFileContent = await github.readZapprFile(user.json.login, repo.json.name, '')
+        if (!repo) {
+          ctx.throw(404)
+        }
+        const zapprFileContent = await githubService.readZapprFile(user.json.login, repo.json.name, '')
         const config = new ZapprConfiguration(zapprFileContent)
         ctx.response.type = 'application/json'
         ctx.body = {
