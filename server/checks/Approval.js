@@ -240,10 +240,10 @@ export default class Approval extends Check {
    * @returns {Array} The logins of users to ignore
    */
   static async fetchIgnoredUsers(github, repository, pull_request, config, token) {
-    const ignoreConfig = config.ignore
-    if (!ignoreConfig || ignoreConfig === 'none') {
+    if (!config.ignore || config.ignore === 'none') {
       return []
     }
+    const ignoreConfig = config.ignore
     const user = repository.owner.login
     const repoName = repository.name
     const ignoredUsers = []
