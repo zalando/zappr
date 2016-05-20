@@ -5,6 +5,7 @@
 [![Build Status](https://travis-ci.org/zalando/zappr.svg?branch=master)](https://travis-ci.org/zalando/zappr)
 [![Code Climate](https://codeclimate.com/github/zalando/zappr/badges/gpa.svg)](https://codeclimate.com/github/zalando/zappr)
 [![Dependencies](https://david-dm.org/zalando/zappr.svg)](https://david-dm.org/zalando/zappr)
+[![Gitter](https://badges.gitter.im/zalando/zappr.svg)](https://gitter.im/zalando/zappr)
 
 Zappr is a GitHub integration built to enhance your project workflow. Built by open-source enthusiasts,
 it's aimed at helping developers to increase productivity and improve open-source project quality.
