@@ -8,6 +8,8 @@ const userJson = new Schema('users', {idAttribute: 'login'})
 const repo = new Schema('repos', {idAttribute: (repo => repo.json.full_name)})
 const repoJson = new Schema('repos', {idAttribute: 'full_name'})
 
+const verification = new Schema('verification', {idAttrbute: 'repoId'})
+
 const check = new Schema('checks', {idAttribute: (check => checkId(check.repositoryId, check.type))})
 
 /**
@@ -30,7 +32,8 @@ repoJson.define({
 repo.define({
   json: repoJson,         // Github data
   checks: arrayOf(check), // Zappr attribute
-  users: arrayOf(user)    // Zappr attribute
+  users: arrayOf(user),   // Zappr attribute
+  verification
 })
 
 export const REPOS_SCHEMA = arrayOf(repo)

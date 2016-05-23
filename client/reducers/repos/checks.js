@@ -1,6 +1,7 @@
 import { PENDING, SUCCESS, ERROR } from '../../actions/status'
 import { PUT_CHECK, DELETE_CHECK } from '../../actions/checks'
 import { GET_REPOS } from '../../actions/repos'
+import { mapValues } from '../../../common/util'
 
 function check(state = {
   error: false,
@@ -65,20 +66,6 @@ function check(state = {
     default:
       return state
   }
-}
-
-/**
- * Map over the keys and values of an object.
- *
- * @param {Object} object
- * @param {function} callback
- * @returns {Object} - new object
- */
-function mapValues(object, callback) {
-  if (!object) return {}
-  return Object.keys(object).reduce((newObject, key) => ({
-    ...newObject, [key]: callback(key, object[key])
-  }), {})
 }
 
 export default function checks(state = {}, action) {

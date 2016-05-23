@@ -101,3 +101,17 @@ export function setDifference(set1, set2) {
   }
   return new Set([...set1].filter(item => !set2.has(item)))
 }
+
+/**
+ * Map over the keys and values of an object.
+ *
+ * @param {Object} object
+ * @param {function} callback
+ * @returns {Object} - new object
+ */
+export function mapValues(object, callback) {
+  if (!object) return {}
+  return Object.keys(object).reduce((newObject, key) => ({
+    ...newObject, [key]: callback(key, object[key])
+  }), {})
+}

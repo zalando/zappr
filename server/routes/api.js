@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import nconf from '../nconf'
-import {githubService} from '../service/GithubService'
+import { githubService } from '../service/GithubService'
 import Problem from '../../common/Problem'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
@@ -72,87 +72,96 @@ export function repos(router) {
  */
 export function repo(router) {
   return router
-    .get('/api/repos/:id', requireAuth, async(ctx) => {
-      try {
-        const user = ctx.req.user
-        const id = parseInt(ctx.params.id, 10)
-        const repo = await repositoryHandler.onGetOne(id, user)
-        if (!repo) ctx.throw(404)
-        ctx.response.type = 'application/json'
-        ctx.body = repo
-      } catch (e) {
-        error(e)
-        ctx.throw(e)
-      }
-    })
-    .get('/api/repos/:id/verify', requireAuth, async(ctx) => {
+  .get('/api/repos/:id', requireAuth, async(ctx) => {
+    try {
       const user = ctx.req.user
       const id = parseInt(ctx.params.id, 10)
-      try {
-        const repo = await repositoryHandler.onGetOne(id, user)
-        if (!repo) {
-          ctx.throw(404)
-        }
-        const zapprFileContent = await githubService.readZapprFile(user.json.login, repo.json.name, '')
-        const config = new ZapprConfiguration(zapprFileContent)
-        ctx.response.type = 'application/json'
-        ctx.body = {
-          message: config.isValid() ? '' : config.getParseError()
-        }
-        ctx.response.status = config.isValid() ? 200 : 422
-      } catch (e) {
-        error(e)
-        ctx.throw(e)
+      const repo = await repositoryHandler.onGetOne(id, user)
+      if (!repo) ctx.throw(404)
+      ctx.response.type = 'application/json'
+      ctx.body = repo
+    } catch (e) {
+      error(e)
+      ctx.throw(e)
+    }
+  })
+  .get('/api/repos/:id/verify', requireAuth, async(ctx) => {
+    const user = ctx.req.user
+    const id = parseInt(ctx.params.id, 10)
+    const repo = await repositoryHandler.onGetOne(id, user)
+    if (!repo) {
+      ctx.body = {
+        message: 'Repository not found',
+        repoId: id
       }
-    })
-    .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
-      try {
-        const user = ctx.req.user
-        const id = parseInt(ctx.params.id, 10)
-        const type = ctx.params.type
-        const repo = await repositoryHandler.onGetOne(id, user)
-        const check = await checkHandler.onEnableCheck(user, repo, type)
-        ctx.response.type = 'application/json'
-        ctx.response.status = 201
-        ctx.body = check.toJSON()
-      } catch (e) {
-        // TODO: use Exception handling middleware to return Problems instead
-        error(e)
-        ctx.status = e.code
-        ctx.body = new Problem().withTitle('Could not enable check.')
-                                .withStatus(e.code)
-                                .withDetail(e.message)
+      ctx.response.status = 404
+      return
+    }
+    const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, null)
+    if (zapprFileContent === '') {
+      ctx.body = {
+        message: 'No Zapprfile found',
+        repoId: id
       }
-    })
-    .delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
-      try {
-        const user = ctx.req.user
-        const id = parseInt(ctx.params.id, 10)
-        const repo = await repositoryHandler.onGetOne(id, user)
-        const type = ctx.params.type
-        await checkHandler.onDisableCheck(user, repo, type)
-        ctx.response.status = 204
-        ctx.body = null
-      } catch (e) {
-        // TODO: use Exception handling middleware to return Problems instead
-        error(e)
-        ctx.status = e.code
-        ctx.body = new Problem().withTitle('Could not disable check.')
-                                .withStatus(e.code)
-                                .withDetail(e.message)
-      }
-    })
-    .post('/api/hook', validateIsCalledFromGithub, async(ctx) => {
-      try {
-        const {header, body} = ctx.request
-        const event = header[GITHUB_EVENT_HEADER]
-        const hookResult = await hookHandler.onHandleHook(event, body)
-        ctx.response.type = 'application/json'
-        ctx.response.status = 200
-        ctx.body = hookResult
-      } catch (e) {
-        error(e)
-        ctx.throw(e)
-      }
-    })
+      ctx.response.status = 404
+      return
+    }
+    const config = new ZapprConfiguration(zapprFileContent)
+    ctx.response.type = 'application/json'
+    ctx.body = {
+      message: config.isValid() ? '' : config.getParseError(),
+      repoId: id
+    }
+    ctx.response.status = config.isValid() ? 200 : 422
+  })
+  .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
+    try {
+      const user = ctx.req.user
+      const id = parseInt(ctx.params.id, 10)
+      const type = ctx.params.type
+      const repo = await repositoryHandler.onGetOne(id, user)
+      const check = await checkHandler.onEnableCheck(user, repo, type)
+      ctx.response.type = 'application/json'
+      ctx.response.status = 201
+      ctx.body = check.toJSON()
+    } catch (e) {
+      // TODO: use Exception handling middleware to return Problems instead
+      error(e)
+      ctx.status = e.code
+      ctx.body = new Problem().withTitle('Could not enable check.')
+                              .withStatus(e.code)
+                              .withDetail(e.message)
+    }
+  })
+  .delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
+    try {
+      const user = ctx.req.user
+      const id = parseInt(ctx.params.id, 10)
+      const repo = await repositoryHandler.onGetOne(id, user)
+      const type = ctx.params.type
+      await checkHandler.onDisableCheck(user, repo, type)
+      ctx.response.status = 204
+      ctx.body = null
+    } catch (e) {
+      // TODO: use Exception handling middleware to return Problems instead
+      error(e)
+      ctx.status = e.code
+      ctx.body = new Problem().withTitle('Could not disable check.')
+                              .withStatus(e.code)
+                              .withDetail(e.message)
+    }
+  })
+  .post('/api/hook', validateIsCalledFromGithub, async(ctx) => {
+    try {
+      const {header, body} = ctx.request
+      const event = header[GITHUB_EVENT_HEADER]
+      const hookResult = await hookHandler.onHandleHook(event, body)
+      ctx.response.type = 'application/json'
+      ctx.response.status = 200
+      ctx.body = hookResult
+    } catch (e) {
+      error(e)
+      ctx.throw(e)
+    }
+  })
 }

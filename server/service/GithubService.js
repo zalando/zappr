@@ -32,14 +32,16 @@ function fromBase64(encoded) {
 class GithubService {
 
   getOptions(method, path, body, accessToken) {
+    const headers = {}
+    headers['User-Agent'] = `Zappr (+${nconf.get('HOST_ADDR')})`
+    if (accessToken) {
+      headers['Authorization'] = `token ${accessToken}`
+    }
     return {
       json: true,
       method: method,
       url: joinURL(nconf.get('GITHUB_API_URL'), path),
-      headers: {
-        'User-Agent': `Zappr (+${nconf.get('HOST_ADDR')})`,
-        'Authorization': `token ${accessToken}`
-      },
+      headers,
       body: body
     }
   }
