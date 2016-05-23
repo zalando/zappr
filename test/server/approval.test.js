@@ -83,7 +83,7 @@ describe('Approval#countApprovalsAndVetos', () => {
 })
 
 describe('Approval#getCommentStatsForConfig', () => {
-  var github
+  var github, approval
 
   beforeEach(() => {
     github = {
@@ -92,6 +92,7 @@ describe('Approval#getCommentStatsForConfig', () => {
       isCollaborator: () => {
       }
     }
+    approval = new Approval(github, null)
   })
 
   it('should sum the total correctly', async(done) => {
@@ -106,11 +107,11 @@ describe('Approval#getCommentStatsForConfig', () => {
         body: 'lolz',
         user: {login: 'user3'}
       }]
-      let approvals = await (new Approval(github, null)).getCommentStatsForConfig(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
+      let approvals = await approval.getCommentStatsForConfig(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
       expect(approvals.total).to.equal(3)
       // and with empty comments
       comments = []
-      approvals = await (new Approval(github, null)).getCommentStatsForConfig(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
+      approvals = await approval.getCommentStatsForConfig(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
       expect(approvals.total).to.equal(0)
       done()
     } catch (e) {
@@ -131,7 +132,7 @@ describe('Approval#getCommentStatsForConfig', () => {
       }]
       sinon.stub(github, 'isMemberOfOrg', (org, user) => user === 'user3')
       const config = Object.assign({}, DEFAULT_CONFIG.approvals, {from: {orgs: ['zalando']}})
-      const approvals = await (new Approval(github, null)).getCommentStatsForConfig(DEFAULT_REPO, comments, config, TOKEN)
+      const approvals = await approval.getCommentStatsForConfig(DEFAULT_REPO, comments, config, TOKEN)
       expect(github.isMemberOfOrg.callCount).to.equal(3)
       expect(approvals.total).to.equal(1)
       done()
@@ -163,7 +164,7 @@ describe('Approval#getCommentStatsForConfig', () => {
           }
         }
       )
-      const approvals = await (new Approval(github, null)).getCommentStatsForConfig(DEFAULT_REPO, comments, config, TOKEN)
+      const approvals = await approval.getCommentStatsForConfig(DEFAULT_REPO, comments, config, TOKEN)
       expect(github.isMemberOfOrg.callCount).to.equal(3)
       expect(approvals.total).to.equal(3)
       expect(approvals.groups.zalando).to.be.defined
@@ -414,7 +415,7 @@ describe('Approval#execute', () => {
 
   it('should set status to pending on PR:synchronize', async (done) => {
     PR_PAYLOAD.action = 'synchronize'
-    await (new Approval(github, pullRequestHandler)).execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+    await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
     expect(github.setCommitStatus.callCount).to.equal(1)
     expect(github.setCommitStatus.args[0]).to.deep.equal([
       'mfellner',

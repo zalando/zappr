@@ -64,18 +64,19 @@ describe('Autobranch', () => {
     })
   })
   describe('#execute', () => {
-    var github
+    var github, autobranch
 
     beforeEach(() => {
       github = {
         getHead: sinon.stub().returns(REF),
         createBranch: sinon.spy()
       }
+      autobranch = new Autobranch(github)
     })
 
     it('should create a branch from the default branch head ref', async (done) => {
       try {
-        await (new Autobranch(github)).execute(CONFIG, OPEN_PAYLOAD, TOKEN)
+        await autobranch.execute(CONFIG, OPEN_PAYLOAD, TOKEN)
         expect(github.getHead.calledOnce).to.be.true
         expect(github.createBranch.calledOnce).to.be.true
         const headArgs = github.getHead.args[0]
@@ -102,7 +103,7 @@ describe('Autobranch', () => {
     it('should ignore non-opened issues', async (done) => {
       const NOT_OPEN = Object.assign({}, OPEN_PAYLOAD, {action: 'closed'})
       try {
-        await (new Autobranch(github)).execute(CONFIG, NOT_OPEN, TOKEN)
+        await autobranch.execute(CONFIG, NOT_OPEN, TOKEN)
         expect(github.getHead.callCount).to.equal(0)
         expect(github.createBranch.callCount).to.equal(0)
         done()
