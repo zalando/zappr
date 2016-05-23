@@ -33,7 +33,7 @@ export function verification(state = {
         case PENDING:
           return {status: PENDING_VERIFY, message: ''}
         case SUCCESS:
-          return {status: VALID, message: ''}
+          return {status: VALID, message: action.payload.body}
         case ERROR:
           return {status: INVALID, message: action.payload.body}
       }

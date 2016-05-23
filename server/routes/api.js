@@ -100,10 +100,10 @@ export function repo(router) {
     const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, null)
     if (zapprFileContent === '') {
       ctx.body = {
-        message: 'No Zapprfile found',
+        message: 'No Zapprfile found, using default config',
         repoId: id
       }
-      ctx.response.status = 404
+      ctx.response.status = 200
       return
     }
     const config = new ZapprConfiguration(zapprFileContent)
