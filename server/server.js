@@ -9,13 +9,16 @@ import convert from 'koa-convert'
 import morgan from 'koa-morgan'
 import Umzug from 'umzug'
 import Sequelize from 'sequelize'
+
 import nconf from './nconf'
+import sentry from './sentry'
 import DatabaseStore from './session/database-store'
 import { db } from './model'
 import { init as initPassport } from './passport'
 import { logger } from '../common/debug'
 
-const log = logger('app')
+const info = logger('app', 'info')
+const error = logger('app', 'error')
 const app = new Koa()
 app.name = 'zappr'
 
@@ -31,8 +34,8 @@ import { authorize, login, logout } from './routes/auth.js'
 import { env, repos, repo } from './routes/api'
 import renderStatic from './react/render-static.jsx'
 
-const router = [health, authorize, login, logout, env, repos, repo].
-reduce((router, route) => route(router), Router())
+const router = [health, authorize, login, logout, env, repos, repo]
+  .reduce((router, route) => route(router), Router())
 
 // Session store
 const store = new DatabaseStore()
@@ -51,16 +54,15 @@ const morganSkip = (req, res) => res.statusCode < nconf.get('MORGAN_THRESH')
 export function init(options = {}) {
   const passport = initPassport(options.PassportStrategy)
 
-  return app.
-  use(morgan(morganFormat, {skip: morganSkip})).
-  use(convert(session({store: store}))).
-  use(bodyParser()).
-  use(passport.initialize()).
-  use(passport.session()).
-  use(router.routes()).
-  use(router.allowedMethods()).
-  use(convert(serve(nconf.get('STATIC_DIR'), {index: 'none'}))).
-  use(renderStatic)
+  return app.use(morgan(morganFormat, {skip: morganSkip}))
+            .use(convert(session({store: store})))
+            .use(bodyParser())
+            .use(passport.initialize())
+            .use(passport.session())
+            .use(router.routes())
+            .use(router.allowedMethods())
+            .use(convert(serve(nconf.get('STATIC_DIR'), {index: 'none'})))
+            .use(renderStatic)
 }
 
 /**
@@ -93,18 +95,27 @@ async function start(port = nconf.get('APP_PORT')) {
       columnType: new Sequelize.TEXT
     }
   })
-  // apply migrations
-  await umzug.up()
-  // sync models
-  await db.sync()
-  init().listen(port)
-  log(`listening on port ${port}`)
+
+  await umzug.up()   // apply migrations
+  await db.sync()    // sync models
+  const app = init() // initialize the app instance
+
+  // Configure global error handling.
+  // See https://github.com/koajs/koa/blob/v2.x/docs/api/index.md#error-handling
+  app.on('error', err => {
+    error(err)
+    sentry.captureException(err)
+  })
+
+  app.listen(port)
+  info(`zappr is listening on port ${port}`)
+  sentry.captureMessage(`started service on port ${port}`, {level: 'info'})
 }
 
 if (require.main === module) {
-  start()
-  .catch(err => {
-    log(err)
+  start().catch(err => {
+    error(err)
+    sentry.captureException(err)
     process.exit(1)
   })
 }
