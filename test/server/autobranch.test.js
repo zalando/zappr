@@ -75,7 +75,7 @@ describe('Autobranch', () => {
 
     it('should create a branch from the default branch head ref', async (done) => {
       try {
-        await Autobranch.execute(github, CONFIG, OPEN_PAYLOAD, TOKEN)
+        await (new Autobranch(github)).execute(CONFIG, OPEN_PAYLOAD, TOKEN)
         expect(github.getHead.calledOnce).to.be.true
         expect(github.createBranch.calledOnce).to.be.true
         const headArgs = github.getHead.args[0]
@@ -102,7 +102,7 @@ describe('Autobranch', () => {
     it('should ignore non-opened issues', async (done) => {
       const NOT_OPEN = Object.assign({}, OPEN_PAYLOAD, {action: 'closed'})
       try {
-        await Autobranch.execute(github, CONFIG, NOT_OPEN, TOKEN)
+        await (new Autobranch(github)).execute(CONFIG, NOT_OPEN, TOKEN)
         expect(github.getHead.callCount).to.equal(0)
         expect(github.createBranch.callCount).to.equal(0)
         done()

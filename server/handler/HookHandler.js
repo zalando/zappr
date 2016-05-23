@@ -15,9 +15,14 @@ class HookHandler {
               repositoryHandler = defaultRepositoryHandler,
               pullRequestHandler = defaultPullRequestHandler) {
     this.githubService = githubService
-    this.pullRequestHandler = pullRequestHandler
     this.repositoryHandler = repositoryHandler
+
+    this.pullRequestHandler = pullRequestHandler
     this.approval = new Approval(this.githubService, this.pullRequestHandler)
+
+    this.autobranch = new Autobranch(this.githubService)
+
+    this.commitMessage = new CommitMessage(this.githubService)
   }
 
   /**
@@ -51,12 +56,12 @@ class HookHandler {
       }
       if (Autobranch.isTriggeredBy(event)) {
         getToken(repo, Autobranch.TYPE).then(token =>
-          Autobranch.execute(this.githubService, config, payload, token)
+          this.autobranch.execute(config, payload, token)
         )
       }
       if (CommitMessage.isTriggeredBy(event)) {
         getToken(repo, CommitMessage.TYPE).then(token =>
-          CommitMessage.execute(this.githubService, config, payload, token)
+          this.commitMessage.execute(config, payload, token)
         )
       }
     }
