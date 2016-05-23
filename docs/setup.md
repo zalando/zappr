@@ -27,6 +27,7 @@ The approval feature blocks a pull request (if you enabled [protected branches](
 It is customized by everything under `approvals`. The following options are supported:
 
 * `minimum`: How many approvals a pull request needs before it is considered mergable. Defaults to 2.
+* `ignore`: Whether Zappr should ignore approvals by the `last_committer` on the pull request, the `pr_opener`, `both` or `none`. Defaults to `last_committer`.
 * `pattern`: Since approvals are essentially comments that match a pattern, you can configure the pattern! It's a string that will be passed to Javascript's `RegExp` constructor and defaults to `^(:+1:|👍)$`. (Tip: If you're not sure about your regex, [regex101.com](https://regex101.com/) is great to test it.)
 * `from`: By default any comment that matches the pattern is considered an approval, regardless of the author. You can change this by
 ** organization: list organizations under `orgs` that the author has to be a public member of
@@ -39,6 +40,7 @@ It is customized by everything under `approvals`. The following options are supp
 approvals:
   pattern: "^(:\\+1:|👍)" # must start with thumbs up
   minimum: 2 # at least two approvals from other people necessary
+  ignore: pr_opener # do not count approval from PR opener
   from: # has to be either one of the following
     orgs:
       - zalando
