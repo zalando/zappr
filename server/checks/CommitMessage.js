@@ -47,7 +47,15 @@ export default class CommitMessage extends Check {
   static NAME = 'Commit message check';
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST];
 
-  static async execute(github, config, hookPayload, token) {
+  /**
+   * @param {GithubService} github
+   */
+  constructor(github) {
+    super()
+    this.github = github
+  }
+
+  async execute(config, hookPayload, token) {
     const {action, repository, pull_request, number} = hookPayload
     const {state} = pull_request
     const {name, full_name} = repository
@@ -69,9 +77,9 @@ export default class CommitMessage extends Check {
       const patterns = getIn(config, ['commit', 'message', 'patterns'], [])
       if (patterns && Array.isArray(patterns) && patterns.length > 0) {
         // set commit state to pending
-        await github.setCommitStatus(owner, name, sha, createStatePayload('Commit message validation in progress.', 'pending'), token)
+        await this.github.setCommitStatus(owner, name, sha, createStatePayload('Commit message validation in progress.', 'pending'), token)
         // get all the commits in the PR
-        const commits = await github.fetchPullRequestCommits(owner, name, number, token)
+        const commits = await this.github.fetchPullRequestCommits(owner, name, number, token)
         // get matcher function for all those patterns
         const matcherFn = getAnyMatcherFn(patterns.map(pattern => new RegExp(pattern)))
         // gather non-merge commits with bad messages
@@ -79,24 +87,24 @@ export default class CommitMessage extends Check {
 
         if (badCommits.length === 0) {
           // all commits are fine
-          github.setCommitStatus(owner, name, sha, createStatePayload('All commit messages match at least one configured pattern.'), token)
+          this.github.setCommitStatus(owner, name, sha, createStatePayload('All commit messages match at least one configured pattern.'), token)
           info(`${full_name}#${number}: Set status to success (all commit messages match at least one pattern).`)
         } else {
           // there are some bad commits
           const badSHAs = badCommits.map(({sha}) => sha.substring(0, SHORT_SHA_LENGTH - 1)).join(', ')
           const usePlural = badCommits.length > 1
-          github.setCommitStatus(owner, name, sha, createStatePayload( `${usePlural ? 'Commits' : 'Commit'} ${badSHAs} ${usePlural ? 'do' : 'does'} not match configured patterns.`, 'failure'), token)
+          this.github.setCommitStatus(owner, name, sha, createStatePayload( `${usePlural ? 'Commits' : 'Commit'} ${badSHAs} ${usePlural ? 'do' : 'does'} not match configured patterns.`, 'failure'), token)
           info(`${full_name}#${number}: Set status to failure (${badCommits.length} commit(s) do not match any pattern).`)
         }
       } else {
         // no patterns were configured
-        github.setCommitStatus(owner, name, sha, createStatePayload('No patterns configured to match commit messages against.'), token)
+        this.github.setCommitStatus(owner, name, sha, createStatePayload('No patterns configured to match commit messages against.'), token)
         info(`${full_name}#${number}: Set status to success (no patterns configured).`)
       }
     }
     catch (e) {
       error(`${full_name}#${number}: Set status to error (${e.message}, ${e}).`)
-      github.setCommitStatus(owner, name, sha, createStatePayload(e.message, 'error'), token)
+      this.github.setCommitStatus(owner, name, sha, createStatePayload(e.message, 'error'), token)
     }
   }
 }

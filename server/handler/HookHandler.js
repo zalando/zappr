@@ -3,16 +3,29 @@ import merge from 'lodash/merge'
 import nconf from '../nconf'
 import { Approval, Autobranch, CommitMessage } from '../checks'
 import { logger } from '../../common/debug'
-import { githubService } from '../service/GithubService'
-import { repositoryHandler } from './RepositoryHandler'
-import { pullRequestHandler } from './PullRequestHandler'
+import { githubService as defaultGithubService } from '../service/GithubService'
+import { repositoryHandler as defaultRepositoryHandler } from './RepositoryHandler'
+import { pullRequestHandler as defaultPullRequestHandler } from './PullRequestHandler'
 
 const info = logger('hook', 'info')
 const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 
 class HookHandler {
-  constructor(github = githubService) {
-    this.github = github
+
+  /**
+   * @param {GithubService} githubService
+   * @param {RepositoryHandler} repositoryHandler
+   * @param {PullRequestHandler} pullRequestHandler
+   */
+  constructor(githubService = defaultGithubService,
+              repositoryHandler = defaultRepositoryHandler,
+              pullRequestHandler = defaultPullRequestHandler) {
+    this.githubService = githubService
+    this.repositoryHandler = repositoryHandler
+    this.pullRequestHandler = pullRequestHandler
+    this.approval = new Approval(this.githubService, this.pullRequestHandler)
+    this.autobranch = new Autobranch(this.githubService)
+    this.commitMessage = new CommitMessage(this.githubService)
   }
 
   /**
@@ -32,26 +45,26 @@ class HookHandler {
 
     if (payload.repository) {
       const {name, id, owner} = payload.repository
-      const repo = await repositoryHandler.onGetOne(id, null, true)
+      const repo = await this.repositoryHandler.onGetOne(id, null, true)
       const zapprUserConfig = repo.checks.length ?
-        await this.github.readZapprFile(owner.login, name, repo.checks[0].token)
+        await this.githubService.readZapprFile(owner.login, name, repo.checks[0].token)
         : {}
 
       const config = merge({}, DEFAULT_CONFIG, zapprUserConfig)
 
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
-          Approval.execute(this.github, config, payload, token, repo.id, pullRequestHandler)
+          this.approval.execute(config, payload, token, repo.id)
         )
       }
       if (Autobranch.isTriggeredBy(event)) {
         getToken(repo, Autobranch.TYPE).then(token =>
-          Autobranch.execute(this.github, config, payload, token)
+          this.autobranch.execute(config, payload, token)
         )
       }
       if (CommitMessage.isTriggeredBy(event)) {
         getToken(repo, CommitMessage.TYPE).then(token =>
-          CommitMessage.execute(this.github, config, payload, token)
+          this.commitMessage.execute(config, payload, token)
         )
       }
     }
