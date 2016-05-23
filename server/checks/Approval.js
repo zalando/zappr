@@ -16,12 +16,24 @@ export default class Approval extends Check {
   static NAME = 'Approval check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
 
+  /**
+   * @param {GithubService} github
+   * @param {PullRequestHandler} pullRequestHandler
+   */
   constructor(github, pullRequestHandler) {
     super()
     this.github = github
     this.pullRequestHandler = pullRequestHandler
   }
 
+  /**
+   * Checks if a database entry exists for the given pull request number
+   * and returns it if it exists. Otherwise creates and returns a new one.
+   *
+   * @param dbRepoId The db id for the repository
+   * @param {RepositoryHandler} Numbe/github identifier of the pull request
+   * @returns {Object} The pull request information stored/created in the database.
+   */
   async getOrCreateDbPullRequest(dbRepoId, number) {
     let dbPR = await this.pullRequestHandler.onGet(dbRepoId, number)
     if (!dbPR) {

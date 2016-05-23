@@ -73,7 +73,8 @@ describe('Approval#countApprovalsAndVetos', () => {
       body: ':+1:' // is ignored because mfellner already approved
     }]
     try {
-      const {approvals} = await (new Approval(null, null)).countApprovalsAndVetos(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals)
+      const approval = new Approval(null, null)
+      const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals)
       expect(approvals).to.deep.equal({total: 1})
       done()
     } catch (e) {
@@ -83,7 +84,7 @@ describe('Approval#countApprovalsAndVetos', () => {
 })
 
 describe('Approval#getCommentStatsForConfig', () => {
-  var github, approval
+  let github, approval
 
   beforeEach(() => {
     github = {
@@ -179,9 +180,7 @@ describe('Approval#getCommentStatsForConfig', () => {
 })
 
 describe('Approval#execute', () => {
-  var github
-  var pullRequestHandler
-  var approval
+  let github, pullRequestHandler, approval
 
 
   beforeEach(() => {

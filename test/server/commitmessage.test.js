@@ -52,7 +52,7 @@ describe('CommitMessage', () => {
     })
   })
   describe('#execute', () => {
-    var github, commitMessage
+    let github, commitMessage
 
     beforeEach(() => {
       github = {

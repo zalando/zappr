@@ -11,17 +11,20 @@ const info = logger('hook', 'info')
 const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 
 class HookHandler {
+
+  /**
+   * @param {GithubService} githubService
+   * @param {RepositoryHandler} repositoryHandler
+   * @param {PullRequestHandler} pullRequestHandler
+   */
   constructor(githubService = defaultGithubService,
               repositoryHandler = defaultRepositoryHandler,
               pullRequestHandler = defaultPullRequestHandler) {
     this.githubService = githubService
     this.repositoryHandler = repositoryHandler
-
     this.pullRequestHandler = pullRequestHandler
     this.approval = new Approval(this.githubService, this.pullRequestHandler)
-
     this.autobranch = new Autobranch(this.githubService)
-
     this.commitMessage = new CommitMessage(this.githubService)
   }
 

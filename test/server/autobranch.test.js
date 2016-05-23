@@ -64,7 +64,7 @@ describe('Autobranch', () => {
     })
   })
   describe('#execute', () => {
-    var github, autobranch
+    let github, autobranch
 
     beforeEach(() => {
       github = {

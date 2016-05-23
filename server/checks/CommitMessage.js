@@ -47,6 +47,9 @@ export default class CommitMessage extends Check {
   static NAME = 'Commit message check';
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST];
 
+  /**
+   * @param {GithubService} github
+   */
   constructor(github) {
     super()
     this.github = github

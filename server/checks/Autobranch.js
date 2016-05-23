@@ -44,6 +44,9 @@ export default class Autobranch extends Check {
   static HOOK_EVENTS = [EVENTS.ISSUES]
 
 
+  /**
+   * @param {GithubService} github
+   */
   constructor(github) {
     super()
     this.github = github
