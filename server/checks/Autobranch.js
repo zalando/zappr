@@ -43,6 +43,15 @@ export default class Autobranch extends Check {
   static NAME = 'Automatic branch creation'
   static HOOK_EVENTS = [EVENTS.ISSUES]
 
+
+  /**
+   * @param {GithubService} github
+   */
+  constructor(github) {
+    super()
+    this.github = github
+  }
+
   static createBranchNameFromIssue({number, title, labels}, {length = 60, pattern = '{number}-{title}'}) {
     return pattern.replace('{number}', number)
                   .replace('{title}', safeString(title))
@@ -50,9 +59,9 @@ export default class Autobranch extends Check {
                   .substring(0, length)
   }
 
-  static async execute(github, config, hookPayload, token) {
+  async execute(config, hookPayload, token) {
     const {action, issue, repository} = hookPayload
-    const branchName = this.createBranchNameFromIssue(issue, config.autobranch)
+    const branchName = Autobranch.createBranchNameFromIssue(issue, config.autobranch)
     // only interested in open events right now
     if (action !== 'opened') {
       info(`${repository.full_name}: Ignore issue #${issue.number}. Action was "${action}" instead of "opened".`)
@@ -61,9 +70,9 @@ export default class Autobranch extends Check {
     try {
       const owner = repository.owner.login
       const repo = repository.name
-      const {sha} = await github.getHead(owner, repo, repository.default_branch, token)
+      const {sha} = await this.github.getHead(owner, repo, repository.default_branch, token)
       // branch could exist already
-      await github.createBranch(owner, repo, branchName, sha, token)
+      await this.github.createBranch(owner, repo, branchName, sha, token)
       info(`Created branch ${branchName} for ${sha} in ${repository.full_name}`)
     } catch (e) {
       // but we don't care
