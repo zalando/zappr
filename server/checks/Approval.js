@@ -1,8 +1,7 @@
 import Check from './Check'
 import { logger, formatDate } from '../../common/debug'
-import { promiseReduce } from '../../common/util'
+import { promiseReduce, getIn } from '../../common/util'
 import * as EVENTS from '../model/GithubEvents'
-
 import * as _ from 'lodash'
 
 const context = 'zappr'
@@ -196,8 +195,8 @@ export default class Approval extends Check {
    * @param token The access token to use
    * @returns {Object} Object of the shape {approvals: {total: int, groups: { groupName: int }}, vetos: int }
    */
-  async countApprovalsAndVetos(repository, comments, config, token) {
-    const ignore = config.ignore
+  async countApprovalsAndVetos(repository, pull_request, comments, config, token) {
+    const ignore = await this.fetchIgnoredUsers(repository, pull_request, config, token)
     const approvalPattern = config.pattern
     const vetoPattern = _.get(config, 'veto.pattern')
 
@@ -208,7 +207,7 @@ export default class Approval extends Check {
     // filter ignored users
     const potentialApprovalComments = comments.filter(comment => {
                                                 const {login} = comment.user
-                                                const include = (ignore || []).indexOf(login) === -1
+                                                const include = ignore.indexOf(login) === -1
                                                 if (!include) info('%s: Ignoring user: %s.', fullName, login)
                                                 return include
                                               })
@@ -224,7 +223,6 @@ export default class Approval extends Check {
                                               })
                                               // kicking out multiple approvals from same person
                                               .filter(containsAlreadyCommentByUser)
-
 
 
     const approvals = (config.from || config.groups) ?
@@ -255,27 +253,54 @@ export default class Approval extends Check {
   }
 
   /**
+   * Gets the users to ignore for a pull request in a repository, according to its
+   * approval configuration.
+   *
+   * @param github The GithubService instance
+   * @param repository The repository
+   * @param pull_request The pull request
+   * @param config The approval configuration
+   * @param token The access token to use
+   * @returns {Array} The logins of users to ignore
+   */
+  async fetchIgnoredUsers(repository, pull_request, config, token) {
+    if (!config.ignore || config.ignore === 'none') {
+      return []
+    }
+    const ignoreConfig = config.ignore
+    const user = repository.owner.login
+    const repoName = repository.name
+    const ignoredUsers = []
+    if (ignoreConfig === 'last_committer' || ignoreConfig === 'both') {
+      const lastCommitter = await this.github.fetchLastCommitter(user, repoName, pull_request.number, token)
+      if (lastCommitter) {
+        ignoredUsers.push(lastCommitter)
+      }
+    }
+    if (ignoreConfig === 'pr_opener' || ignoreConfig === 'both') {
+      const prOpener = getIn(pull_request, ['user', 'login'])
+      if (prOpener) {
+        ignoredUsers.push(prOpener)
+      }
+    }
+    return ignoredUsers
+  }
+
+  /**
    * Fetches data necessary to count approvals/vetos (e.g. when was last push on pull request,
    * comments on this pull request from Github) and counts approvals and vetos.
    *
    * @param repository The repository
    * @param config The approval configuration
-   * @param dbPR The pull request from the database
-   * @param number The number of the pull request
+   * @param pull_request The pull request
+   * @param last_push When the pull reuqest was last updated
    * @param token The access token to use
    * @returns {Object} Object of the shape {approvals: {total: int, groups: { groupName: int }}, vetos: int }
    */
-  async fetchAndCountApprovalsAndVetos(repository, config, dbPR, number, token) {
-    const repoName = repository.name
+  async fetchAndCountApprovalsAndVetos(repository, pull_request, last_push, config, token) {
     const user = repository.owner.login
-    // get approval count
-    const commits = await this.github.fetchPullRequestCommits(user, repoName, number, token)
-    const lastCommitter = commits.length === 0 ?
-      null :
-      commits[commits.length - 1].committer.login
-    const countConfig = Object.assign({}, config.approvals, {ignore: lastCommitter ? [lastCommitter] : []})
-    const comments = await this.github.getComments(user, repoName, number, formatDate(dbPR.last_push), token)
-    return await this.countApprovalsAndVetos(repository, comments, countConfig, token)
+    const comments = await this.github.getComments(user, repository.name, pull_request.number, formatDate(last_push), token)
+    return await this.countApprovalsAndVetos(repository, pull_request, comments, config.approvals, token)
   }
 
   /**
@@ -326,7 +351,7 @@ export default class Approval extends Check {
             return
           }
           // get approvals for pr
-          const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, config, dbPR, number, token)
+          const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pull_request, dbPR.last_push, config, token)
           const status = Approval.generateStatus({approvals, vetos}, config.approvals)
           // update status
           await this.github.setCommitStatus(user, repoName, sha, status, token)
@@ -355,7 +380,7 @@ export default class Approval extends Check {
         await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
         // read last push date from db
         const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, issue.number)
-        const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, config, dbPR, issue.number, token)
+        const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pr, dbPR.last_push, config, token)
         const status = Approval.generateStatus({approvals, vetos}, config.approvals)
         // update status
         await this.github.setCommitStatus(user, repoName, sha, status, token)

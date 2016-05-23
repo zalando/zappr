@@ -2,7 +2,7 @@ import yaml from 'js-yaml'
 import path from 'path'
 import nconf from '../nconf'
 import GithubServiceError from './GithubServiceError'
-import { joinURL, promiseFirst } from '../../common/util'
+import { joinURL, promiseFirst, getIn } from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
 
@@ -261,6 +261,12 @@ class GithubService {
       debug(`${owner}/${repo}#${number}: Call failed or not a pull request`)
       return []
     }
+  }
+
+  async fetchLastCommitter(owner, repo, number, accessToken) {
+    const commits = await this.fetchPullRequestCommits(owner, repo, number, accessToken)
+    const lastCommit = commits[commits.length - 1]
+    return getIn(lastCommit, ['committer', 'login'])
   }
 }
 

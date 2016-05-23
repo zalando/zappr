@@ -41,6 +41,7 @@ const PR_PAYLOAD = {
 const DEFAULT_CONFIG = {
   approvals: {
     minimum: 2,
+    ignore: 'none',
     pattern: '^:\\+1:$',
     veto: {
       pattern: '^:\\-1:$',
@@ -60,6 +61,76 @@ const DB_PR = {
   number: 3
 }
 
+describe('Approval#fetchIgnoredUsers', () => {
+  let approval
+
+  beforeEach(() => {
+    approval = new Approval(null, null)
+  })
+
+  it('should not do anything if ignore is missing', async(done) => {
+    try {
+      const ignore = await approval.fetchIgnoredUsers(DEFAULT_REPO, PR_PAYLOAD.pull_request, {}, TOKEN)
+      expect(ignore.length).to.equal(0)
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+  it('should not do anything if ignore=none', async(done) => {
+    try {
+      const ignore = await approval.fetchIgnoredUsers(DEFAULT_REPO, PR_PAYLOAD.pull_request, {ignore: 'none'}, TOKEN)
+      expect(ignore.length).to.equal(0)
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+  it('should fetch last committer if ignore=last_committer', async(done) => {
+    try {
+      const lastCommitter = 'mark'
+      const github = {
+        fetchLastCommitter: sinon.stub().returns(lastCommitter)
+      }
+      const approval = new Approval(github, null)
+      const ignore = await approval.fetchIgnoredUsers(DEFAULT_REPO, PR_PAYLOAD.pull_request, {ignore: 'last_committer'}, TOKEN)
+      expect(ignore.length).to.equal(1)
+      expect(ignore[0]).to.equal(lastCommitter)
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+  it('should return pr opener if ignore=pr_opener', async(done) => {
+    try {
+      const prOpener = PR_PAYLOAD.pull_request.user.login
+      const ignore = await approval.fetchIgnoredUsers(DEFAULT_REPO, PR_PAYLOAD.pull_request, {ignore: 'pr_opener'}, TOKEN)
+      expect(ignore.length).to.equal(1)
+      expect(ignore[0]).to.equal(prOpener)
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+  it('should return both if ignore=both', async(done) => {
+    try {
+      const lastCommitter = 'mark'
+      const prOpener = PR_PAYLOAD.pull_request.user.login
+      const github = {
+        fetchLastCommitter: sinon.stub().returns(lastCommitter)
+      }
+      const approval = new Approval(github, null)
+      const ignore = await approval.fetchIgnoredUsers(DEFAULT_REPO, PR_PAYLOAD.pull_request, {ignore: 'both'}, TOKEN)
+      expect(ignore.length).to.equal(2)
+      expect(ignore[0]).to.equal(lastCommitter)
+      expect(ignore[1]).to.equal(prOpener)
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+})
+
 describe('Approval#countApprovalsAndVetos', () => {
   it('should honor the provided pattern', async(done) => {
     const comments = [{
@@ -74,7 +145,7 @@ describe('Approval#countApprovalsAndVetos', () => {
     }]
     try {
       const approval = new Approval(null, null)
-      const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals)
+      const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, {}, comments, DEFAULT_CONFIG.approvals)
       expect(approvals).to.deep.equal({total: 1})
       done()
     } catch (e) {
@@ -201,18 +272,7 @@ describe('Approval#execute', () => {
     approval = new Approval(github, pullRequestHandler)
   })
 
-  it('should be callable', () => {
-    const result = github.setCommitStatus(1, 2, 3, 4)
-    expect(result).to.be.undefined
-    expect(github.setCommitStatus.calledWith(1, 2, 3, 4)).to.be.true
-  })
-
-  it('should set status to failure on last issue comment when there is a veto comment', async (done) => {
-    github.fetchPullRequestCommits = sinon.stub().returns([{
-      committer: {
-        login: "stranger"
-      }
-    }])
+  it('should set status to failure on last issue comment when there is a veto comment', async(done) => {
     github.getComments = sinon.stub().returns([{
       body: ':+1:',
       user: {login: 'foo'}
@@ -225,9 +285,6 @@ describe('Approval#execute', () => {
     }, {
       body: ':-1:',
       user: {login: 'mr-foo'}
-    }, {
-      body: ':+1:',
-      user: {login: 'stranger'}
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
@@ -235,14 +292,12 @@ describe('Approval#execute', () => {
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
-      expect(github.fetchPullRequestCommits.callCount).to.equal(1)
       expect(github.getPullRequest.callCount).to.equal(1)
       expect(github.isMemberOfOrg.callCount).to.equal(0)
 
       const failureStatusCallArgs = github.setCommitStatus.args[1]
       const commentCallArgs = github.getComments.args[0]
       const prCallArgs = github.getPullRequest.args[0]
-      const prCommitsCallArgs = github.fetchPullRequestCommits.args[0]
 
       expect(prCallArgs).to.deep.equal([
         'mfellner',
@@ -253,7 +308,7 @@ describe('Approval#execute', () => {
       expect(commentCallArgs).to.deep.equal([
         'mfellner',
         'hello-world',
-        2,
+        1,
         formatDate(DB_PR.last_push),
         TOKEN
       ])
@@ -264,24 +319,13 @@ describe('Approval#execute', () => {
         BLOCKED_BY_VETO_STATUS,
         TOKEN
       ])
-      expect(prCommitsCallArgs).to.deep.equal([
-        'mfellner',
-        'hello-world',
-        2,
-        TOKEN
-      ])
       done()
-    } catch(e) {
+    } catch (e) {
       done(e)
     }
   })
 
-  it('should set status to success on last issue comment', async (done) => {
-    github.fetchPullRequestCommits = sinon.stub().returns([{
-      committer: {
-        login: "stranger"
-      }
-    }])
+  it('should set status to success on last issue comment', async(done) => {
     github.getComments = sinon.stub().returns([{
       body: ':+1:',
       user: {login: 'foo'}
@@ -291,9 +335,6 @@ describe('Approval#execute', () => {
     }, {
       body: ':+1:',
       user: {login: 'bar'}
-    }, {
-      body: ':+1:',
-      user: {login: 'stranger'}
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
@@ -301,14 +342,12 @@ describe('Approval#execute', () => {
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
-      expect(github.fetchPullRequestCommits.callCount).to.equal(1)
       expect(github.getPullRequest.callCount).to.equal(1)
       expect(github.isMemberOfOrg.callCount).to.equal(0)
 
       const successStatusCallArgs = github.setCommitStatus.args[1]
       const commentCallArgs = github.getComments.args[0]
       const prCallArgs = github.getPullRequest.args[0]
-      const prCommitsCallArgs = github.fetchPullRequestCommits.args[0]
 
       expect(prCallArgs).to.deep.equal([
         'mfellner',
@@ -319,7 +358,7 @@ describe('Approval#execute', () => {
       expect(commentCallArgs).to.deep.equal([
         'mfellner',
         'hello-world',
-        2,
+        1,
         formatDate(DB_PR.last_push),
         TOKEN
       ])
@@ -330,19 +369,13 @@ describe('Approval#execute', () => {
         SUCCESS_STATUS,
         TOKEN
       ])
-      expect(prCommitsCallArgs).to.deep.equal([
-        'mfellner',
-        'hello-world',
-        2,
-        TOKEN
-      ])
       done()
-    } catch(e) {
+    } catch (e) {
       done(e)
     }
   })
 
-  it('should do nothing on comment on non-open pull_request', async (done) => {
+  it('should do nothing on comment on non-open pull_request', async(done) => {
     github.getPullRequest = sinon.stub().returns(CLOSED_PR)
     await approval.execute(DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
     expect(github.setCommitStatus.callCount).to.equal(0)
@@ -350,7 +383,7 @@ describe('Approval#execute', () => {
     done()
   })
 
-  it('should set status to pending on PR:opened', async (done) => {
+  it('should set status to pending on PR:opened', async(done) => {
     PR_PAYLOAD.action = 'opened'
     try {
       await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
@@ -374,12 +407,12 @@ describe('Approval#execute', () => {
         TOKEN
       ])
       done()
-    } catch(e) {
+    } catch (e) {
       done(e)
     }
   })
 
-  it('should set status to success on PR:reopened with all approvals', async (done) => {
+  it('should set status to success on PR:reopened with all approvals', async(done) => {
     try {
       PR_PAYLOAD.action = 'reopened'
       github.fetchPullRequestCommits = sinon.stub().returns([])
@@ -407,12 +440,12 @@ describe('Approval#execute', () => {
         TOKEN
       ])
       done()
-    } catch(e) {
+    } catch (e) {
       done(e)
     }
   })
 
-  it('should set status to pending on PR:synchronize', async (done) => {
+  it('should set status to pending on PR:synchronize', async(done) => {
     PR_PAYLOAD.action = 'synchronize'
     await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
     expect(github.setCommitStatus.callCount).to.equal(1)
