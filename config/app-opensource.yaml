@@ -7,7 +7,6 @@ VALID_ZAPPR_FILE_PATHS:
 ZAPPR_DEFAULT_CONFIG:
   autobranch:
     pattern: "{number}-{title}"
-    ignore: last_committer
     length: 60
   commit:
     message:
@@ -15,6 +14,7 @@ ZAPPR_DEFAULT_CONFIG:
         - "^#[0-9]+"
   approvals:
     minimum: 2
+    ignore: none
     pattern: "^(:\\+1:|👍)$"
     veto:
       # veto/blocking a PR = comment that matches this regex
