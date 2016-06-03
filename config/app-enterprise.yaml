@@ -15,7 +15,7 @@ ZAPPR_DEFAULT_CONFIG:
         - "^#?[A-Z]+-[0-9]+"
   approvals:
     minimum: 2
-    ignore: last_committer
+    ignore: pr_opener
     pattern: "^(:\\+1:|👍)$"
     veto:
       # veto/blocking a PR = comment that matches this regex
