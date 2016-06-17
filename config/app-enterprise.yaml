@@ -14,8 +14,8 @@ ZAPPR_DEFAULT_CONFIG:
         - "^(?:(?:[a-zA-Z0-9_\\-]*|[a-zA-Z0-9_\\-]+\\/[a-zA-Z0-9_\\-]+)#|GH-)\\d+$"
         - "^#?[A-Z]+-[0-9]+"
   approvals:
-    minimum: 1
-    ignore: pr_opener
+    minimum: 2
+    ignore: none
     pattern: "^(:\\+1:|👍)$"
     veto:
       # veto/blocking a PR = comment that matches this regex
