@@ -1,9 +1,6 @@
 approvals:
-  minimum: 1
+  minimum: 2
   from:
     orgs:
       - zalando
-commit:
-  message:
-    patterns:
-      - "^#[0-9]+"
+X-Zalando-Team: torch
