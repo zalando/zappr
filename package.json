@@ -114,7 +114,7 @@
     "redux": "3.5.0",
     "redux-router": "1.0.0-beta8",
     "redux-thunk": "2.0.1",
-    "request": "2.69.0",
+    "request": "2.72.0",
     "sequelize": "3.20.0",
     "umzug": "1.9.1"
   },
