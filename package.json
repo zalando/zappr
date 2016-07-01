@@ -48,7 +48,7 @@
     "babel-preset-es2015-node5": "1.2.0",
     "babel-preset-react": "6.5.x",
     "babel-preset-stage-1": "6.5.x",
-    "babel-register": "6.7.2",
+    "babel-register": "6.8.0",
     "chai": "3.5.x",
     "css-loader": "0.23.x",
     "enzyme": "2.3.0",
