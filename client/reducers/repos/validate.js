@@ -1,7 +1,7 @@
 import { GET_REPOS } from '../../actions/repos'
 import { VALIDATE_CONFIG } from '../../actions/validate'
 import { PENDING, SUCCESS, ERROR } from '../../actions/status'
-import { VALID, INVALID, PENDING as PENDING_VALIDATION } from '../../model/validation-status'
+import { VALID, INVALID, UNKNOWN, PENDING as PENDING_VALIDATION } from '../../model/validation-status'
 import { mapValues } from '../../../common/util'
 
 export default function validations(state = {}, action) {
@@ -24,7 +24,7 @@ export default function validations(state = {}, action) {
 }
 
 export function validation(state = {
-  status: null,
+  status: UNKNOWN,
   config: null,
   message: ''
 }, action) {

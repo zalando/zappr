@@ -26,12 +26,18 @@ function statusToIcon(status) {
 }
 
 function statusToBsStyle(status) {
-  return status === Status.VALID ? 'success' :
-    status === Status.INVALID ? 'danger' : null
+  switch (status) {
+    case Status.VALID:
+      return 'success'
+    case Status.INVALID:
+      return 'danger'
+    default:
+      return null
+  }
 }
 
-function statusChecked(status) {
-  return [Status.VALID, Status.INVALID].includes(status)
+function validationFinished(status) {
+  return status === Status.VALID || status === Status.INVALID
 }
 
 function wrapAlert({status}, children) {
@@ -59,7 +65,7 @@ class Result extends React.Component {
 
   render() {
     const {message, status, config} = this.props.validation
-    if (!statusChecked(status)) {
+    if (!validationFinished(status)) {
       return null
     }
     const header = <span>
@@ -84,7 +90,7 @@ class Result extends React.Component {
 
 export default function RepositoryConfigValidation({validation, onValidate}) {
   const placeholder = <div style={{marginTop: '1em'}} />
-  const result = statusChecked(validation.status) ? wrapAlert(validation, <Result validation={validation} />) : placeholder
+  const result = validationFinished(validation.status) ? wrapAlert(validation, <Result validation={validation} />) : placeholder
   return <div>
     <Button onClick={onValidate}>
       <span className={classes('fa', 'fa-fw', {

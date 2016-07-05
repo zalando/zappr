@@ -3,14 +3,14 @@ import { GET_REPOS } from '../../actions/repos'
 import { VALIDATE_CONFIG } from '../../actions/validate'
 import { PUT_CHECK, DELETE_CHECK } from '../../actions/checks'
 
-function repo(state = {checks: [], verifications: []}, action) {
+function repo(state = {checks: [], validations: []}, action) {
   // After normalizing a repo only as a list of check ids.
   // The actual checks are in a separate check entity.
   switch (action.type) {
     case VALIDATE_CONFIG:
       return {
         ...state,
-        verifications: [...state.verifications, action.payload.repoId]
+        validations: [...state.validations, action.payload.repoId]
       }
     case PUT_CHECK:
       switch (action.status) {
