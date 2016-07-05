@@ -3,7 +3,7 @@ import Service from './Service'
 
 export default class RepoService extends Service {
   static validateConfig(repoId) {
-    return fetch(Service.url(`/api/repos/${repoId}/zapprfile-validity`), {credentials: 'same-origin'})
+    return fetch(Service.url(`/api/repos/${repoId}/zapprfile`), {credentials: 'same-origin'})
     .then(response => {
       return new Promise((resolve, reject) => {
         response.json().then(body => {
