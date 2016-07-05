@@ -56,8 +56,15 @@ export default class Problem {
 
   toJSON() {
     const {type, status, detail, instance, title, extensions} = this
-    return Object.assign({}, extensions, {
+    const result = Object.assign({}, extensions, {
       type, status, detail, instance, title
     })
+    // remove null or undefined values
+    Object.keys(result).forEach(key => {
+      if (result[key] == null) {
+        delete result[key]
+      }
+    })
+    return result
   }
 }
