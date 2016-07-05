@@ -1,7 +1,6 @@
 import fetch from 'isomorphic-fetch'
 
 import Service from './Service'
-import { ResponseProblem } from '../../common/Problem'
 import { logger } from '../../common/debug'
 
 const log = logger('CheckService')
@@ -36,17 +35,16 @@ export default class RepoService extends Service {
     }).then(response => {
       const contentType = response.headers.get('Content-Type') || ''
 
-      if (response.ok) {
-        // Merge the argument with the server response so that we don't lose
-        // important client-only attributes (e.g. isUpdating, etc.)
-        return response.json().then(json => ({...check, ...json}))
-      }
-      else if (contentType.startsWith('application/json')) {
-        return response.json().then(json => Promise.reject(new CheckError(check, json)))
-      }
-      else {
-        throw new CheckError(check, new ResponseProblem(response))
-      }
+      return response.json().then(json => {
+        if (response.ok) {
+          // Merge the argument with the server response so that we don't lose
+          // important client-only attributes (e.g. isUpdating, etc.)
+          return {...check, ...json}
+        } else if (contentType === 'application/problem+json') {
+          return Promise.reject(new CheckError(check, json))
+        }
+        return Promise.reject(new CheckError(check, {title: 'Unknown error', status: response.status}))
+      })
     })
   }
 
@@ -61,13 +59,16 @@ export default class RepoService extends Service {
       credentials: 'same-origin'
     }).then(response => {
       const contentType = response.headers.get('Content-Type') || ''
-
-      if (!response.ok && contentType.startsWith('application/json')) {
-        return response.json().then(json => Promise.reject(new CheckError(check, json)))
-      }
-      else if (!response.ok) {
-        throw new CheckError(check, new ResponseProblem(response))
-      }
+      return response.json().then(json => {
+        if (response.ok) {
+          // Merge the argument with the server response so that we don't lose
+          // important client-only attributes (e.g. isUpdating, etc.)
+          return {...check, ...json}
+        } else if (contentType === 'application/problem+json') {
+          return Promise.reject(new CheckError(check, json))
+        }
+        return Promise.reject(new CheckError(check, {title: 'Unknown error', status: response.status}))
+      })
     })
   }
 }

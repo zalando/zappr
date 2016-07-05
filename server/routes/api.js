@@ -54,8 +54,6 @@ export function repos(router) {
       const user = ctx.req.user
       const all = ctx.request.query.all == 'true'
       const repos = await repositoryHandler.onGetAll(user, all)
-
-      ctx.response.type = 'application/json'
       ctx.body = repos.map(repo => repo.toJSON())
     } catch (e) {
       ctx.throw(500, 'Could not fetch repositories.', e)
@@ -73,7 +71,6 @@ export function repo(router) {
       const user = ctx.req.user
       const id = parseInt(ctx.params.id)
       const repo = await repositoryHandler.onGetOne(id, user)
-      ctx.response.type = 'application/json'
       ctx.body = repo
     } catch (e) {
       ctx.throw(404, 'Repository not found', e)
@@ -86,7 +83,6 @@ export function repo(router) {
       const type = ctx.params.type
       const repo = await repositoryHandler.onGetOne(id, user)
       const check = await checkHandler.onEnableCheck(user, repo, type)
-      ctx.response.type = 'application/json'
       ctx.response.status = 201
       ctx.body = check.toJSON()
     } catch (e) {
@@ -110,7 +106,6 @@ export function repo(router) {
     const {header, body} = ctx.request
     const event = header[GITHUB_EVENT_HEADER]
     const hookResult = await hookHandler.onHandleHook(event, body)
-    ctx.response.type = 'application/json'
     ctx.response.status = 200
     ctx.body = hookResult
   })

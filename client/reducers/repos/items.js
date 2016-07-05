@@ -1,4 +1,4 @@
-import { SUCCESS } from '../../actions/status'
+import { SUCCESS, ERROR } from '../../actions/status'
 import { GET_REPOS } from '../../actions/repos'
 import { PUT_CHECK, DELETE_CHECK } from '../../actions/checks'
 
