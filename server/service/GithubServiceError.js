@@ -20,6 +20,6 @@ export default class GithubServiceError extends Error {
    */
   constructor(response) {
     super(messageFrom(response))
-    this.code = response.statusCode
+    this.status = response.statusCode
   }
 }

@@ -8,7 +8,7 @@ export default class RepositoryHandlerError extends Error {
    */
   constructor(message, cause = null) {
     super(message)
-    this.code = 404
-    this.cause = cause
+    this.status = 404
+    this.detail = cause
   }
 }

@@ -7,6 +7,7 @@ import session from 'koa-generic-session'
 import bodyParser from 'koa-bodyparser'
 import convert from 'koa-convert'
 import morgan from 'koa-morgan'
+import problemMiddleware from './middleware/problem'
 import Umzug from 'umzug'
 import Sequelize from 'sequelize'
 import nconf from './nconf'
@@ -52,6 +53,7 @@ export function init(options = {}) {
   const passport = initPassport(options.PassportStrategy)
 
   return app.
+  use(problemMiddleware).
   use(morgan(morganFormat, {skip: morganSkip})).
   use(convert(session({store: store}))).
   use(bodyParser()).
