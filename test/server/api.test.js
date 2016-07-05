@@ -212,6 +212,24 @@ describe('API', () => {
     })
   })
 
+  describe('GET /api/repos/:id/zapprfile', () => {
+    it('should return the effective configuration')
+    it('should return the error message if there was an error during config parsing')
+    it('should return 404 if there is no such repo', async(done) => {
+      try{
+        const response = await request.get(`/api/repos/${fixtures.repo.id}111/zapprfile`)
+        expect(response.statusCode).to.equal(404)
+        expect(response.body).to.deep.equal({
+          status: 404,
+          title: 'Repository not found'
+        })
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
+
   describe('POST /api/hook', () => {
     it('should return THANKS', async(done) => {
       try {
