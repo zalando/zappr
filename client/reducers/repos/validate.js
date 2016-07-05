@@ -12,7 +12,7 @@ export default function validations(state = {}, action) {
           return mapValues(action.payload.entities.repos, () => validation(undefined, action))
         default:
           return state
-      }s
+      }
     case VALIDATE_CONFIG:
       return {
         ...state,
