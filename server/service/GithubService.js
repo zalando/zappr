@@ -143,15 +143,14 @@ class GithubService {
     const repoContentUrl = API_URL_TEMPLATES.REPO_CONTENT
                                             .replace('${owner}', user)
                                             .replace('${repo}', repo)
-    const validZapprFileUrls = VALID_ZAPPR_FILE_PATHS
-    .map(zapprFilePath => path.join(repoContentUrl, zapprFilePath))
+    const validZapprFileUrls = VALID_ZAPPR_FILE_PATHS.map(zapprFilePath => path.join(repoContentUrl, zapprFilePath))
 
     const zapprFileRequests = validZapprFileUrls.map(zapprFileUrl => this.fetchPath('GET', zapprFileUrl, null, accessToken))
     return promiseFirst(zapprFileRequests)
-      .catch(() => {
-        info('%s/%s: No Zapprfile found, falling back to default configuration.', user, repo)
-        return ''
-      })
+    .catch(() => {
+      info('%s/%s: No Zapprfile found, falling back to default configuration.', user, repo)
+      return ''
+    })
     .then(({content, encoding, name}) => {
       info('%s/%s: Found %s.', user, repo, name)
       return name ? decode(content, encoding) : ''
@@ -195,17 +194,16 @@ class GithubService {
     if (!header || !header.length) {
       return {}
     }
-    return header
-    .split(',')
-    .map(link => link.trim())
-    .map(link => link.match(/<(?:.+?)\?page=([0-9]+)(?:.+?)>; rel="([a-z]+)"/))
-    .reduce((links, matches) => {
-      if (!matches || matches.length !== 3) {
-        return links
-      }
-      links[matches[2]] = parseInt(matches[1], 10)
-      return links
-    }, {})
+    return header.split(',')
+                 .map(link => link.trim())
+                 .map(link => link.match(/<(?:.+?)\?page=([0-9]+)(?:.+?)>; rel="([a-z]+)"/))
+                 .reduce((links, matches) => {
+                   if (!matches || matches.length !== 3) {
+                     return links
+                   }
+                   links[matches[2]] = parseInt(matches[1], 10)
+                   return links
+                 }, {})
   }
 
   async fetchRepoPage(page, accessToken) {

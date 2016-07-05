@@ -97,24 +97,21 @@ export function repo(router) {
       ctx.response.status = 404
       return
     }
+
     const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, null)
     const config = new ZapprConfiguration(zapprFileContent)
-    ctx.response.type = 'application/json'
+    const message = zapprFileContent === '' ?
+      'No Zapprfile found, using default config' :
+      (config.isValid() ?
+        '' :
+        config.getParseError())
 
-    if (zapprFileContent === '') {
-      ctx.body = {
-        config: config.getConfiguration(),
-        message: 'No Zapprfile found, using default config',
-        repoId: id
-      }
-      ctx.response.status = 200
-      return
-    }
     ctx.body = {
       config: config.getConfiguration(),
-      message: config.isValid() ? '' : config.getParseError(),
+      message,
       repoId: id
     }
+    ctx.response.type = 'application/json'
     ctx.response.status = config.isValid() ? 200 : 422
   })
   .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
