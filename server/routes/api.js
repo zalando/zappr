@@ -40,8 +40,6 @@ function validateIsCalledFromGithub(ctx, next) {
 export function env(router) {
   return router.get('/api/env', requireAuth, ctx => {
     ctx.body = {
-      config: config.getConfiguration(),
-      valid: config.isValid(),
       'NODE_ENV': nconf.get('NODE_ENV')
     }
   })
@@ -52,8 +50,8 @@ export function env(router) {
  */
 export function repos(router) {
   return router.get('/api/repos', requireAuth, async(ctx) => {
-    const user = ctx.req.user
     try {
+      const user = ctx.req.user
       const all = ctx.request.query.all == 'true'
       const repos = await repositoryHandler.onGetAll(user, all)
 
@@ -75,9 +73,6 @@ export function repo(router) {
       const user = ctx.req.user
       const id = parseInt(ctx.params.id)
       const repo = await repositoryHandler.onGetOne(id, user)
-      if (!repo) {
-        throw new Error()
-      }
       ctx.response.type = 'application/json'
       ctx.body = repo
     } catch (e) {
