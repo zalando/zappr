@@ -12,7 +12,7 @@ export default function validations(state = {}, action) {
           return mapValues(action.payload.entities.repos, () => validation(undefined, action))
         default:
           return state
-      }
+      }s
     case VALIDATE_CONFIG:
       return {
         ...state,
@@ -34,9 +34,9 @@ export function validation(state = {
         case PENDING:
           return {status: PENDING_VALIDATION, message: '', config: null}
         case SUCCESS:
-          return {status: VALID, message: action.payload.body.message, config: action.payload.body.config}
+          return {status: action.payload.body.valid ? VALID : INVALID, message: action.payload.body.message, config: action.payload.body.config}
         case ERROR:
-          return {status: INVALID, message: action.payload.body.message, config: action.payload.body.config}
+          return {status: UNKNOWN, error: action.payload.body.error, config: null, message: ''}
       }
     default:
       return state

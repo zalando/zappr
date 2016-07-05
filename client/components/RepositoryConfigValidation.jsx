@@ -40,14 +40,6 @@ function validationFinished(status) {
   return status === Status.VALID || status === Status.INVALID
 }
 
-function wrapAlert({status}, children) {
-  const bsStyle = statusToBsStyle(status)
-  const style = {
-    marginTop: '1em'
-  }
-  return <Alert style={style} bsStyle={bsStyle}>{children}</Alert>
-}
-
 class Result extends React.Component {
   constructor() {
     super()
@@ -90,7 +82,14 @@ class Result extends React.Component {
 
 export default function RepositoryConfigValidation({validation, onValidate}) {
   const placeholder = <div style={{marginTop: '1em'}} />
-  const result = validationFinished(validation.status) ? wrapAlert(validation, <Result validation={validation} />) : placeholder
+  let result = placeholder
+  if (validationFinished(validation.status)) {
+    result = <Alert style={{marginTop: '1em'}} bsStyle={statusToBsStyle(validation.status)}>
+      <Result validation={validation} />
+    </Alert>
+  } else if (validation.error) {
+    result = <Alert style={{marginTop: '1em'}} bsStyle='danger'>{validation.error}</Alert>
+  }
   return <div>
     <Button onClick={onValidate}>
       <span className={classes('fa', 'fa-fw', {

@@ -119,7 +119,7 @@ export function repo(router) {
       valid: config.isValid()
     }
     ctx.response.type = 'application/json'
-    ctx.response.status = config.isValid() ? 200 : 422
+    ctx.response.status = 200
   })
   .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
     try {

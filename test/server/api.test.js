@@ -253,8 +253,7 @@ describe('API', () => {
       try {
         await request.get('/api/repos').expect(200)
         const response = await request.get(`/api/repos/${fixtures.repos[1].id}/zapprfile`)
-        console.log(response)
-        expect(response.statusCode).to.equal(422)
+        expect(response.statusCode).to.equal(200)
         expect(response.body).to.have.keys('config', 'valid', 'message')
         expect(response.body.message).to.not.equal('')
         done()
