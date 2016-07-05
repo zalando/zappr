@@ -7,7 +7,7 @@ const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 export default class ZapprConfiguration {
   constructor(fileContent) {
     this.yamlParseError = null
-    this.configuration = {}
+    this.configuration = Object.assign({}, DEFAULT_CONFIG)
 
     try {
       const content = yaml.safeLoad(fileContent)

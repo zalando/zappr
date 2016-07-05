@@ -24,7 +24,7 @@ export default class RepositoryBrowser extends Component {
     let content = null
 
     if (selected && selectedRepo) {
-      content = <RepositoryDetail verifications={repos.verifications} checks={repos.checks} repository={selectedRepo}/>
+      content = <RepositoryDetail validations={repos.validations} checks={repos.checks} repository={selectedRepo}/>
     } else if (selected) {
       content = <Alert bsStyle='danger'>We didn’t find a repository {selected}.
         <Button

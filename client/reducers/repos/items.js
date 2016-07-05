@@ -1,13 +1,13 @@
 import { SUCCESS } from '../../actions/status'
 import { GET_REPOS } from '../../actions/repos'
-import { VERIFY_CONFIG } from '../../actions/verify'
+import { VALIDATE_CONFIG } from '../../actions/validate'
 import { PUT_CHECK, DELETE_CHECK } from '../../actions/checks'
 
 function repo(state = {checks: [], verifications: []}, action) {
   // After normalizing a repo only as a list of check ids.
   // The actual checks are in a separate check entity.
   switch (action.type) {
-    case VERIFY_CONFIG:
+    case VALIDATE_CONFIG:
       return {
         ...state,
         verifications: [...state.verifications, action.payload.repoId]
@@ -48,7 +48,7 @@ export default function items(state = {}, action) {
         default:
           return state
       }
-    case VERIFY_CONFIG:
+    case VALIDATE_CONFIG:
     case PUT_CHECK:
     case DELETE_CHECK:
       // Only update the check-reference for a particular repo.

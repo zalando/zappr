@@ -2,15 +2,15 @@ import fetch from 'isomorphic-fetch'
 import Service from './Service'
 
 export default class RepoService extends Service {
-  static verifyConfig(repoId) {
-    return fetch(Service.url(`/api/repos/${repoId}/verify`), {credentials: 'same-origin'})
+  static validateConfig(repoId) {
+    return fetch(Service.url(`/api/repos/${repoId}/zapprfile-validity`), {credentials: 'same-origin'})
     .then(response => {
       return new Promise((resolve, reject) => {
-        response.json().then(({message}) => {
+        response.json().then(body => {
           if (response.ok) {
-            return resolve(message)
+            return resolve(body)
           }
-          return reject(message)
+          return reject(body)
         })
       })
     })

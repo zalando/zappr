@@ -85,7 +85,7 @@ export function repo(router) {
       ctx.throw(e)
     }
   })
-  .get('/api/repos/:id/verify', requireAuth, async(ctx) => {
+  .get('/api/repos/:id/zapprfile-validity', requireAuth, async(ctx) => {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id, 10)
     const repo = await repositoryHandler.onGetOne(id, user)
@@ -98,17 +98,20 @@ export function repo(router) {
       return
     }
     const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, null)
+    const config = new ZapprConfiguration(zapprFileContent)
+    ctx.response.type = 'application/json'
+
     if (zapprFileContent === '') {
       ctx.body = {
+        config: config.getConfiguration(),
         message: 'No Zapprfile found, using default config',
         repoId: id
       }
       ctx.response.status = 200
       return
     }
-    const config = new ZapprConfiguration(zapprFileContent)
-    ctx.response.type = 'application/json'
     ctx.body = {
+      config: config.getConfiguration(),
       message: config.isValid() ? '' : config.getParseError(),
       repoId: id
     }

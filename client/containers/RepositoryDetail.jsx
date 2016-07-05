@@ -5,7 +5,7 @@ import { Row, Col, Badge, Button } from 'react-bootstrap'
 import RepositoryCheck from './../components/RepositoryCheck.jsx'
 import ConfigValidation from './../components/RepositoryConfigValidation.jsx'
 import { toggleCheck } from '../actions/checks'
-import { requestConfigVerification } from '../actions/verify'
+import { requestConfigValidation } from '../actions/validate'
 
 import { checkId } from '../model/schema'
 import { CHECK_TYPES, CHECK_NAMES } from '../../server/checks'
@@ -14,23 +14,23 @@ class RepositoryDetail extends Component {
   static propTypes = {
     repository: PropTypes.object.isRequired,
     checks: PropTypes.object.isRequired,
-    verifications: PropTypes.object.isRequired,
+    validations: PropTypes.object.isRequired,
     toggleCheck: PropTypes.func.isRequired,
-    requestConfigVerification: PropTypes.func.isRequired
+    requestConfigValidation: PropTypes.func.isRequired
   };
 
   onToggleCheck(check, isChecked) {
     this.props.toggleCheck({...check, isEnabled: isChecked})
   }
 
-  onVerifyConfig(repo) {
-    this.props.requestConfigVerification(repo)
+  onValidateConfig(repo) {
+    this.props.requestConfigValidation(repo)
   }
 
   render() {
     if (!this.props.repository.full_name) return null
 
-    const {repository, checks, verifications} = this.props
+    const {repository, checks, validations} = this.props
     const header = (<h2>{repository.full_name}</h2>)
 
     return (
@@ -50,8 +50,8 @@ class RepositoryDetail extends Component {
         </Col>
         <Col md={12}>
           <ConfigValidation
-            state={verifications[repository.full_name]}
-            onVerify={this.onVerifyConfig.bind(this, repository)}/>
+            validation={validations[repository.full_name]}
+            onValidate={this.onValidateConfig.bind(this, repository)}/>
         </Col>
         <Col md={12}>
           {CHECK_TYPES
@@ -73,4 +73,4 @@ class RepositoryDetail extends Component {
   }
 }
 
-export default connect(null, {toggleCheck, requestConfigVerification})(RepositoryDetail)
+export default connect(null, {toggleCheck, requestConfigValidation})(RepositoryDetail)
