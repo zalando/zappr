@@ -90,7 +90,7 @@ export function repo(router) {
     const id = parseInt(ctx.params.id, 10)
     let repo = null
     try {
-      repo = await repositoryHandler.onGetOne(id, user)
+      repo = await repositoryHandler.onGetOne(id, user, true)
       if (!repo) {
         throw new Error()
       }
@@ -101,8 +101,10 @@ export function repo(router) {
       return
     }
 
-
-    const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, null)
+    // try to use a token, if possible
+    // fallback to unauthenticated request, which is limited to 60/hr :(
+    const token = repo.checks.length > 0 ? repo.checks[0].token : null
+    const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, token)
     const config = new ZapprConfiguration(zapprFileContent)
 
     const message = zapprFileContent === '' ?
