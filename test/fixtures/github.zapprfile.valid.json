@@ -1,0 +1,18 @@
+{
+  "name": ".zappr.yaml",
+  "path": ".zappr.yaml",
+  "sha": "6a8a08abca0354ea1693f87f6be9d7d4727821f9",
+  "size": 266,
+  "url": "https://api.github.com/repos/zalando-stups/magnificent/contents/.zappr.yaml?ref=master",
+  "html_url": "https://github.com/zalando-stups/magnificent/blob/master/.zappr.yaml",
+  "git_url": "https://api.github.com/repos/zalando-stups/magnificent/git/blobs/6a8a08abca0354ea1693f87f6be9d7d4727821f9",
+  "download_url": "https://raw.githubusercontent.com/zalando-stups/magnificent/master/.zappr.yaml",
+  "type": "file",
+  "content": "IyBmb3IgZ2l0aHViLmNvbQphcHByb3ZhbHM6CiAgZ3JvdXBzOgogICAgemFs\nYW5kbzoKICAgICAgbWluaW11bTogMgogICAgICBmcm9tOgogICAgICAgIG9y\nZ3M6CiAgICAgICAgICAtICJ6YWxhbmRvIgoKICAjIEFsbG93IGxhc3QgY29t\nbWl0dGVyIC8gUFIgY3JlYXRvciB0byBhcHByb3ZlIGFzIHdlbGwuCiAgIyBU\naGlzIHdpbGwgcHJvYmFibHkgYmVjb21lIHRoZSBkZWZhdWx0IGluIHphcHBy\nLgogIGlnbm9yZTogbm9uZQpYLVphbGFuZG8tVGVhbTogInRvcmNoIgo=\n",
+  "encoding": "base64",
+  "_links": {
+    "self": "https://api.github.com/repos/zalando-stups/magnificent/contents/.zappr.yaml?ref=master",
+    "git": "https://api.github.com/repos/zalando-stups/magnificent/git/blobs/6a8a08abca0354ea1693f87f6be9d7d4727821f9",
+    "html": "https://github.com/zalando-stups/magnificent/blob/master/.zappr.yaml"
+  }
+}

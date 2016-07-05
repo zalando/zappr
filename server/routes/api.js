@@ -88,14 +88,19 @@ export function repo(router) {
   .get('/api/repos/:id/zapprfile', requireAuth, async(ctx) => {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id, 10)
-    const repo = await repositoryHandler.onGetOne(id, user)
-    if (!repo) {
+    let repo = null
+    try {
+      repo = await repositoryHandler.onGetOne(id, user)
+      if (!repo) {
+        throw new Error()
+      }
+    } catch (_) {
       ctx.body = new Problem().withTitle('Repository not found')
                               .withStatus(404)
-                              .withDetail(`Repository id: ${id}`)
       ctx.status = 404
       return
     }
+
 
     const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, null)
     const config = new ZapprConfiguration(zapprFileContent)
@@ -109,7 +114,7 @@ export function repo(router) {
     ctx.body = {
       config: config.getConfiguration(),
       message,
-      repoId: id
+      valid: config.isValid()
     }
     ctx.response.type = 'application/json'
     ctx.response.status = config.isValid() ? 200 : 422
