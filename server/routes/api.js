@@ -1,6 +1,5 @@
 import crypto from 'crypto'
 import nconf from '../nconf'
-import { githubService } from '../service/GithubService'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
 import { checkHandler } from '../handler/CheckHandler'
@@ -96,7 +95,7 @@ export function repo(router) {
       ctx.response.status = 201
       ctx.body = check.toJSON()
     } catch (e) {
-      ctx.throw(500, e)
+      ctx.throw(500, 'Could not enable check.', e)
     }
   })
   .delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
