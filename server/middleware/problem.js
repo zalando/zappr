@@ -5,7 +5,7 @@ const error = logger('api', 'error')
 const DEFAULT_TITLE = 'Internal server error'
 const DEFAULT_STATUS = 500
 
-export function generateProblemResponseFrom(e) {
+export function generateProblemResponseFrom(e = {}) {
   if (e.expose) {
     const members = {
       status: e.status || e.statusCode || DEFAULT_STATUS,
