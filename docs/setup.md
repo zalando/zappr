@@ -30,9 +30,9 @@ It is customized by everything under `approvals`. The following options are supp
 * `ignore`: Whether Zappr should ignore approvals by the `last_committer` on the pull request, the `pr_opener`, `both` or `none`. Defaults to `none`.
 * `pattern`: Since approvals are essentially comments that match a pattern, you can configure the pattern! It's a string that will be passed to Javascript's `RegExp` constructor and defaults to `^(:+1:|👍)$`. (Tip: If you're not sure about your regex, [regex101.com](https://regex101.com/) is great to test it.)
 * `from`: By default any comment that matches the pattern is considered an approval, regardless of the author. You can change this by
-** organization: list organizations under `orgs` that the author has to be a public member of
-** usernames: list usernames under `users`
-** collaborators: set the `collaborators` flag to `true`
+ * `organization`: list organizations under `orgs` that the author has to be a public member of
+ * `usernames`: list usernames under `users`
+ * `collaborators`: set the `collaborators` flag to `true`
 * `groups`: If there are sets of people you absolutely want to approve every pull request in your project, you can define groups and set a `minimum` amount of approvals required by its members. Use a `from` clause (see above) to specify who's a member and who isn't.
 
 ~~~ yaml
