@@ -1,10 +1,10 @@
 import passport from 'koa-passport'
 import { Strategy as GithubStrategy } from 'passport-github'
-
-import nconf from './nconf'
-import { User } from './model'
-import { joinURL } from '../common/util'
-import { logger } from '../common/debug'
+import RobotAuthentication from './robot-authentication'
+import nconf from '../nconf'
+import { User } from './../model'
+import { joinURL } from '../../common/util'
+import { logger } from '../../common/debug'
 
 const GITHUB_CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
 const GITHUB_CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
@@ -28,10 +28,9 @@ function normalizeProfile(profile) {
 /**
  * Configure and return passport instance.
  *
- * @param Strategy - Passport authentication strategy
  * @returns {Authenticator} - Passport instance
  */
-export function init(Strategy = GithubStrategy) {
+export function init() {
   /**
    * Serialize user data into the session.
    */
@@ -54,7 +53,7 @@ export function init(Strategy = GithubStrategy) {
           : done(new Error(`no user for id ${data.id}`)))
   })
 
-  passport.use(new Strategy({
+  passport.use(new GithubStrategy({
       // See https://developer.github.com/v3/oauth
       clientID: GITHUB_CLIENT_ID,
       clientSecret: GITHUB_CLIENT_SECRET,
@@ -78,6 +77,10 @@ export function init(Strategy = GithubStrategy) {
           .catch(done)
     }
   ))
+
+  if (RobotAuthentication !== null) {
+    passport.use(RobotAuthentication.strategy)
+  }
 
   return passport
 }

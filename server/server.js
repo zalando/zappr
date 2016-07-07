@@ -12,7 +12,7 @@ import Sequelize from 'sequelize'
 import nconf from './nconf'
 import DatabaseStore from './session/database-store'
 import { db } from './model'
-import { init as initPassport } from './passport'
+import { init as initPassport } from './passport/passport'
 import { logger } from '../common/debug'
 
 const log = logger('app')
@@ -44,12 +44,10 @@ const morganSkip = (req, res) => res.statusCode < nconf.get('MORGAN_THRESH')
 /**
  * Initialize the Koa application instance.
  *
- * @param {Object} options - Application options
- * @param options.PassportStrategy - Authentication strategy
  * @returns {Application} Koa application
  */
-export function init(options = {}) {
-  const passport = initPassport(options.PassportStrategy)
+export function init() {
+  const passport = initPassport()
 
   return app.
   use(morgan(morganFormat, {skip: morganSkip})).

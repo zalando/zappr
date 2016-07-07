@@ -1,5 +1,6 @@
-import passport from 'koa-passport'
 import nconf from '../nconf'
+import passport from 'koa-passport'
+import RobotAuthentication from '../passport/robot-authentication'
 
 /**
  * Login endpoint.
@@ -36,10 +37,14 @@ export function logout(router) {
 /**
  * Middleware to require authentication.
  */
-export function requireAuth(ctx, next) {
+export async function requireAuth(ctx, next) {
   if (ctx.isAuthenticated()) {
     return next()
   } else {
-    ctx.throw(401)
+    const authFn = passport.authenticate(RobotAuthentication.name, {session: false}, (user) => {
+      ctx.req.user = user
+    })
+
+    return authFn(ctx).then(next).catch(err => ctx.throw(401, err))
   }
 }

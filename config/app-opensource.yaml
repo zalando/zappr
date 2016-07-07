@@ -1,4 +1,11 @@
 # Zappr application configuration: opensource
+ROBOT_AUTHENTICATION: apikey
+APIKEYS:
+  - "123"
+  - "345"
+
+# ROBOT_AUTHENTICATION: planb
+# PLANB_TOKENINFO: ...
 
 # path to zapprfile in repository
 VALID_ZAPPR_FILE_PATHS:
