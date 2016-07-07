@@ -56,7 +56,7 @@ export function repos(router) {
       const repos = await repositoryHandler.onGetAll(user, all)
       ctx.body = repos.map(repo => repo.toJSON())
     } catch (e) {
-      ctx.throw(503, 'Could not fetch repositories.', e)
+      ctx.throw(503, e)
     }
   })
 }
@@ -73,7 +73,7 @@ export function repo(router) {
       const repo = await repositoryHandler.onGetOne(id, user)
       ctx.body = repo
     } catch (e) {
-      ctx.throw(404, 'Repository not found', e)
+      ctx.throw(404, e)
     }
   })
   .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
@@ -86,7 +86,7 @@ export function repo(router) {
       ctx.response.status = 201
       ctx.body = check.toJSON()
     } catch (e) {
-      ctx.throw(503, 'Could not enable check.', e)
+      ctx.throw(503, e)
     }
   })
   .delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
@@ -99,7 +99,7 @@ export function repo(router) {
       ctx.response.status = 204
       ctx.body = null
     } catch (e) {
-      ctx.throw(503, 'Could not disable check.', e)
+      ctx.throw(503, e)
     }
   })
   .post('/api/hook', validateIsCalledFromGithub, async(ctx) => {

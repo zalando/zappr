@@ -1,4 +1,4 @@
-import CheckHandlerError, { CHECK_DOES_NOT_EXIST, CHECK_EXISTS, DATABASE_ERROR } from './CheckHandlerError'
+import CheckHandlerError, { CHECK_NOT_FOUND, CHECK_EXISTS, DATABASE_ERROR } from './CheckHandlerError'
 import { Check } from '../model'
 import { githubService } from '../service/GithubService'
 import { getCheckByType } from '../checks'
@@ -14,7 +14,7 @@ const debug = logger('check-handler')
 function findHookEventsFor(types) {
   return types.map(type => {
                 const check = getCheckByType(type)
-                if (!check) throw new CheckHandlerError(CHECK_DOES_NOT_EXIST, {type})
+                if (!check) throw new CheckHandlerError(CHECK_NOT_FOUND, {type})
                 return check.HOOK_EVENTS
               })
               .reduce((arr, evts) => arr.concat(evts), [])         // flatten
@@ -74,7 +74,7 @@ class CheckHandler {
     } catch (e) {
       throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId }, e)
     }
-    if (!check) throw new CheckHandlerError(CHECK_DOES_NOT_EXIST, {type, repository: repoId})
+    if (!check) throw new CheckHandlerError(CHECK_NOT_FOUND, {type, repository: repoId})
     return check
   }
 
