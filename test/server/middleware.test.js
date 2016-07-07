@@ -1,4 +1,4 @@
-import { generateProblemResponseFrom as problem } from '../../server/middleware/problem'
+import { generateProblemResponseFromAppError as problem } from '../../server/middleware/problem'
 import { expect } from 'chai'
 
 describe('problem middleware', () => {
@@ -23,7 +23,6 @@ describe('problem middleware', () => {
   it('should convert standard errors to problems', () => {
     const message = 'something happened'
     const error = new Error(message)
-    error.expose = true
     const result = problem(error)
     expect(result).to.have.keys('status', 'title')
     expect(result.status).to.equal(500)
@@ -31,18 +30,10 @@ describe('problem middleware', () => {
   })
 
   it('should return detailed problem+json', () => {
-    ERROR.expose = true
     const result = problem(ERROR)
     expect(result).to.have.keys('status', 'detail', 'title')
     expect(result.status).to.equal(ERROR.status)
     expect(result.detail).to.equal(ERROR.detail)
     expect(result.title).to.equal(ERROR.title)
-  })
-
-  it('should not expose errors thrown by accident', () => {
-    const result = problem(ERROR)
-    expect(result).to.have.keys('status', 'title')
-    expect(result.status).to.equal(500)
-    expect(result.title).to.equal('Internal server error')
   })
 })
