@@ -1,8 +1,5 @@
 import Problem from '../../common/Problem'
 import { logger } from '../../common/debug'
-import {GITHUB_ERROR_TYPE} from '../service/GithubServiceError'
-import {CHECK_ERROR_TYPE} from '../handler/CheckHandler'
-import {REPO_ERROR_TYPE} from '../handler/RepositoryHandlerError'
 const error = logger('api', 'error')
 
 const DEFAULT_TITLE = 'Internal server error'
@@ -33,23 +30,24 @@ export function generateProblemResponseFromKoaError(e) {
   return body
 }
 
-const errorTypesToExpose = [GITHUB_ERROR_TYPE, REPO_ERROR_TYPE, CHECK_ERROR_TYPE]
-
-export default async function problemMiddleware(ctx, next) {
-  try {
-    await next()
-  } catch (e) {
-    error(e)
-    let problem;
-    if (e.type && errorTypesToExpose.indexOf(e.type) !== -1) {
-      // only expose error details from github, check or repo handler
-      problem = generateProblemResponseFromAppError(e)
-    } else {
-      problem = generateProblemResponseFromKoaError(e)
+export default function generateProblemMiddleware({exposableErrorTypes}) {
+  return async function problemMiddleware(ctx, next) {
+    try {
+      await next()
+    } catch (e) {
+      error(e)
+      let problem;
+      if (e.type && exposableErrorTypes.indexOf(e.type) !== -1) {
+        // only expose error details from github, check or repo handler
+        problem = generateProblemResponseFromAppError(e)
+      } else {
+        problem = generateProblemResponseFromKoaError(e)
+      }
+      ctx.response.set('Content-Type', 'application/problem+json')
+      ctx.response.status = problem.status
+      // stringify to keep custom content type
+      ctx.body = JSON.stringify(problem)
     }
-    ctx.response.set('Content-Type', 'application/problem+json')
-    ctx.response.status = problem.status
-    // stringify to keep custom content type
-    ctx.body = JSON.stringify(problem)
   }
+
 }
