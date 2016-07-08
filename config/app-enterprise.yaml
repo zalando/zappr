@@ -20,3 +20,11 @@ ZAPPR_DEFAULT_CONFIG:
     veto:
       # veto/blocking a PR = comment that matches this regex
       pattern: "^(:\\-1:|👎)$"
+  specification:
+    title:
+      length: 8
+    body:
+      length: 8
+      verify:
+        contains-url: true
+        contains-issue-number: true
