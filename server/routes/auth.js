@@ -40,10 +40,6 @@ export async function requireAuth(ctx, next) {
   if (ctx.isAuthenticated()) {
     return next()
   } else {
-    const authFn = passport.authenticate('github-api', {session: false}, (user) => {
-      ctx.req.user = user
-    })
-
-    return authFn(ctx).then(next).catch(err => ctx.throw(401, err))
+    return passport.authenticate('github-api', {session: false})(ctx, next)
   }
 }

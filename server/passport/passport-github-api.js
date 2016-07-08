@@ -44,10 +44,10 @@ export default class GithubAPIStrategy extends Strategy {
   async authenticate(req) {
     const {headers} = req
     const AUTH_HEADER = headers['authorization']
-    if (!AUTH_HEADER) this.error('No Authorization error present')
+    if (!AUTH_HEADER) this.fail({status: 400, reason: 'Missing Authorization header'})
     const [type, token] = AUTH_HEADER.split(' ')
-    if (type !== this.tokenType) this.error('Invalid token type')
-    if (!token || !token.length) this.error('No token provided')
+    if (type !== this.tokenType) this.fail({status: 400, reason: 'Invalid token type'})
+    if (!token || !token.length) this.fail({status: 400, reason: 'No token provided'})
 
     const [response, bodyString] = await request({
       method: 'GET',
@@ -61,8 +61,8 @@ export default class GithubAPIStrategy extends Strategy {
     let body
     try {
       body = JSON.parse(bodyString)
-    } catch(e) {
-      return this.fail(e)
+    } catch (e) {
+      return this.fail({status: 503, reason: 'Unparsable response from Github'})
     }
 
     const verifyFn = (err, user) => {
@@ -76,7 +76,7 @@ export default class GithubAPIStrategy extends Strategy {
     if (response.statusCode === 200) {
       this.verify(token, bodyToProfile(body), verifyFn)
     } else {
-      this.error(body)
+      this.fail({status: response.statusCode, reason: body.message || 'Error'})
     }
   }
 }
