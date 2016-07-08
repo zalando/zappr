@@ -16,9 +16,8 @@ describe('API', () => {
   const testUser = require('../fixtures/github.user.a.json')
   setUserId(testUser.id)
   setUserName(testUser.login)
-  const app = initApp({PassportStrategy: MockStrategy})
+  let app, request
   const mountebank = new MountebankClient()
-  const request = supertest.agent(app.listen())
   const imposter = {
     port: 4242,
     name: 'github'
@@ -35,6 +34,9 @@ describe('API', () => {
     nconf.set('GITHUB_UI_URL', `http://localhost:${imposter.port}`)
     nconf.set('GITHUB_API_URL', `http://localhost:${imposter.port}`)
     nconf.set('HOST_ADDR', 'http://127.0.0.1:8080')
+    
+    app = initApp({PassportStrategy: MockStrategy})
+    request = supertest.agent(app.listen())
 
     try {
       // Initialize database
@@ -105,8 +107,7 @@ describe('API', () => {
       add().
       create()
 
-      // Initialize session
-      request.get('/auth/github').end(done)
+      done()
     } catch (err) {
       return done(err)
     }
@@ -114,12 +115,64 @@ describe('API', () => {
 
   beforeEach(done => Promise.all([
     Repository.truncate(),
-    mountebank.reset()
+    mountebank.reset(),
+    request.get('/auth/github')
   ]).then(() => done()).catch(done))
 
   after(done => mountebank.stop().then(done).catch(done))
 
   describe('GET /api/repos', () => {
+    it('should work with token and no session', async (done) => {
+      try {
+        await request.get('/logout')
+        await request.get('/api/repos')
+                     .set('Authorization', 'token 123')
+                     .set('Accept', 'application/json')
+                     .expect(200)
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('should not work without session and token', async (done) => {
+      try {
+        await request.get('/logout')
+        await request.get('/api/repos')
+                     .set('Accept', 'application/json')
+                     .expect(401)
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('should not work with wrong token type', async (done) => {
+      try {
+        await request.get('/logout')
+        await request.get('/api/repos')
+                     .set('Authorization', 'Bearer 123')
+                     .set('Accept', 'application/json')
+                     .expect(401)
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('should not work with wrong header format', async (done) => {
+      try {
+        await request.get('/logout')
+        await request.get('/api/repos')
+                     .set('Authorization', 'token 123 foo bar')
+                     .set('Accept', 'application/json')
+                     .expect(401)
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
     it('should respond with github repos', done => {
       request
         .get('/api/repos')

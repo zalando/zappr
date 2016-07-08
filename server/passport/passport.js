@@ -6,11 +6,6 @@ import { User } from './../model'
 import { joinURL } from '../../common/util'
 import { logger } from '../../common/debug'
 
-const GITHUB_CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
-const GITHUB_CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
-const GITHUB_UI_URL = nconf.get('GITHUB_UI_URL')
-const GITHUB_API_URL = nconf.get('GITHUB_API_URL')
-const HOST_ADDR = nconf.get('HOST_ADDR')
 const log = logger('passport')
 
 /**
@@ -32,6 +27,12 @@ function normalizeProfile(profile) {
  * @returns {Authenticator} - Passport instance
  */
 export function init(Strategy = GithubStrategy) {
+  const GITHUB_CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
+  const GITHUB_CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
+  const GITHUB_UI_URL = nconf.get('GITHUB_UI_URL')
+  const GITHUB_API_URL = nconf.get('GITHUB_API_URL')
+  const HOST_ADDR = nconf.get('HOST_ADDR')
+
   /**
    * Serialize user data into the session.
    */

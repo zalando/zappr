@@ -45,7 +45,8 @@ export default class GithubAPIStrategy extends Strategy {
     const {headers} = req
     const AUTH_HEADER = headers['authorization']
     if (!AUTH_HEADER) this.fail({status: 400, reason: 'Missing Authorization header'})
-    const [type, token] = AUTH_HEADER.split(' ')
+    const [type, token, ...rest] = AUTH_HEADER.split(' ')
+    if (rest.length > 0) this.fail({status: 400, reason: 'Invalid header format'})
     if (type !== this.tokenType) this.fail({status: 400, reason: 'Invalid token type'})
     if (!token || !token.length) this.fail({status: 400, reason: 'No token provided'})
 
