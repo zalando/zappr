@@ -265,10 +265,7 @@ describe('API', () => {
       try{
         const response = await request.get(`/api/repos/${fixtures.repo.id}111/zapprfile`)
         expect(response.statusCode).to.equal(404)
-        expect(response.body).to.deep.equal({
-          status: 404,
-          title: 'Repository not found'
-        })
+        expect(response.body).to.have.keys('detail', 'status', 'title', 'type')
         done()
       } catch (e) {
         done(e)
