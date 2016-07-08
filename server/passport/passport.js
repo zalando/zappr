@@ -28,9 +28,10 @@ function normalizeProfile(profile) {
 /**
  * Configure and return passport instance.
  *
+ * @param {Strategy} - Passport strategy
  * @returns {Authenticator} - Passport instance
  */
-export function init() {
+export function init(Strategy = GithubStrategy) {
   /**
    * Serialize user data into the session.
    */
@@ -52,7 +53,7 @@ export function init() {
           ? done(null, {...user, ...data})
           : done(new Error(`no user for id ${data.id}`)))
   })
-  
+
   passport.use(new GithubAPIStrategy({
       apiUrl: GITHUB_API_URL
     },
@@ -61,7 +62,7 @@ export function init() {
       done(null, {id: profile.id, accessToken, json: normalizeProfile(profile)})
   ))
 
-  passport.use(new GithubStrategy({
+  passport.use(new Strategy({
       // See https://developer.github.com/v3/oauth
       clientID: GITHUB_CLIENT_ID,
       clientSecret: GITHUB_CLIENT_SECRET,

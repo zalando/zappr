@@ -48,10 +48,11 @@ const morganSkip = (req, res) => res.statusCode < nconf.get('MORGAN_THRESH')
 /**
  * Initialize the Koa application instance.
  *
+ * @param {object} - options
  * @returns {Application} Koa application
  */
-export function init() {
-  const passport = initPassport()
+export function init(options) {
+  const passport = initPassport(options.PassportStrategy)
 
   return app.
   use(generateProblemMiddleware({
