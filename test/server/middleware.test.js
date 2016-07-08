@@ -1,11 +1,6 @@
 import { generateProblemResponseFromAppError as problem, maybeSymbolToString } from '../../server/middleware/problem'
 import { expect } from 'chai'
 
-describe('symbolToString', () => {
-  it('should convert a symobl to string')
-  it('should return undefined if no input')
-  it('should ')
-})
 
 describe('problem middleware', () => {
   let ERROR
@@ -38,9 +33,10 @@ describe('problem middleware', () => {
 
   it('should return detailed problem+json', () => {
     const result = problem(ERROR)
-    expect(result).to.have.keys('status', 'detail', 'title')
+    expect(result).to.have.keys('status', 'detail', 'title', 'type')
     expect(result.status).to.equal(ERROR.status)
     expect(result.detail).to.equal(ERROR.detail)
     expect(result.title).to.equal(ERROR.title)
+    expect(result.type).to.equal('foo')
   })
 })
