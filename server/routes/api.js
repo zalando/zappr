@@ -57,12 +57,9 @@ export function repos(router) {
       const user = ctx.req.user
       const all = ctx.request.query.all == 'true'
       const repos = await repositoryHandler.onGetAll(user, all)
-
-      ctx.response.type = 'application/json'
       ctx.body = repos.map(repo => repo.toJSON())
     } catch (e) {
-      error(e)
-      ctx.throw(e)
+      ctx.throw(503, e)
     }
   })
 }
@@ -75,32 +72,17 @@ export function repo(router) {
   .get('/api/repos/:id', requireAuth, async(ctx) => {
     try {
       const user = ctx.req.user
-      const id = parseInt(ctx.params.id, 10)
+      const id = parseInt(ctx.params.id)
       const repo = await repositoryHandler.onGetOne(id, user)
-      if (!repo) ctx.throw(404)
-      ctx.response.type = 'application/json'
       ctx.body = repo
     } catch (e) {
-      error(e)
-      ctx.throw(e)
+      ctx.throw(404, e)
     }
   })
   .get('/api/repos/:id/zapprfile', requireAuth, async(ctx) => {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id, 10)
-    let repo = null
-    try {
-      repo = await repositoryHandler.onGetOne(id, user, true)
-      if (!repo) {
-        throw new Error()
-      }
-    } catch (_) {
-      ctx.body = new Problem().withTitle('Repository not found')
-                              .withStatus(404)
-      ctx.status = 404
-      return
-    }
-
+    const repo = await repositoryHandler.onGetOne(id, user, true)
     // try to use a token, if possible
     // fallback to unauthenticated request, which is limited to 60/hr :(
     const token = repo.checks.length > 0 ? repo.checks[0].token : null
@@ -118,57 +100,39 @@ export function repo(router) {
       message,
       valid: config.isValid()
     }
-    ctx.response.type = 'application/json'
     ctx.response.status = 200
   })
   .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
     try {
       const user = ctx.req.user
-      const id = parseInt(ctx.params.id, 10)
+      const id = parseInt(ctx.params.id)
       const type = ctx.params.type
       const repo = await repositoryHandler.onGetOne(id, user)
       const check = await checkHandler.onEnableCheck(user, repo, type)
-      ctx.response.type = 'application/json'
       ctx.response.status = 201
       ctx.body = check.toJSON()
     } catch (e) {
-      // TODO: use Exception handling middleware to return Problems instead
-      error(e)
-      ctx.status = e.code
-      ctx.body = new Problem().withTitle('Could not enable check.')
-                              .withStatus(e.code)
-                              .withDetail(e.message)
+      ctx.throw(503, e)
     }
   })
   .delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
     try {
       const user = ctx.req.user
-      const id = parseInt(ctx.params.id, 10)
+      const id = parseInt(ctx.params.id)
       const repo = await repositoryHandler.onGetOne(id, user)
       const type = ctx.params.type
       await checkHandler.onDisableCheck(user, repo, type)
       ctx.response.status = 204
       ctx.body = null
     } catch (e) {
-      // TODO: use Exception handling middleware to return Problems instead
-      error(e)
-      ctx.status = e.code
-      ctx.body = new Problem().withTitle('Could not disable check.')
-                              .withStatus(e.code)
-                              .withDetail(e.message)
+      ctx.throw(503, e)
     }
   })
   .post('/api/hook', validateIsCalledFromGithub, async(ctx) => {
-    try {
-      const {header, body} = ctx.request
-      const event = header[GITHUB_EVENT_HEADER]
-      const hookResult = await hookHandler.onHandleHook(event, body)
-      ctx.response.type = 'application/json'
-      ctx.response.status = 200
-      ctx.body = hookResult
-    } catch (e) {
-      error(e)
-      ctx.throw(e)
-    }
+    const {header, body} = ctx.request
+    const event = header[GITHUB_EVENT_HEADER]
+    const hookResult = await hookHandler.onHandleHook(event, body)
+    ctx.response.status = 200
+    ctx.body = hookResult
   })
 }

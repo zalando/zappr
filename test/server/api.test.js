@@ -392,7 +392,6 @@ describe('API', () => {
         debug('Response: %o', body)
         expect(problem).to.have.property('status').that.is.a('number').and.above(400)
         expect(problem).to.have.property('title').that.is.a('string').and.not.empty
-        expect(problem).to.have.property('detail').that.is.a('string').and.not.empty
         done()
       } catch (e) {
         done(e)
@@ -408,7 +407,6 @@ describe('API', () => {
         debug('Response: %o', body)
         expect(problem).to.have.property('status').that.is.a('number').and.above(400)
         expect(problem).to.have.property('title').that.is.a('string').and.not.empty
-        expect(problem).to.have.property('detail').that.is.a('string').and.not.empty
         done()
       } catch (e) {
         done(e)

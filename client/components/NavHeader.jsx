@@ -19,7 +19,7 @@ export default class NavHeader extends Component {
   }
 
   render() {
-    const { displayName, html_url, avatar_url } = this.props.user
+    const { displayName, username, html_url, avatar_url } = this.props.user
 
     const style = {
       logo: {
@@ -63,7 +63,7 @@ export default class NavHeader extends Component {
             </li>*/}
           </Nav>
           <Nav pullRight>
-            <NavDropdown title={displayName || 'anonymous'} id="basic-nav-dropdown">
+            <NavDropdown title={displayName || username} id="basic-nav-dropdown">
               <MenuItem href={html_url}>
                 Profile
               </MenuItem>

@@ -120,3 +120,10 @@ const ESCAPED_UNICODE_CHAR = /\\u([\d\w]{4})/gi
 export function unescape(stringWithEscapedEmojis) {
   return stringWithEscapedEmojis.replace(ESCAPED_UNICODE_CHAR, (_, grp) => String.fromCharCode(parseInt(grp, 16)))
 }
+
+const SYMBOL_STRING = /Symbol\((.+?)\)/
+export function symbolToString(sym) {
+  if (typeof sym === 'symbol')
+    return sym.toString().match(SYMBOL_STRING)[1]
+  return sym
+}

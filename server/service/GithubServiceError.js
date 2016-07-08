@@ -11,6 +11,8 @@ function messageFrom(response) {
   return [method, url, response.statusCode, message].join(' ')
 }
 
+export const GITHUB_ERROR_TYPE = Symbol('github error')
+
 /**
  * Thrown when an error occurs while accessing the Github API.
  */
@@ -19,7 +21,10 @@ export default class GithubServiceError extends Error {
    * @param {Object} response - HTTP response
    */
   constructor(response) {
-    super(messageFrom(response))
-    this.code = response.statusCode
+    super('Github API Error')
+    this.detail = messageFrom(response)
+    this.type = GITHUB_ERROR_TYPE
   }
 }
+
+

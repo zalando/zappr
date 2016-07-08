@@ -3,11 +3,14 @@
  * @see {@link https://github.com/zalando/problem}
  */
 export default class Problem {
-  constructor(args = {}) {
-    this.title = args.title
-    this.status = args.status
-    this.detail = args.detail
-    this.type = args.type
+  constructor(members = {}, extensions = {}) {
+    const {title, status, detail, type, instance} = members
+    this.title = title
+    this.instance = instance
+    this.status = status
+    this.detail = detail
+    this.type = type
+    this.extensions = extensions
   }
 
   /**
@@ -45,17 +48,23 @@ export default class Problem {
     this.type = type
     return this
   }
-}
 
-export class ResponseProblem extends Problem {
-  /**
-   * @param {Response} response
-   */
-  constructor(response) {
-    super({
-      title: response.statusText,
-      status: response.status,
-      detail: response.url
+  withExtensions(extensions) {
+    this.extensions = extensions
+    return this
+  }
+
+  toJSON() {
+    const {type, status, detail, instance, title, extensions} = this
+    const result = Object.assign({}, extensions, {
+      type, status, detail, instance, title
     })
+    // remove null or undefined values
+    Object.keys(result).forEach(key => {
+      if (result[key] == null) {
+        delete result[key]
+      }
+    })
+    return result
   }
 }
