@@ -1,5 +1,6 @@
 import Problem from '../../common/Problem'
 import { logger } from '../../common/debug'
+import { symbolToString } from '../../common/util'
 const error = logger('api', 'error')
 
 const DEFAULT_TITLE = 'Internal server error'
@@ -12,7 +13,7 @@ export function generateProblemResponseFromAppError(e = {}) {
     title: e.title || e.message || DEFAULT_TITLE,
     detail: e.detail || undefined,
     instance: e.instance || undefined,
-    type: e.type || undefined
+    type: symbolToString(e.type)
   }
   const {status, title, detail, instance, type, ...extensions} = e
   const body = new Problem(members, extensions).toJSON()

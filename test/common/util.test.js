@@ -1,7 +1,19 @@
 import { expect } from 'chai'
-import { getIn, setDifference, promiseReduce, promiseFirst } from '../../common/util'
+import { getIn, setDifference, promiseReduce, promiseFirst, symbolToString } from '../../common/util'
 
 describe('common/util', () => {
+  describe('symbolToString', () => {
+    it('should convert a symbol to a string', () => {
+      expect(symbolToString(Symbol('foobar'))).to.equal('foobar')
+    })
+    it('should return input if it is no symbol', () => {
+      expect(symbolToString('foobar')).to.equal('foobar')
+      expect(symbolToString(1)).to.equal(1)
+      const noSymbol = {}
+      expect(symbolToString(noSymbol)).to.equal(noSymbol)
+    })
+  })
+
   describe('setDifference', () => {
     it('should calculate the difference of two sets', () => {
       const set1 = new Set([1, 2, 3, 4, 5])

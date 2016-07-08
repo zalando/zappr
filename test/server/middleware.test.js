@@ -1,5 +1,11 @@
-import { generateProblemResponseFromAppError as problem } from '../../server/middleware/problem'
+import { generateProblemResponseFromAppError as problem, maybeSymbolToString } from '../../server/middleware/problem'
 import { expect } from 'chai'
+
+describe('symbolToString', () => {
+  it('should convert a symobl to string')
+  it('should return undefined if no input')
+  it('should ')
+})
 
 describe('problem middleware', () => {
   let ERROR
@@ -9,7 +15,8 @@ describe('problem middleware', () => {
       expose: false, // is set by koa. true when calling ctx.throw(), false when random error was thrown
       status: 422,
       detail: 'very detailed stack trace',
-      title: 'detailed explanation what happened'
+      title: 'detailed explanation what happened',
+      type: Symbol('foo')
     }
   })
 
