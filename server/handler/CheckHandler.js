@@ -1,4 +1,4 @@
-import CheckHandlerError from './CheckHandlerError'
+import CheckHandlerError, { CHECK_NOT_FOUND, CHECK_EXISTS, DATABASE_ERROR } from './CheckHandlerError'
 import { Check } from '../model'
 import { githubService } from '../service/GithubService'
 import { getCheckByType } from '../checks'
@@ -14,7 +14,7 @@ const debug = logger('check-handler')
 function findHookEventsFor(types) {
   return types.map(type => {
                 const check = getCheckByType(type)
-                if (!check) throw new CheckHandlerError(`No such such Check: ${type}`)
+                if (!check) throw new CheckHandlerError(CHECK_NOT_FOUND, {type})
                 return check.HOOK_EVENTS
               })
               .reduce((arr, evts) => arr.concat(evts), [])         // flatten
@@ -45,7 +45,7 @@ class CheckHandler {
         attributes: {exclude: ['token']}
       })
     } catch (e) {
-      throw new CheckHandlerError(`Error creating Check ${type} for repository ${repoId}.`, e)
+      throw new CheckHandlerError(CHECK_EXISTS, {type, repository: repoId})
     }
   }
 
@@ -72,9 +72,9 @@ class CheckHandler {
         }
       })
     } catch (e) {
-      throw new CheckHandlerError(`Error getting Check ${type} for repository ${repoId}.`, e)
+      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId })
     }
-    if (!check) throw new CheckHandlerError(`No Check ${type} for repository ${repoId}.`)
+    if (!check) throw new CheckHandlerError(CHECK_NOT_FOUND, {type, repository: repoId})
     return check
   }
 
@@ -95,7 +95,7 @@ class CheckHandler {
         }
       })
     } catch (e) {
-      throw new CheckHandlerError(`Error deleting Check ${type} for repository ${repoId}.`, e)
+      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId})
     }
   }
 
@@ -118,7 +118,7 @@ class CheckHandler {
     } catch (e) {
       // Expect check not to exist
     }
-    if (existingCheck) throw new CheckHandlerError(`Check ${type} already exists for repo ${repo.id}`, 409)
+    if (existingCheck) throw new CheckHandlerError(CHECK_EXISTS, {type, repository: repo.id})
 
     await this.github.updateWebhookFor(repo.owner.login, repo.name, events, user.accessToken)
     const check = await checkHandler.onCreateCheck(repo.id, type, user.accessToken)

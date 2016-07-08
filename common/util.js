@@ -94,3 +94,10 @@ export function setDifference(set1, set2) {
   }
   return new Set([...set1].filter(item => !set2.has(item)))
 }
+
+const SYMBOL_STRING = /Symbol\((.+?)\)/
+export function symbolToString(sym) {
+  if (typeof sym === 'symbol')
+    return sym.toString().match(SYMBOL_STRING)[1]
+  return sym
+}

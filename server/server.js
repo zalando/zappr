@@ -7,6 +7,7 @@ import session from 'koa-generic-session'
 import bodyParser from 'koa-bodyparser'
 import convert from 'koa-convert'
 import morgan from 'koa-morgan'
+import generateProblemMiddleware from './middleware/problem'
 import Umzug from 'umzug'
 import Sequelize from 'sequelize'
 import nconf from './nconf'
@@ -14,6 +15,9 @@ import DatabaseStore from './session/database-store'
 import { db } from './model'
 import { init as initPassport } from './passport/passport'
 import { logger } from '../common/debug'
+import {GITHUB_ERROR_TYPE} from './service/GithubServiceError'
+import {CHECK_ERROR_TYPE} from './handler/CheckHandler'
+import {REPO_ERROR_TYPE} from './handler/RepositoryHandlerError'
 
 const log = logger('app')
 const app = new Koa()
@@ -50,6 +54,12 @@ export function init() {
   const passport = initPassport()
 
   return app.
+  use(generateProblemMiddleware({
+    exposableErrorTypes: [
+      CHECK_ERROR_TYPE,
+      GITHUB_ERROR_TYPE,
+      REPO_ERROR_TYPE
+  ]})).
   use(morgan(morganFormat, {skip: morganSkip})).
   use(convert(session({store: store}))).
   use(bodyParser()).
