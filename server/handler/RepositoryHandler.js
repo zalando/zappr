@@ -1,9 +1,8 @@
-import RepositoryHandlerError, {REPOSITORY_NOT_FOUND, DATABASE_ERROR} from './RepositoryHandlerError'
+import RepositoryHandlerError, { REPOSITORY_NOT_FOUND, DATABASE_ERROR } from './RepositoryHandlerError'
 import { githubService } from '../service/GithubService'
 import { db, Repository, UserRepository, Check } from '../model'
 import { logger } from '../../common/debug'
 import { setDifference } from '../../common/util'
-import {ROBOT_USER} from '../passport/robot-authentication'
 
 const info = logger('repo-handler', 'info')
 const debug = logger('repo-handler')
@@ -137,35 +136,30 @@ class RepositoryHandler {
    * @returns {Promise<Array.<Repository>>}
    */
   async onGetAll(user, loadAll = false, includeToken = false) {
-    if (user.id !== ROBOT_USER) {
-      debug('Load repositories for user %s from database', user.json.username)
-      let repos = await Repository.userScope(user).findAllSorted({
-        include: [{
-          model: Check,
-          attributes: {exclude: includeToken ? [] : ['token']}
-        }]
-      })
-      debug('Loaded %d repositories for user %s from database', repos.length, user.json.username)
+    debug('Load repositories for user %s from database', user.json.username)
+    let repos = await Repository.userScope(user).findAllSorted({
+      include: [{
+        model: Check,
+        attributes: {exclude: includeToken ? [] : ['token']}
+      }]
+    })
+    debug('Loaded %d repositories for user %s from database', repos.length, user.json.username)
 
-      // No need to (re)load from Github. Return repositories from database.
-      if (repos.length > 0 && !loadAll) return repos
+    // No need to (re)load from Github. Return repositories from database.
+    if (repos.length > 0 && !loadAll) return repos
 
-      repos = await this.github.fetchRepos(user.accessToken, loadAll)
-      await this.updateRepos(db, user, repos)
-      info(`Loaded ${loadAll ? 'all' : 'some'} repos for user ${user.json.username} from Github`)
+    repos = await this.github.fetchRepos(user.accessToken, loadAll)
+    await this.updateRepos(db, user, repos)
+    info(`Loaded ${loadAll ? 'all' : 'some'} repos for user ${user.json.username} from Github`)
 
-      // The previously merged repos are not sorted correctly
-      // so we need to load them from the database again.
-      return await Repository.userScope(user).findAllSorted({
-        include: [{
-          model: Check,
-          attributes: {exclude: includeToken ? [] : ['token']}
-        }]
-      })
-    } else {
-      // if no user, just output all repositories we have
-      return await Repository.findAll()
-    }
+    // The previously merged repos are not sorted correctly
+    // so we need to load them from the database again.
+    return await Repository.userScope(user).findAllSorted({
+      include: [{
+        model: Check,
+        attributes: {exclude: includeToken ? [] : ['token']}
+      }]
+    })
   }
 }
 

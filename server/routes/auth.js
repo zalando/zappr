@@ -1,6 +1,5 @@
 import nconf from '../nconf'
 import passport from 'koa-passport'
-import RobotAuthentication from '../passport/robot-authentication'
 
 /**
  * Login endpoint.
@@ -41,7 +40,7 @@ export async function requireAuth(ctx, next) {
   if (ctx.isAuthenticated()) {
     return next()
   } else {
-    const authFn = passport.authenticate(RobotAuthentication.name, {session: false}, (user) => {
+    const authFn = passport.authenticate('github-api', {session: false}, (user) => {
       ctx.req.user = user
     })
 

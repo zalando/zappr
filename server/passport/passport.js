@@ -1,6 +1,6 @@
 import passport from 'koa-passport'
 import { Strategy as GithubStrategy } from 'passport-github'
-import RobotAuthentication from './robot-authentication'
+import GithubAPIStrategy from './passport-github-api'
 import nconf from '../nconf'
 import { User } from './../model'
 import { joinURL } from '../../common/util'
@@ -52,6 +52,14 @@ export function init() {
           ? done(null, {...user, ...data})
           : done(new Error(`no user for id ${data.id}`)))
   })
+  
+  passport.use(new GithubAPIStrategy({
+      apiUrl: GITHUB_API_URL
+    },
+    (accessToken, profile, done) =>
+      // make it look like it came from the database
+      done(null, {id: profile.id, accessToken, json: normalizeProfile(profile)})
+  ))
 
   passport.use(new GithubStrategy({
       // See https://developer.github.com/v3/oauth
@@ -77,10 +85,6 @@ export function init() {
           .catch(done)
     }
   ))
-
-  if (RobotAuthentication !== null) {
-    passport.use(RobotAuthentication.strategy)
-  }
 
   return passport
 }

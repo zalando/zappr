@@ -16,7 +16,7 @@ import { db } from './model'
 import { init as initPassport } from './passport/passport'
 import { logger } from '../common/debug'
 import {GITHUB_ERROR_TYPE} from './service/GithubServiceError'
-import {CHECK_ERROR_TYPE} from './handler/CheckHandler'
+import {CHECK_ERROR_TYPE} from './handler/CheckHandlerError'
 import {REPO_ERROR_TYPE} from './handler/RepositoryHandlerError'
 
 const log = logger('app')
