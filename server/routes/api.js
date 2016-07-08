@@ -1,7 +1,6 @@
 import crypto from 'crypto'
 import nconf from '../nconf'
 import { githubService } from '../service/GithubService'
-import Problem from '../../common/Problem'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
 import { checkHandler } from '../handler/CheckHandler'
@@ -82,7 +81,12 @@ export function repo(router) {
   .get('/api/repos/:id/zapprfile', requireAuth, async(ctx) => {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id, 10)
-    const repo = await repositoryHandler.onGetOne(id, user, true)
+    let repo
+    try {
+      repo = await repositoryHandler.onGetOne(id, user, true)
+    } catch(e) {
+      ctx.throw(404, e)
+    }
     // try to use a token, if possible
     // fallback to unauthenticated request, which is limited to 60/hr :(
     const token = repo.checks.length > 0 ? repo.checks[0].token : null
