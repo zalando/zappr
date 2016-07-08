@@ -1,6 +1,5 @@
 import crypto from 'crypto'
 import nconf from '../nconf'
-import Problem from '../../common/Problem'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
 import { checkHandler } from '../handler/CheckHandler'
@@ -55,12 +54,9 @@ export function repos(router) {
       const user = ctx.req.user
       const all = ctx.request.query.all == 'true'
       const repos = await repositoryHandler.onGetAll(user, all)
-
-      ctx.response.type = 'application/json'
       ctx.body = repos.map(repo => repo.toJSON())
     } catch (e) {
-      error(e)
-      ctx.throw(e)
+      ctx.throw(503, e)
     }
   })
 }
@@ -70,67 +66,47 @@ export function repos(router) {
  */
 export function repo(router) {
   return router
-    .get('/api/repos/:id', requireAuth, async(ctx) => {
-      try {
-        const user = ctx.req.user
-        const id = parseInt(ctx.params.id)
-        const repo = await repositoryHandler.onGetOne(id, user)
-        if (!repo) ctx.throw(404)
-        ctx.response.type = 'application/json'
-        ctx.body = repo
-      } catch (e) {
-        error(e)
-        ctx.throw(e)
-      }
-    })
-    .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
-      try {
-        const user = ctx.req.user
-        const id = parseInt(ctx.params.id)
-        const type = ctx.params.type
-        const repo = await repositoryHandler.onGetOne(id, user)
-        const check = await checkHandler.onEnableCheck(user, repo, type)
-        ctx.response.type = 'application/json'
-        ctx.response.status = 201
-        ctx.body = check.toJSON()
-      } catch (e) {
-        // TODO: use Exception handling middleware to return Problems instead
-        error(e)
-        ctx.status = e.code
-        ctx.body = new Problem().withTitle('Could not enable check.')
-                                .withStatus(e.code)
-                                .withDetail(e.message)
-      }
-    })
-    .delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
-      try {
-        const user = ctx.req.user
-        const id = parseInt(ctx.params.id)
-        const repo = await repositoryHandler.onGetOne(id, user)
-        const type = ctx.params.type
-        await checkHandler.onDisableCheck(user, repo, type)
-        ctx.response.status = 204
-        ctx.body = null
-      } catch (e) {
-        // TODO: use Exception handling middleware to return Problems instead
-        error(e)
-        ctx.status = e.code
-        ctx.body = new Problem().withTitle('Could not disable check.')
-                                .withStatus(e.code)
-                                .withDetail(e.message)
-      }
-    })
-    .post('/api/hook', validateIsCalledFromGithub, async(ctx) => {
-      try {
-        const {header, body} = ctx.request
-        const event = header[GITHUB_EVENT_HEADER]
-        const hookResult = await hookHandler.onHandleHook(event, body)
-        ctx.response.type = 'application/json'
-        ctx.response.status = 200
-        ctx.body = hookResult
-      } catch (e) {
-        error(e)
-        ctx.throw(e)
-      }
-    })
+  .get('/api/repos/:id', requireAuth, async(ctx) => {
+    try {
+      const user = ctx.req.user
+      const id = parseInt(ctx.params.id)
+      const repo = await repositoryHandler.onGetOne(id, user)
+      ctx.body = repo
+    } catch (e) {
+      ctx.throw(404, e)
+    }
+  })
+  .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
+    try {
+      const user = ctx.req.user
+      const id = parseInt(ctx.params.id)
+      const type = ctx.params.type
+      const repo = await repositoryHandler.onGetOne(id, user)
+      const check = await checkHandler.onEnableCheck(user, repo, type)
+      ctx.response.status = 201
+      ctx.body = check.toJSON()
+    } catch (e) {
+      ctx.throw(503, e)
+    }
+  })
+  .delete('/api/repos/:id/:type', requireAuth, async(ctx) => {
+    try {
+      const user = ctx.req.user
+      const id = parseInt(ctx.params.id)
+      const repo = await repositoryHandler.onGetOne(id, user)
+      const type = ctx.params.type
+      await checkHandler.onDisableCheck(user, repo, type)
+      ctx.response.status = 204
+      ctx.body = null
+    } catch (e) {
+      ctx.throw(503, e)
+    }
+  })
+  .post('/api/hook', validateIsCalledFromGithub, async(ctx) => {
+    const {header, body} = ctx.request
+    const event = header[GITHUB_EVENT_HEADER]
+    const hookResult = await hookHandler.onHandleHook(event, body)
+    ctx.response.status = 200
+    ctx.body = hookResult
+  })
 }

@@ -30,7 +30,7 @@ class Home extends Component {
       <Row className="zpr-home">
         <Col md={12}>
           {error ?
-            <Alert bsStyle='danger'>Could not fetch repositories: {error}</Alert>
+            <Alert bsStyle='danger'>Could not fetch repositories: {error.status} {error.title} {error.detail}</Alert>
             :
             <RepositoryBrowser repos={repos}
                                fetchAll={requestReposIfNeeded}
