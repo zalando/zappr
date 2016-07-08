@@ -45,7 +45,7 @@ class CheckHandler {
         attributes: {exclude: ['token']}
       })
     } catch (e) {
-      throw new CheckHandlerError(CHECK_EXISTS, {type, repository: repoId}, e)
+      throw new CheckHandlerError(CHECK_EXISTS, {type, repository: repoId})
     }
   }
 
@@ -72,7 +72,7 @@ class CheckHandler {
         }
       })
     } catch (e) {
-      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId }, e)
+      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId })
     }
     if (!check) throw new CheckHandlerError(CHECK_NOT_FOUND, {type, repository: repoId})
     return check
@@ -95,7 +95,7 @@ class CheckHandler {
         }
       })
     } catch (e) {
-      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId}, e)
+      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId})
     }
   }
 
@@ -119,7 +119,7 @@ class CheckHandler {
       // Expect check not to exist
     }
     if (existingCheck) throw new CheckHandlerError(CHECK_EXISTS, {type, repository: repo.id})
-    
+
     await this.github.updateWebhookFor(repo.owner.login, repo.name, events, user.accessToken)
     const check = await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
     info(`${repo.full_name}: enabled check ${type}`)
