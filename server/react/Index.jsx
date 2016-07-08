@@ -40,6 +40,7 @@ export default class Index extends Component {
         <meta name="description" content="Approvals for Github pull requests"/>
         <meta name="viewport" content="width=device-width,initial-scale=1"/>
         <title>ZAPPR</title>
+        <link rel="stylesheet" href="https://bootswatch.com/paper/bootstrap.min.css"/>
         <link rel="shortcut icon" href="favicon.ico"/>
         {css.map((s, i) => (<link key={i} href={`/${s}`} rel="stylesheet"/>))}
       </head>
