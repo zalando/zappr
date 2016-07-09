@@ -2,10 +2,9 @@ import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { Link } from 'react-router'
 import { Grid, Row, Col, Image, Navbar } from 'react-bootstrap'
-
 import { loginGithub } from '../actions/auth'
 import { logger } from '../../common/debug'
-
+import logo from '../img/logo.svg'
 const log = logger('login')
 
 function mapStateToProps(state) {
@@ -273,23 +272,19 @@ class Login extends Component {
       <span className='fa fa-github'/>
       Sign in with GitHub
     </a>
-    const logoStyle = {
-      width: 120,
-      verticalAlign: 'baseline',
-      position: 'relative',
-      top: '1px',
-      marginRight: '.25em'
-    }
+
     return (
       <section className='zpr-login'>
         <div style={{flex: '1 1 auto', width: '100%', background: '#ebebeb'}}>
           <div className="text-center">
+
             <h1 className="hero">
-              Enhance your <Highlight>Github</Highlight> workflow
+              <img src={logo} className="logo"/> Zappr is a <Highlight>Github</Highlight> integration
             </h1>
             <div style={{margin: '30 0'}}>
               {loginButton}
             </div>
+
           </div>
         </div>
 

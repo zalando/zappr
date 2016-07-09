@@ -1,6 +1,6 @@
 @import "fonts/minecraft.css";
 
-svg {
+svg:not(.icon) {
     display: block;
     margin: 0 auto;
 }
@@ -98,6 +98,11 @@ svg {
     text-align: center;
     font-size: 1.5rem;
     padding-top: 15px;
+}
+
+img.logo {
+    width: 35px;
+    vertical-align: sub;
 }
 
 @media (max-width: 600px) {
