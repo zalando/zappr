@@ -35,7 +35,7 @@ export default class NavHeader extends Component {
       },
       avatar: {
         width: '40px',
-        marginTop: '5px'
+        marginTop: '13px'
       }
     }
     return (
