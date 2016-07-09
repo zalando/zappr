@@ -117,27 +117,28 @@ img.logo {
 
 .list-group-item.active,
 .list-group-item.active:hover {
-    color: var(--dark-gray);
-    background-color: var(--yellow);
-    border-color: var(--yellow);
+    color: var(--dark-gray) !important;
+    background-color: var(--yellow) !important;
+    border-color: var(--yellow) !important;
 }
 
 input.form-control:focus {
-    box-shadow: inset 0 -2px 0 var(--yellow);
+    box-shadow: inset 0 -2px 0 var(--yellow) !important;
 }
 
 .form-control:focus {
-    border-color: var(--yellow);
+    border-color: var(--yellow) !important;
 }
 
 label.btn-primary.toggle-on {
-    color: var(--dark-gray);
-    background-color: var(--yellow);
+    color: var(--dark-gray) !important;
+    background-color: var(--yellow) !important;
+    border-color: var(--yellow) !important;
 }
 
 label.btn-primary.toggle-on:active {
-    background-color: var(--yellow);
-    background-image: radial-gradient(circle, #d2a636 10%, var(--yellow) 11%);
+    background-color: var(--yellow) !important;
+    background-image: radial-gradient(circle, #d2a636 10%, var(--yellow) 11%) !important;
 }
 
 @media (max-width: 600px) {

@@ -41,9 +41,9 @@ export default class Index extends Component {
         <meta name="viewport" content="width=device-width,initial-scale=1"/>
         <title>Zappr</title>
         <link rel="shortcut icon" href="/img/logo.svg"/>
-        <link rel="stylesheet" href="https://bootswatch.com/paper/bootstrap.min.css"/>
-        {css.map((s, i) => (<link key={i} href={`/${s}`} rel="stylesheet"/>))}
 
+        {css.map((s, i) => (<link key={i} href={`/${s}`} rel="stylesheet"/>))}
+        <link rel="stylesheet" href="https://bootswatch.com/paper/bootstrap.min.css"/>
       </head>
       <body>
       <main id="main" dangerouslySetInnerHTML={html}/>
