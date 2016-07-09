@@ -140,9 +140,3 @@ label.btn-primary.toggle-on:active {
     background-color: var(--yellow) !important;
     background-image: radial-gradient(circle, #d2a636 10%, var(--yellow) 11%) !important;
 }
-
-@media (max-width: 600px) {
-    .zpr-login > *:not(:first-child) {
-        padding: 15px;
-    }
-}

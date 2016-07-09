@@ -17,8 +17,8 @@ function mapStateToProps(state) {
 const YELLOW = '#F6C341'
 
 function CommitMessage({animate}) {
-  return <svg id="commitmessage" width={400} height={200}>
-    <g transform="translate(0, -50)">
+  return <svg id="commitmessage" width={300} height={200}>
+    <g transform="translate(-50, -50)">
       <path id="commitmessage_branch"
             d="m89.5,97c0,78 18,115 100.5,111"
             fillOpacity="null"
@@ -79,8 +79,8 @@ function CommitMessage({animate}) {
 }
 
 function Approval({animate}) {
-  return <svg id="approval" width={400} height={200}>
-    <g transform="translate(0, -50)">
+  return <svg id="approval" width={300} height={200}>
+    <g transform="translate(-50, -50)">
       <path id="approval_merge"
             d="m199.5,209c102,1 102,-27 95,-116"
             fillOpacity="null"
@@ -173,8 +173,8 @@ function Approval({animate}) {
 }
 
 function Autobranch({animate}) {
-  return <svg id="autobranch" width={400} height={200}>
-    <g transform="translate(0, -50)">
+  return <svg id="autobranch" width={300} height={200}>
+    <g transform="translate(-50, -50)">
       <path id="autobranch_branch"
             className={animate ? 'grow' : ''}
             d="m89.5,97c0,78 18,115 100.5,111"
