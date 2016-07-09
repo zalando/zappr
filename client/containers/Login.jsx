@@ -24,7 +24,9 @@ function CommitMessage({animate}) {
             fillOpacity="null"
             className={animate ? 'grow' : ''}
             strokeOpacity="null"
-            strokeWidth="8"
+            strokeDasharray="200"
+            strokeDashoffset="200"
+            strokeWidth="2"
             stroke="#000"
             fill="none"/>
       <line strokeLinecap="null"
@@ -36,7 +38,7 @@ function CommitMessage({animate}) {
             x1="76.5"
             fillOpacity="null"
             strokeOpacity="null"
-            strokeWidth="8"
+            strokeWidth="2"
             stroke="#000"
             fill="none"/>
       <ellipse ry="25"
@@ -44,7 +46,7 @@ function CommitMessage({animate}) {
                id="svg_1"
                cy="92.5"
                cx="89.5"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
       <ellipse ry="25"
@@ -52,7 +54,7 @@ function CommitMessage({animate}) {
                id="svg_2"
                cy="92.5"
                cx="89.5"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
       <ellipse ry="25"
@@ -60,17 +62,17 @@ function CommitMessage({animate}) {
                id="svg_4"
                cy="92.5"
                cx="190.506577"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
-      <ellipse stroke="#000"
+      <ellipse stroke="#fff"
                className={animate ? 'grow' : ''}
                ry="25"
                rx="25"
                id="commitmessage_commit"
                cy="205.5"
                cx="191.5"
-               strokeWidth="8"
+               strokeWidth="4"
                fill="#fff"/>
     </g>
   </svg>
@@ -86,7 +88,7 @@ function Approval({animate}) {
             strokeOpacity="null"
             strokeDasharray="200"
             strokeDashoffset="200"
-            strokeWidth="8"
+            strokeWidth="4"
             stroke={YELLOW}
             fill="#fff"/>
       <path id="approval_branch"
@@ -95,7 +97,7 @@ function Approval({animate}) {
             strokeDasharray="200"
             strokeDashoffset="200"
             strokeOpacity="null"
-            strokeWidth="8"
+            strokeWidth="2"
             stroke="#000"
             fill="none"/>
       <line strokeLinecap="null"
@@ -106,7 +108,7 @@ function Approval({animate}) {
             x1="76.5"
             fillOpacity="null"
             strokeOpacity="null"
-            strokeWidth="8"
+            strokeWidth="2"
             stroke="#000"
             fill="none"/>
       <line strokeLinecap="null"
@@ -121,7 +123,7 @@ function Approval({animate}) {
             x1="190.5"
             fillOpacity="null"
             strokeOpacity="null"
-            strokeWidth="8"
+            strokeWidth="2"
             stroke="#000"
             fill="none"/>
       <ellipse ry="25"
@@ -129,7 +131,7 @@ function Approval({animate}) {
                id="svg_1"
                cy="92.5"
                cx="89.5"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
       <ellipse ry="25"
@@ -137,7 +139,7 @@ function Approval({animate}) {
                id="svg_2"
                cy="92.5"
                cx="89.5"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
       <ellipse ry="25"
@@ -145,7 +147,7 @@ function Approval({animate}) {
                id="svg_4"
                cy="92.5"
                cx="190.506577"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
       <ellipse ry="10"
@@ -154,7 +156,7 @@ function Approval({animate}) {
                className={animate ? 'grow' : ''}
                cy="92.5"
                cx="291.5"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
       <ellipse stroke="#000"
@@ -164,7 +166,7 @@ function Approval({animate}) {
                id="approval_commit"
                cy="205.5"
                cx="191.5"
-               strokeWidth="8"
+               strokeWidth="2"
                fill="#fff"/>
     </g>
   </svg>
@@ -180,7 +182,7 @@ function Autobranch({animate}) {
             strokeDasharray="200"
             strokeDashoffset="200"
             strokeOpacity="null"
-            strokeWidth="8"
+            strokeWidth="4"
             stroke={YELLOW}
             fill="none"/>
       <line strokeLinecap="null"
@@ -192,7 +194,7 @@ function Autobranch({animate}) {
             x1="76.5"
             fillOpacity="null"
             strokeOpacity="null"
-            strokeWidth="8"
+            strokeWidth="2"
             stroke="#000"
             fill="none"/>
       <ellipse ry="25"
@@ -200,7 +202,7 @@ function Autobranch({animate}) {
                id="svg_1"
                cy="92.5"
                cx="89.5"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
       <ellipse ry="25"
@@ -208,7 +210,7 @@ function Autobranch({animate}) {
                id="svg_2"
                cy="92.5"
                cx="89.5"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
       <ellipse ry="25"
@@ -216,7 +218,7 @@ function Autobranch({animate}) {
                id="svg_4"
                cy="92.5"
                cx="190.506577"
-               strokeWidth="8"
+               strokeWidth="2"
                stroke="#000"
                fill="#fff"/>
       <ellipse stroke="#000"
@@ -226,14 +228,14 @@ function Autobranch({animate}) {
                id="autobranch_commit"
                cy="205.5"
                cx="191.5"
-               strokeWidth="8"
+               strokeWidth="2"
                fill="#fff"/>
     </g>
   </svg>
 }
 
 function Highlight({children}) {
-  return <span style={{borderBottom: `3px solid ${YELLOW}`}}>{children}</span>;
+  return <span style={{backgroundImage: `linear-gradient( to top, rgba(0,0,0,0) 2%, ${YELLOW} 2%, ${YELLOW} 10%, rgba(0,0,0,0) 8%);`}}>{children}</span>;
 }
 
 class Login extends Component {
@@ -275,16 +277,15 @@ class Login extends Component {
 
     return (
       <section className='zpr-login'>
-        <div style={{flex: '1 1 auto', width: '100%', background: '#ebebeb'}}>
-          <div className="text-center">
+        <div style={{flex: '1 1 auto', width: '100%'}}>
+          <div className="page-header text-center">
 
-            <h1 className="hero">
+            <h2 className="hero">
               <img src={logo} className="logo"/> Zappr is a <Highlight>Github</Highlight> integration
-            </h1>
+            </h2>
             <div style={{margin: '30 0'}}>
               {loginButton}
             </div>
-
           </div>
         </div>
 
@@ -292,21 +293,21 @@ class Login extends Component {
           <Row>
             <Col md={4}>
               <section>
-                <h3>Pull Request <Highlight>approvals</Highlight></h3>
+                <h4>Pull Request <Highlight>approvals</Highlight></h4>
                 <p><Highlight>Block pull requests</Highlight> until maintainers approved all proposed changes.</p>
                 <Approval animate={this.state.animate}/>
               </section>
             </Col>
             <Col md={4}>
               <section>
-                <h3>Commit message patterns</h3>
+                <h4>Commit message patterns</h4>
                 <p>Require commit messages in a pull request to <Highlight>follow a pattern you define.</Highlight></p>
                 <CommitMessage animate={this.state.animate}/>
               </section>
             </Col>
             <Col md={4}>
               <section>
-                <h3>Automatic branch creation</h3>
+                <h4>Automatic branch creation</h4>
                 <p>Automatically create a branch in your repository <Highlight>for every opened issue.</Highlight></p>
                 <Autobranch animate={this.state.animate}/>
               </section>
@@ -314,11 +315,11 @@ class Login extends Component {
           </Row>
           <Row>
             <Col md={12}>
-              <h1 className="page-header text-center">Benefits</h1>
+              <h2 className="page-header text-center">Benefits</h2>
             </Col>
             <Col md={4}>
               <section>
-                <h3 className="text-center">Code Review</h3>
+                <h4 className="text-center">Code Review</h4>
                 <p>Zappr is our attempt to <Highlight>restore and improve code review</Highlight> to the process of
                   developing a project on
                   Github. Github doesn't impose restrictions on project contributions. While great for openness, this
@@ -327,7 +328,7 @@ class Login extends Component {
             </Col>
             <Col md={4}>
               <section>
-                <h3 className="text-center">Compliance</h3>
+                <h4 className="text-center">Compliance</h4>
                 <p>We are proponents of being able to do as much work as possible in Github, using Github. When working
                   with compliance requirements, however, this can get tricky: <Highlight>how can developers employ the
                     four-eyes
@@ -338,7 +339,7 @@ class Login extends Component {
             </Col>
             <Col md={4}>
               <section>
-                <h3 className="text-center">No More Bottlenecks</h3>
+                <h4 className="text-center">No More Bottlenecks</h4>
                 <p>We think it could be very useful for larger open-source projects that can't rely on a handful of
                   admins to handle all PRs <Highlight>without sacrificing quality control.</Highlight></p>
               </section>

@@ -83,7 +83,7 @@ export default class RepositoryList extends Component {
           style={{width: '100%'}}
           disabled={isUpdating}
           onClick={this.onFetchAll.bind(this)}
-          bsStyle='primary' lg>
+          bsStyle='default' lg>
           <i className={classes('fa', 'fa-refresh', {'fa-spin': isUpdating})}/>&nbsp;Sync with Github
         </Button>
       </Panel>

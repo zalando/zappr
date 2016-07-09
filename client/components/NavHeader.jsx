@@ -1,8 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { Link } from 'react-router'
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Image } from 'react-bootstrap'
-
-import icon from '../img/icon.png'
+import logo from '../img/logo.svg'
 
 export default class NavHeader extends Component {
   static propTypes = {
@@ -23,14 +22,16 @@ export default class NavHeader extends Component {
 
     const style = {
       logo: {
-        marginTop: '1px',
-        display: 'inline'
+        marginTop: '-1px',
+        display: 'inline',
+        height: '65px'
       },
       logoText: {
-        fontFamily: 'minecraftmedium',
+        fontWeight: 700,
         fontSize: '2rem',
+        marginTop: '13px',
         marginBottom: 0,
-        color: '#663931'
+        color: '#555'
       },
       avatar: {
         width: '40px',
@@ -43,8 +44,8 @@ export default class NavHeader extends Component {
           <Navbar.Brand>
             <Link to="/"
                   style={{padding: '0 15px'}}>
-              <Image alt="ZAPPR"
-                     src={icon}
+              <Image alt="Zappr"
+                     src={`/${logo}`}
                      style={style.logo}/>
             </Link>
           </Navbar.Brand>
@@ -52,7 +53,7 @@ export default class NavHeader extends Component {
         </Navbar.Header>
         <Navbar.Collapse>
           <Navbar.Text style={style.logoText}>
-            ZAPPR
+            Zappr
           </Navbar.Text>
           <Nav>
             <li className={this.isActive('/')}>
