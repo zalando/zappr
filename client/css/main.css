@@ -111,6 +111,7 @@ img.logo {
     --dark-gray: #555;
     --yellow: #F6C341;
     --light-gray: #f5f5f5;
+    --purple: #B559A8;
 }
 
 /* bootstrap overrides */
@@ -139,4 +140,8 @@ label.btn-primary.toggle-on {
 label.btn-primary.toggle-on:active {
     background-color: var(--yellow) !important;
     background-image: radial-gradient(circle, #d2a636 10%, var(--yellow) 11%) !important;
+}
+
+.alert.alert-info {
+    background-color: var(--purple);
 }
