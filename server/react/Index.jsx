@@ -43,7 +43,6 @@ export default class Index extends Component {
         <link rel="shortcut icon" href="/img/logo.svg"/>
 
         {css.map((s, i) => (<link key={i} href={`/${s}`} rel="stylesheet"/>))}
-        <link rel="stylesheet" href="https://bootswatch.com/paper/bootstrap.min.css"/>
       </head>
       <body>
       <main id="main" dangerouslySetInnerHTML={html}/>
