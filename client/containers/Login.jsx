@@ -2,7 +2,7 @@ import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { Link } from 'react-router'
 import { Grid, Row, Col, Image, Navbar } from 'react-bootstrap'
-import { loginGithub } from '../actions/auth'
+import { loginGitHub } from '../actions/auth'
 import { logger } from '../../common/debug'
 import logo from '../img/logo.svg'
 const log = logger('login')
@@ -270,7 +270,7 @@ class Login extends Component {
                            className='btn btn-social btn-github'
                            disabled={this.props.isAuthenticating}
                            href='/auth/github'
-                           onClick={this.props.loginGithub}>
+                           onClick={this.props.loginGitHub}>
       <span className='fa fa-github'/>
       Sign in with GitHub
     </a>
@@ -281,7 +281,7 @@ class Login extends Component {
           <div className="page-header text-center">
 
             <h2 className="hero">
-              <img src={logo} className="logo"/> Zappr is a <Highlight>Github</Highlight> integration
+              <img src={logo} className="logo"/> Zappr is a <Highlight>GitHub</Highlight> integration
             </h2>
             <div style={{margin: '30 0'}}>
               {loginButton}
@@ -293,7 +293,7 @@ class Login extends Component {
           <Row>
             <Col md={4}>
               <section>
-                <h4>Pull Request <Highlight>approvals</Highlight></h4>
+                <h4>Pull Request approvals</h4>
                 <p><Highlight>Block pull requests</Highlight> until maintainers approved all proposed changes.</p>
                 <Approval animate={this.state.animate}/>
               </section>
@@ -322,17 +322,17 @@ class Login extends Component {
                 <h4 className="text-center">Code Review</h4>
                 <p>Zappr is our attempt to <Highlight>restore and improve code review</Highlight> to the process of
                   developing a project on
-                  Github. Github doesn't impose restrictions on project contributions. While great for openness, this
+                  GitHub. GitHub doesn't impose restrictions on project contributions. While great for openness, this
                   can pose challenges for project developers who want contributors to follow certain guidelines.</p>
               </section>
             </Col>
             <Col md={4}>
               <section>
                 <h4 className="text-center">Compliance</h4>
-                <p>We are proponents of being able to do as much work as possible in Github, using Github. When working
+                <p>We are proponents of being able to do as much work as possible in GitHub, using GitHub. When working
                   with compliance requirements, however, this can get tricky: <Highlight>how can developers employ the
                     four-eyes
-                    principle on Github?</Highlight> Zappr aims to address this by applying a review/approval function
+                    principle on GitHub?</Highlight> Zappr aims to address this by applying a review/approval function
                   to the project
                   workflow at a critical point of transition.</p>
               </section>
@@ -355,4 +355,4 @@ class Login extends Component {
   }
 }
 
-export default connect(mapStateToProps, {loginGithub})(Login)
+export default connect(mapStateToProps, {loginGitHub})(Login)
