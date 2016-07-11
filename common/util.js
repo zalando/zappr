@@ -78,6 +78,13 @@ export function getIn(obj, path, returnDefault = null) {
   return returnDefault
 }
 
+export function decode(string, encoding = 'base64') {
+  if (encoding !== 'base64') {
+    throw new Error(`Encoding "${encoding}" not supported`)
+  }
+  return new Buffer(string, encoding).toString('utf8')
+}
+
 /**
  * Returns a new set that is the difference of the two sets provided (set1 - set2).
  *
@@ -93,6 +100,25 @@ export function setDifference(set1, set2) {
     return set1
   }
   return new Set([...set1].filter(item => !set2.has(item)))
+}
+
+/**
+ * Map over the keys and values of an object.
+ *
+ * @param {Object} object
+ * @param {function} callback
+ * @returns {Object} - new object
+ */
+export function mapValues(object, callback) {
+  if (!object) return {}
+  return Object.keys(object).reduce((newObject, key) => ({
+    ...newObject, [key]: callback(key, object[key])
+  }), {})
+}
+
+const ESCAPED_UNICODE_CHAR = /\\u([\d\w]{4})/gi
+export function unescape(stringWithEscapedEmojis) {
+  return stringWithEscapedEmojis.replace(ESCAPED_UNICODE_CHAR, (_, grp) => String.fromCharCode(parseInt(grp, 16)))
 }
 
 const SYMBOL_STRING = /Symbol\((.+?)\)/

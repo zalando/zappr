@@ -1,0 +1,18 @@
+{
+  "name": ".zappr.yaml",
+  "path": ".zappr.yaml",
+  "sha": "b7f0eb2797e0d7b6519fe3b4deafdd7e28867786",
+  "size": 30,
+  "url": "https://api.github.com/repos/prayerslayer/invalid-zappr-config-test/contents/.zappr.yaml?ref=master",
+  "html_url": "https://github.com/prayerslayer/invalid-zappr-config-test/blob/master/.zappr.yaml",
+  "git_url": "https://api.github.com/repos/prayerslayer/invalid-zappr-config-test/git/blobs/b7f0eb2797e0d7b6519fe3b4deafdd7e28867786",
+  "download_url": "https://raw.githubusercontent.com/prayerslayer/invalid-zappr-config-test/master/.zappr.yaml",
+  "type": "file",
+  "content": "YXBwcm92YWw6CiAgcGF0dGVybjogIjpcKzE6IgoK\n",
+  "encoding": "base64",
+  "_links": {
+    "self": "https://api.github.com/repos/prayerslayer/invalid-zappr-config-test/contents/.zappr.yaml?ref=master",
+    "git": "https://api.github.com/repos/prayerslayer/invalid-zappr-config-test/git/blobs/b7f0eb2797e0d7b6519fe3b4deafdd7e28867786",
+    "html": "https://github.com/prayerslayer/invalid-zappr-config-test/blob/master/.zappr.yaml"
+  }
+}

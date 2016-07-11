@@ -48,12 +48,37 @@ describe('API', () => {
       fixtures.repo = fixtures.repos[0]
       fixtures.repoOwner = fixtures.repo.owner.login
       fixtures.repoName = fixtures.repo.name
+      fixtures.validZappr = require('../fixtures/github.zapprfile.valid.json')
+      fixtures.invalidZappr = require('../fixtures/github.zapprfile.invalid.json')
+      fixtures.noZappr = require('../fixtures/github.zapprfile.notfound.json')
 
       // Configure mountebank
       const mb = await mountebank.start()
       await mb.imposter().
       setPort(imposter.port).
       setName(imposter.name).
+      stub().
+        response().
+          setStatusCode(200).
+          setHeader('Content-Type', 'application/json').
+          setBody(fixtures.validZappr).
+        add().
+        predicate().
+          setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/contents/.zappr.yaml`).
+          setMethod('GET').
+        add().
+      add().
+      stub().
+        response().
+          setStatusCode(200).
+          setHeader('Content-Type', 'application/json').
+          setBody(fixtures.invalidZappr).
+        add().
+        predicate().
+          setPath(`/repos/${fixtures.repos[1].full_name}/contents/.zappr.yaml`).
+          setMethod('GET').
+        add().
+      add().
       stub().
         response().
           setStatusCode(200).
@@ -261,6 +286,42 @@ describe('API', () => {
         done()
       } catch (e) {
         return done(e)
+      }
+    })
+  })
+
+  describe('GET /api/repos/:id/zapprfile', () => {
+    it('should return the effective configuration', async(done) => {
+      try {
+        await request.get('/api/repos').expect(200)
+        const response = await request.get(`/api/repos/${fixtures.repo.id}/zapprfile`)
+        expect(response.statusCode).to.equal(200)
+        expect(response.body).to.have.keys('config', 'valid', 'message')
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+    it('should return the error message if there was an error during config parsing', async(done) => {
+      try {
+        await request.get('/api/repos').expect(200)
+        const response = await request.get(`/api/repos/${fixtures.repos[1].id}/zapprfile`)
+        expect(response.statusCode).to.equal(200)
+        expect(response.body).to.have.keys('config', 'valid', 'message')
+        expect(response.body.message).to.not.equal('')
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+    it('should return 404 if there is no such repo', async(done) => {
+      try{
+        const response = await request.get(`/api/repos/${fixtures.repo.id}111/zapprfile`)
+        expect(response.statusCode).to.equal(404)
+        expect(response.body).to.have.keys('detail', 'status', 'title', 'type')
+        done()
+      } catch (e) {
+        done(e)
       }
     })
   })
