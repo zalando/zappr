@@ -88,7 +88,7 @@ export default function RepositoryConfigValidation({validation, onValidate}) {
       <Result validation={validation} />
     </Alert>
   } else if (validation.error) {
-    result = <Alert style={{marginTop: '1em'}} bsStyle='danger'>{validation.error}</Alert>
+    result = <Alert style={{marginTop: '1em'}} bsStyle='danger'>{validation.error.status} {validation.error.title}</Alert>
   }
   return <div>
     <Button onClick={onValidate}>

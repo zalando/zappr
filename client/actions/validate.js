@@ -19,6 +19,6 @@ export function requestConfigValidation({id, full_name}) {
     dispatch(validateConfig(PENDING, full_name))
     RepoService.validateConfig(id)
                .then(status => dispatch(validateConfig(SUCCESS, full_name, status)))
-               .catch(error => dispatch(validateConfig(ERROR, full_name, {error: 'Could not validate Zapprfile'})))
+               .catch(error => dispatch(validateConfig(ERROR, full_name, {error})))
   }
 }

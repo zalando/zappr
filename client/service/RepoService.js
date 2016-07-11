@@ -6,10 +6,13 @@ export default class RepoService extends Service {
     return fetch(Service.url(`/api/repos/${repoId}/zapprfile`), {credentials: 'same-origin'})
     .then(response => {
       return new Promise((resolve, reject) => {
-        if (response.ok) {
-          return response.json().then(resolve)
-        }
-        response.text().then(reject)
+        return response.json().then(json => {
+          if (response.ok) {
+            resolve(json)
+          } else {
+            reject(json)
+          }
+        })
       })
     })
   }
