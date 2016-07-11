@@ -1,5 +1,5 @@
-import passport from 'koa-passport'
 import nconf from '../nconf'
+import passport from 'koa-passport'
 
 /**
  * Login endpoint.
@@ -36,10 +36,10 @@ export function logout(router) {
 /**
  * Middleware to require authentication.
  */
-export function requireAuth(ctx, next) {
+export async function requireAuth(ctx, next) {
   if (ctx.isAuthenticated()) {
     return next()
   } else {
-    ctx.throw(401)
+    return passport.authenticate('github-api', {session: false})(ctx, next)
   }
 }

@@ -1,16 +1,11 @@
 import passport from 'koa-passport'
 import { Strategy as GithubStrategy } from 'passport-github'
+import GithubAPIStrategy from './passport-github-api'
+import nconf from '../nconf'
+import { User } from './../model'
+import { joinURL } from '../../common/util'
+import { logger } from '../../common/debug'
 
-import nconf from './nconf'
-import { User } from './model'
-import { joinURL } from '../common/util'
-import { logger } from '../common/debug'
-
-const GITHUB_CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
-const GITHUB_CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
-const GITHUB_UI_URL = nconf.get('GITHUB_UI_URL')
-const GITHUB_API_URL = nconf.get('GITHUB_API_URL')
-const HOST_ADDR = nconf.get('HOST_ADDR')
 const log = logger('passport')
 
 /**
@@ -28,10 +23,16 @@ function normalizeProfile(profile) {
 /**
  * Configure and return passport instance.
  *
- * @param Strategy - Passport authentication strategy
+ * @param {Strategy} - Passport strategy
  * @returns {Authenticator} - Passport instance
  */
 export function init(Strategy = GithubStrategy) {
+  const GITHUB_CLIENT_ID = nconf.get('GITHUB_CLIENT_ID')
+  const GITHUB_CLIENT_SECRET = nconf.get('GITHUB_CLIENT_SECRET')
+  const GITHUB_UI_URL = nconf.get('GITHUB_UI_URL')
+  const GITHUB_API_URL = nconf.get('GITHUB_API_URL')
+  const HOST_ADDR = nconf.get('HOST_ADDR')
+
   /**
    * Serialize user data into the session.
    */
@@ -53,6 +54,14 @@ export function init(Strategy = GithubStrategy) {
           ? done(null, {...user, ...data})
           : done(new Error(`no user for id ${data.id}`)))
   })
+
+  passport.use(new GithubAPIStrategy({
+      apiUrl: GITHUB_API_URL
+    },
+    (accessToken, profile, done) =>
+      // make it look like it came from the database
+      done(null, {id: profile.id, accessToken, json: normalizeProfile(profile)})
+  ))
 
   passport.use(new Strategy({
       // See https://developer.github.com/v3/oauth

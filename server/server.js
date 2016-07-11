@@ -13,10 +13,10 @@ import Sequelize from 'sequelize'
 import nconf from './nconf'
 import DatabaseStore from './session/database-store'
 import { db } from './model'
-import { init as initPassport } from './passport'
+import { init as initPassport } from './passport/passport'
 import { logger } from '../common/debug'
 import {GITHUB_ERROR_TYPE} from './service/GithubServiceError'
-import {CHECK_ERROR_TYPE} from './handler/CheckHandler'
+import {CHECK_ERROR_TYPE} from './handler/CheckHandlerError'
 import {REPO_ERROR_TYPE} from './handler/RepositoryHandlerError'
 
 const log = logger('app')
@@ -48,8 +48,7 @@ const morganSkip = (req, res) => res.statusCode < nconf.get('MORGAN_THRESH')
 /**
  * Initialize the Koa application instance.
  *
- * @param {Object} options - Application options
- * @param options.PassportStrategy - Authentication strategy
+ * @param {object} - Application options
  * @returns {Application} Koa application
  */
 export function init(options = {}) {
