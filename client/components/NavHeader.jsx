@@ -39,7 +39,7 @@ export default class NavHeader extends Component {
       }
     }
     return (
-      <Navbar>
+      <Navbar fluid={true}>
         <Navbar.Header>
           <Navbar.Brand>
             <Link to="/"
