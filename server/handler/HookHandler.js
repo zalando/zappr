@@ -1,4 +1,5 @@
-import merge from 'lodash/merge'
+import mergeWith from 'lodash/mergeWith'
+import isArray from 'lodash/isArray'
 
 import nconf from '../nconf'
 import { Approval, Autobranch, CommitMessage } from '../checks'
@@ -50,7 +51,12 @@ class HookHandler {
         await this.githubService.readZapprFile(owner.login, name, repo.checks[0].token)
         : {}
 
-      const config = merge({}, DEFAULT_CONFIG, zapprUserConfig)
+      const config = mergeWith({}, DEFAULT_CONFIG, zapprUserConfig, (objValue, srcValue) => {
+          // if source value is an array, take that as a value (dont't merge arrays)
+          if(isArray(srcValue) && (isArray(objValue) || typeof objValue === 'undefined' )) {
+              return srcValue;
+          }
+      });
 
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
