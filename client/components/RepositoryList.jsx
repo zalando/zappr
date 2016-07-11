@@ -74,7 +74,7 @@ export default class RepositoryList extends Component {
                        placeholder='zalando/zappr'/>
         </FormGroup>
         <Button
-          style={{width: '100%'}}
+          style={{width: '100%', marginBottom: '1rem'}}
           disabled={isUpdating}
           onClick={this.onFetchAll.bind(this)}
           bsStyle='default' lg>
