@@ -89,7 +89,7 @@ export function repo(router) {
     }
     // try to use a token, if possible
     // fallback to unauthenticated request, which is limited to 60/hr :(
-    const token = repo.checks.length > 0 ? repo.checks[0].token : null
+    const token = repo.checks.length > 0 ? repo.checks[0].token : nconf.get('DEFAULT_TOKEN')
     const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, token)
     const config = new ZapprConfiguration(zapprFileContent)
 
