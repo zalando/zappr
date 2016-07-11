@@ -1,17 +1,24 @@
 import yaml from 'js-yaml'
-import merge from 'lodash/merge'
 import nconf from '../nconf'
-import {logger} from '../../common/debug'
-const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
+import mergeWith from 'lodash/mergeWith'
+
+function mergeCustomizerFn(objValue, srcValue) {
+  if (Array.isArray(objValue) && (Array.isArray(srcValue) || typeof srcValue === 'undefined')) {
+    // arrays should just be overwritten instead of awkwardly merged by index
+    return srcValue
+  }
+}
+
+const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG') || {}
 
 export default class ZapprConfiguration {
-  constructor(fileContent) {
+  constructor(fileContent, defaultConfig = DEFAULT_CONFIG) {
     this.yamlParseError = null
-    this.configuration = Object.assign({}, DEFAULT_CONFIG)
+    this.configuration = Object.assign({}, defaultConfig)
 
     try {
       const content = yaml.safeLoad(fileContent)
-      this.configuration = merge({}, DEFAULT_CONFIG, content)
+      this.configuration = mergeWith({}, defaultConfig, content, mergeCustomizerFn)
     } catch (e) {
       this.yamlParseError = e.message
     }
