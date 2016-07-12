@@ -27,5 +27,11 @@ describe('The Github service', () => {
       const comments = github.getComments('zalando', 'zappr', 348, '2016-07-15T12:00:00Z', 'token')
       expect(comments.length).to.equal(0)
     })
+
+    it('should include everything if since is not present', () => {
+      github.fetchPath = sinon.stub().returns(MOCK_COMMENTS)
+      const comments = github.getComments('zalando', 'zappr', 348, null, 'token')
+      expect(comments).to.equal(MOCK_COMMENTS)
+    })
   })
 })
