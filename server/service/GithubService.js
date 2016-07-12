@@ -29,7 +29,7 @@ function fromBase64(encoded) {
   return new Buffer(encoded, 'base64').toString('utf8')
 }
 
-class GithubService {
+export class GithubService {
 
   getOptions(method, path, body, accessToken) {
     const headers = {}

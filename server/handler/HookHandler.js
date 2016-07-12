@@ -1,4 +1,4 @@
-import { Approval, Autobranch, CommitMessage } from '../checks'
+import { Approval, Autobranch, CommitMessage, Specification } from '../checks'
 import { logger } from '../../common/debug'
 import { githubService as defaultGithubService } from '../service/GithubService'
 import { repositoryHandler as defaultRepositoryHandler } from './RepositoryHandler'
@@ -23,6 +23,7 @@ class HookHandler {
     this.approval = new Approval(this.githubService, this.pullRequestHandler)
     this.autobranch = new Autobranch(this.githubService)
     this.commitMessage = new CommitMessage(this.githubService)
+    this.specification = new Specification(this.githubService)
   }
 
   /**
@@ -50,6 +51,10 @@ class HookHandler {
         config = zapprfile.isValid() ? zapprfile.getConfiguration() : config
       }
 
+      if (Specification.isTriggeredBy(event)) {
+        const token = await getToken(repo, Specification.TYPE)
+        await this.specification.execute(config, payload, token)
+      }
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
           this.approval.execute(config, payload, token, repo.id)
