@@ -48,12 +48,13 @@ class HookHandler {
       if (repo.checks.length) {
         const zapprFileContent = await this.githubService.readZapprFile(owner.login, name, repo.checks[0].token)
         const zapprfile = new ZapprConfiguration(zapprFileContent)
-        config = zapprfile.isValid() ? zapprfile.getConfiguration() : config
+        config = zapprfile.getConfiguration()
       }
 
       if (Specification.isTriggeredBy(event)) {
-        const token = await getToken(repo, Specification.TYPE)
-        await this.specification.execute(config, payload, token)
+        getToken(repo, Specification.TYPE).then(token =>
+          this.specification.execute(config, payload, token)
+        )
       }
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
