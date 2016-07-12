@@ -117,3 +117,21 @@ commit:
       - "^#[0-9]+" # starts with hash and digits
       - "^[A-Z]+-[0-9]+" # starts with uppercase letters, a dash and digits
 ~~~
+
+### Specification
+
+The specification check lets you verify that proper specification was provided along with a pull request. This is based on heuristics you define.
+
+It is configured by putting your config under `specification` and supports the following options:
+
+~~~ yaml
+specification:
+  title:
+    length: 8 # minimum length of PR title
+  body:
+    length: 8 # minimum length of PR body
+    verify:
+      # either of these verifications has to be true if length requirement is not met
+      contains-url: true # contains a link
+      contains-issue-number: true # references an issue
+~~~
