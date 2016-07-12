@@ -100,7 +100,13 @@ export class GithubService {
     if (since) {
       path += `?since=${since}`
     }
-    return this.fetchPath('GET', path, null, accessToken)
+    const comments = this.fetchPath('GET', path, null, accessToken)
+    if (since) {
+      // return only comments created since
+      const sinceDate = new Date(since)
+      return comments.filter(c => new Date(c.created_at) >= sinceDate)
+    }
+    return comments
   }
 
   async getPullRequest(user, repo, number, accessToken) {
