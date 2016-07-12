@@ -100,7 +100,7 @@ export class GithubService {
     if (since) {
       path += `?since=${since}`
     }
-    const comments = this.fetchPath('GET', path, null, accessToken)
+    const comments = await this.fetchPath('GET', path, null, accessToken)
     if (since) {
       // return only comments created since
       const sinceDate = new Date(since)
