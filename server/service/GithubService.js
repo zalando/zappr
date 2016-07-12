@@ -92,7 +92,7 @@ export class GithubService {
     }
   }
 
-  getComments(user, repo, number, since, accessToken) {
+  async getComments(user, repo, number, since, accessToken) {
     let path = API_URL_TEMPLATES.COMMENT
                                 .replace('${owner}', user)
                                 .replace('${repo}', repo)
