@@ -21,9 +21,12 @@ ZAPPR_DEFAULT_CONFIG:
       pattern: "^(:\\-1:|👎)$"
   specification:
     title:
-      length: 8
+      minimum-length:
+        enabled: true
+        length: 8
     body:
-      length: 8
-      verify:
-        contains-url: true
-        contains-issue-number: true
+      minimum-length:
+        enabled: true
+        length: 8
+      contains-url: true
+      contains-issue-number: true

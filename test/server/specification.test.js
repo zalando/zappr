@@ -13,23 +13,7 @@ describe('Specification', () => {
     const ACTIONS = ['opened', 'edited', 'reopened', 'synchronize']
     const SKIP_ACTIONS = ['assigned', 'unassigned', 'labeled', 'unlabeled', 'closed']
 
-    const config = ({
-      titleLength=TITLE_REQUIRED_LENGTH,
-      bodyLength=BODY_REQUIRED_LENGTH
-    } = {}) => ({
-      specification: {
-        title: {
-          length: titleLength
-        },
-        body: {
-          length: bodyLength,
-          verify: {
-            'contains-url': true,
-            'contains-issue-number': true
-          }
-        }
-      }
-    })
+    const config = (specification) => ({ specification })
 
     let github, pullRequest
 
@@ -155,7 +139,7 @@ describe('Specification', () => {
             'sample', 'one', '1a2b3c', {
               state: 'failure',
               context: 'zappr/pr/specification',
-              description: `PR's body is too short (${body.length}/${BODY_REQUIRED_LENGTH})`
+              description: `PR's body failed check 'contains-issue-number'`
             }, 'token'
           )).to.be.true
           done()
@@ -177,7 +161,11 @@ describe('Specification', () => {
             })
 
             await pullRequest.execute(config({
-              bodyLength: 60  // make sure that issue and url are real validators
+              body: { // make sure that issue and url are real validators
+                'minimum-length': {
+                  enabled: false
+                }
+              }
             }), payload, TOKEN)
             expect(github.setCommitStatus.calledWithExactly(
               'sample', 'one', '1a2b3c', {
@@ -191,6 +179,94 @@ describe('Specification', () => {
             done(e)
           }
         })
+      })
+
+      it(`[action: '${action}'] should set status to 'success' if title's ` +
+        `length is less than 'title.minimum-length.length' and ` +
+        `'title.minimum-length.enabled' is false`, async (done) => {
+        try {
+          const payload = createPayload(action, {
+            state: 'open',
+            title: 'ugh?',
+            body: 'This is a good body for the PR'
+          })
+
+          await pullRequest.execute(config({
+            title: {
+              'minimum-length': {
+                enabled: false
+              }
+            }
+          }), payload, TOKEN)
+          expect(github.setCommitStatus.calledWithExactly(
+            'sample', 'one', '1a2b3c', {
+              state: 'success',
+              context: 'zappr/pr/specification',
+              description: 'PR has passed specification checks'
+            }, 'token'
+          )).to.be.true
+          done()
+        } catch (e) {
+          done(e)
+        }
+      })
+
+      it(`[action: '${action}'] should set status to 'failure' if body contains ` +
+        `issue number when 'body.contains-issue-number' is false`, async (done) => {
+        try {
+          const payload = createPayload(action, {
+            state: 'open',
+            title: 'This is a good title for the PR',
+            body: '#4'
+          })
+
+          await pullRequest.execute(config({
+            body: {
+              'contains-issue-number': false
+            }
+          }), payload, TOKEN)
+          expect(github.setCommitStatus.calledWithExactly(
+            'sample', 'one', '1a2b3c', {
+              state: 'failure',
+              context: 'zappr/pr/specification',
+              description: `PR's body failed check 'contains-url'`
+            }, 'token'
+          )).to.be.true
+          done()
+        } catch (e) {
+          done(e)
+        }
+      })
+
+      it(`[action: '${action}'] should set status to 'failure' if body contains ` +
+        `url when 'body.minimum-length.enabled' is false and ` +
+        `'body.contains-url' is false`, async (done) => {
+        try {
+          const payload = createPayload(action, {
+            state: 'open',
+            title: 'This is a good title for the PR',
+            body: 'https://t.co'
+          })
+
+          await pullRequest.execute(config({
+            body: {
+              'contains-url': false,
+              'minimum-length': {
+                enabled: false
+              }
+            }
+          }), payload, TOKEN)
+          expect(github.setCommitStatus.calledWithExactly(
+            'sample', 'one', '1a2b3c', {
+              state: 'failure',
+              context: 'zappr/pr/specification',
+              description: `PR's body failed check 'contains-issue-number'`
+            }, 'token'
+          )).to.be.true
+          done()
+        } catch (e) {
+          done(e)
+        }
       })
     })
   })
