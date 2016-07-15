@@ -9,6 +9,8 @@ const DEFAULT_REQUIRED_LENGTH = 8
 const ISSUE_PATTERN = /^(?:[-\w]+\/[-\w]+)?#\d+$/
 // Grubber's pattern
 const URL_PATTERN = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i
+const [MINIMUM_LENGTH, CONTAINS_URL, CONTAINS_ISSUE_NUMBER] =
+  ['minimum-length', 'contains-url', 'contains-issue-number']
 
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
@@ -66,43 +68,91 @@ export default class Specification extends Check {
     const { title = '', body = '', head: { sha } } = pr
     const { owner: { login: user } } = repo
     const { specification: {
-      title: {
-        length: requiredTitleLength = DEFAULT_REQUIRED_LENGTH
-      } = {},
-      body: {
-        length: requiredBodyLength = DEFAULT_REQUIRED_LENGTH,
-        verify: {
-          'contains-url': shouldCheckUrl = true,
-          'contains-issue-number': shouldCheckIssue = true
-        } = {}
-      } = {}
+      title: titleChecks = {},
+      body: bodyChecks = {}
     } = {}} = config
 
-    if (!isLongEnough(title, requiredTitleLength)) {
-      await this.github.setCommitStatus(user, repo.name, sha, status(
-        `PR's title is too short (${title.length}/${requiredTitleLength})`, 'failure'
-      ), token)
-      info(`${repo.full_name}#${pr.number}: Set status to failure: title is ` +
-        `too short (${title.length}/${requiredTitleLength})`)
-      return
+    try {
+      await Promise.all([
+        this._validateTitle(title, titleChecks),
+        this._validateBody(body, bodyChecks)
+      ])
+      info(`${repo.full_name}#${pr.number}: Set status to success`)
+      return this.github.setCommitStatus(user, repo.name, sha,
+        status('PR has passed specification checks'), token)
+    } catch(e) {
+      info(`${repo.full_name}#{pr.number}: Set status to failure: ${e.message}`)
+      return this.github.setCommitStatus(user, repo.name, sha, status(
+        e.message, 'failure'), token)
+    }
+  }
+
+  /**
+   *
+   * @param {string} title to be validated
+   * @param {Object} checks part of `specification` that contains title's checks
+   */
+  _validateTitle(title, checks = {}) {
+    const {
+      [MINIMUM_LENGTH]: {
+        enabled: shouldCheckLength = true,
+        length: requiredLength = DEFAULT_REQUIRED_LENGTH
+      } = {}
+    } = checks
+
+    if (shouldCheckLength && !isLongEnough(title, requiredLength)) {
+      throw new Error(`PR's title is too short (${title.length}/${requiredLength})`)
+    }
+  }
+
+  /**
+   *
+   * @param {string} body to be validated
+   * @param {Object} checks part of `specification` that contains body's checks
+   */
+  _validateBody(body, checks = {}) {
+    const {
+      [MINIMUM_LENGTH]: {
+        enabled: shouldCheckLength = true,
+        length: requiredLength = DEFAULT_REQUIRED_LENGTH
+      } = {},
+      [CONTAINS_URL]: shouldCheckUrl = true,
+      [CONTAINS_ISSUE_NUMBER]: shouldCheckIssue = true
+    } = checks
+
+    const checksMapping = {
+      [CONTAINS_URL]: {
+        enabled: shouldCheckUrl,
+        fn: containsUrl.bind(null, body)
+      },
+      [CONTAINS_ISSUE_NUMBER]: {
+        enabled: shouldCheckIssue,
+        fn: containsIssueNumber.bind(null, body)
+      },
+      [MINIMUM_LENGTH]: {
+        enabled: shouldCheckLength,
+        fn: isLongEnough.bind(null, body, requiredLength)
+      }
     }
 
-    if (!(
-      (shouldCheckIssue && containsIssueNumber(body)) ||
-      (shouldCheckUrl && containsUrl(body)) ||
-      isLongEnough(body, requiredBodyLength)
-    )) {
-      await this.github.setCommitStatus(user, repo.name, sha, status(
-        `PR's body is too short (${body.length}/${requiredBodyLength})`, 'failure'
-      ), token)
-      info(`${repo.full_name}#${pr.number}: Set status to failure: body is ` +
-        `too short (${body.length}/${requiredBodyLength})`)
-      return
-    }
+    // array to force the order
+    const [success, failedChecks] = [CONTAINS_ISSUE_NUMBER, CONTAINS_URL, MINIMUM_LENGTH]
+      .reduce(([success, failedChecks], checkName) => {
+        const { enabled, fn: check } = checksMapping[checkName]
+        if (enabled) {
+          const res = check()
+          if (!res) {
+            failedChecks.push(`'${checkName}'`)
+          }
 
-    await this.github.setCommitStatus(user, repo.name, sha,
-      status('PR has passed specification checks'), token)
-    info(`${repo.full_name}#${pr.number}: Set status to success`)
+          success = success || res
+        }
+
+        return [success, failedChecks]
+    }, [undefined, []])
+
+    if (!success) {
+      throw new Error(`PR's body failed check ${failedChecks[0]}`)
+    }
   }
 }
-
