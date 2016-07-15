@@ -126,12 +126,16 @@ It is configured by putting your config under `specification` and supports the f
 
 ~~~ yaml
 specification:
+  # title requirements AND body requirements have to match
   title:
-    length: 8 # minimum length of PR title
+    minimum-length:
+      enabled: true
+      length: 8 # minimum length of PR title
   body:
-    length: 8 # minimum length of PR body
-    verify:
-      # either of these verifications has to be true if length requirement is not met
-      contains-url: true # contains a link
-      contains-issue-number: true # references an issue
+    minimum-length:
+      enabled: true
+      length: 8 # minimum length of PR body
+    # either of these verifications has to be true
+    contains-url: true
+    contains-issue-number: true
 ~~~
