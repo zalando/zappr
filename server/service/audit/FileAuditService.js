@@ -1,6 +1,7 @@
 import fs from 'fs'
 import AuditService from './AuditService'
-
+import { logger } from '../../../common/debug'
+const error = logger('file-audit', 'error')
 const DEFAULT_FILENAME = 'audit.log'
 
 export default class FileAuditService extends AuditService {
@@ -8,7 +9,7 @@ export default class FileAuditService extends AuditService {
     super(opts)
     const {filename = DEFAULT_FILENAME} = opts
     this.stream = fs.createWriteStream(filename, {flags: 'a'})
-    this.stream.on('error', console.log.bind(console))
+    this.stream.on('error', error)
   }
 
   async ship(body) {

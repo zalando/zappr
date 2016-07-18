@@ -1,5 +1,5 @@
 import { Approval, Autobranch, CommitMessage, Specification } from '../checks'
-import NullAuditService from '../service/audit/NullAuditService';
+import createAuditService from '../service/AuditServiceCreator'
 import { logger } from '../../common/debug'
 import { githubService as defaultGithubService } from '../service/GithubService'
 import { repositoryHandler as defaultRepositoryHandler } from './RepositoryHandler'
@@ -8,7 +8,7 @@ import ZapprConfiguration from '../zapprfile/Configuration'
 
 const info = logger('hook', 'info')
 
-export default class HookHandler {
+class HookHandler {
 
   /**
    * @param {GithubService} githubService
@@ -19,7 +19,7 @@ export default class HookHandler {
   constructor(githubService = defaultGithubService,
               repositoryHandler = defaultRepositoryHandler,
               pullRequestHandler = defaultPullRequestHandler,
-              auditService = new NullAuditService()) {
+              auditService = createAuditService()) {
     this.githubService = githubService
     this.repositoryHandler = repositoryHandler
     this.pullRequestHandler = pullRequestHandler

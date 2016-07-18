@@ -2,11 +2,9 @@ import crypto from 'crypto'
 import nconf from '../nconf'
 import { githubService } from '../service/GithubService'
 import { requireAuth } from './auth'
-import HookHandler from '../handler/HookHandler'
+import { hookHandler } from '../handler/HookHandler'
 import { checkHandler } from '../handler/CheckHandler'
-import { pullRequestHandler } from '../handler/PullRequestHandler'
 import { repositoryHandler } from '../handler/RepositoryHandler'
-import createAuditService from '../service/AuditServiceCreator'
 import ZapprConfiguration from '../zapprfile/Configuration'
 import { logger } from '../../common/debug'
 
@@ -16,8 +14,6 @@ const info = logger('api', 'info')
 const GITHUB_HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
 const GITHUB_SIGNATURE_HEADER = 'x-hub-signature'
 const GITHUB_EVENT_HEADER = 'x-github-event'
-
-const hookHandler = new HookHandler(githubService, repositoryHandler, pullRequestHandler, createAuditService())
 
 function validateIsCalledFromGithub(ctx, next) {
   const {header, body} = ctx.request

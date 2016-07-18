@@ -1,6 +1,8 @@
 import { getIn, symbolToString } from '../../../common/util'
 import * as EVENTS from './AuditEvents'
 import { v4 as generateId } from 'uuid'
+import { logger } from '../../../common/debug'
+const error = logger('audit', 'error')
 
 export function getCommitStatusData({status, approvals, vetos}) {
   return {
@@ -22,7 +24,7 @@ export default class AuditService {
     try {
       this.ship(this.transform(...arguments))
     } catch (e) {
-      console.log(e)
+      error(e)
     }
   }
 
@@ -33,7 +35,7 @@ export default class AuditService {
     try {
       await this.ship(this.transform(...arguments))
     } catch (e) {
-      console.log(e)
+      error(e)
     }
   }
 
@@ -47,14 +49,19 @@ export default class AuditService {
    */
   transform(eventType, metaInfo, eventData) {
     const repositoryId = metaInfo.repository.id
-    const sender = getIn(metaInfo, ['githubEvent', 'sender', 'login'], 'UNNOWN AUTHOR')
+    const sender = getIn(metaInfo, ['githubEvent', 'sender', 'login'], 'UNKNOWN SENDER')
     switch (eventType) {
       case EVENTS.COMMIT_STATUS_UPDATE:
         const {number, commit} = metaInfo
         return {
           id: generateId(),
+          timestamp: new Date().toISOString(),
           github_event: {
             type: metaInfo.githubEvent.githubEventId,
+            sender
+          },
+          zappr_event: {
+            type: symbolToString(EVENTS.COMMIT_STATUS_UPDATE),
             sender
           },
           resource: {
@@ -63,11 +70,6 @@ export default class AuditService {
             pull_request: number,
             commit
           },
-          zappr_event: {
-            type: symbolToString(EVENTS.COMMIT_STATUS_UPDATE),
-            sender
-          },
-          timestamp: new Date().toISOString(),
           result: getCommitStatusData(eventData)
         }
     }
