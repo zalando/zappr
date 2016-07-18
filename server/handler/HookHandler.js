@@ -1,4 +1,5 @@
 import { Approval, Autobranch, CommitMessage, Specification } from '../checks'
+import NullAuditService from '../service/audit/NullAuditService';
 import { logger } from '../../common/debug'
 import { githubService as defaultGithubService } from '../service/GithubService'
 import { repositoryHandler as defaultRepositoryHandler } from './RepositoryHandler'
@@ -7,20 +8,22 @@ import ZapprConfiguration from '../zapprfile/Configuration'
 
 const info = logger('hook', 'info')
 
-class HookHandler {
+export default class HookHandler {
 
   /**
    * @param {GithubService} githubService
    * @param {RepositoryHandler} repositoryHandler
    * @param {PullRequestHandler} pullRequestHandler
+   * @param {AuditService} auditService
    */
   constructor(githubService = defaultGithubService,
               repositoryHandler = defaultRepositoryHandler,
-              pullRequestHandler = defaultPullRequestHandler) {
+              pullRequestHandler = defaultPullRequestHandler,
+              auditService = new NullAuditService()) {
     this.githubService = githubService
     this.repositoryHandler = repositoryHandler
     this.pullRequestHandler = pullRequestHandler
-    this.approval = new Approval(this.githubService, this.pullRequestHandler)
+    this.approval = new Approval(this.githubService, this.pullRequestHandler, auditService)
     this.autobranch = new Autobranch(this.githubService)
     this.commitMessage = new CommitMessage(this.githubService)
     this.specification = new Specification(this.githubService)
@@ -50,25 +53,25 @@ class HookHandler {
         const zapprfile = new ZapprConfiguration(zapprFileContent)
         config = zapprfile.getConfiguration()
       }
-
+      const payloadWithEvent = {githubEventId: `${event}.${payload.action}`, ...payload}
       if (Specification.isTriggeredBy(event)) {
         getToken(repo, Specification.TYPE).then(token =>
-          this.specification.execute(config, payload, token)
+          this.specification.execute(config, payloadWithEvent, token)
         )
       }
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
-          this.approval.execute(config, payload, token, repo.id)
+          this.approval.execute(config, payloadWithEvent, token, repo.id)
         )
       }
       if (Autobranch.isTriggeredBy(event)) {
         getToken(repo, Autobranch.TYPE).then(token =>
-          this.autobranch.execute(config, payload, token)
+          this.autobranch.execute(config, payloadWithEvent, token)
         )
       }
       if (CommitMessage.isTriggeredBy(event)) {
         getToken(repo, CommitMessage.TYPE).then(token =>
-          this.commitMessage.execute(config, payload, token)
+          this.commitMessage.execute(config, payloadWithEvent, token)
         )
       }
     }
