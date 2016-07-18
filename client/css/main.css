@@ -1,4 +1,11 @@
-@import "fonts/minecraft.css";
+:root {
+    --white: #fff;
+    --dark-gray: #555;
+    --light-gray: #f5f5f5;
+    --secondary: #F6C341;
+    --primary: #BA79AF;
+    --primary-dark: #a16096;
+}
 
 body {
     font-family: "Roboto", HelveticaNeue, Helvetica, Arial, sans-serif;
@@ -7,70 +14,6 @@ body {
 svg:not(.icon) {
     display: block;
     margin: 0 auto;
-}
-
-#autobranch_branch,
-#approval_branch,
-#approval_master,
-#commitmessage_branch {
-    transition: stroke-dashoffset .5s ease-in-out;
-    opacity: 0;
-}
-
-#autobranch_branch.grow,
-#approval_master.grow,
-#commitmessage_branch.grow,
-#approval_branch.grow {
-    stroke-dashoffset: 0;
-    opacity: 1;
-}
-
-#autobranch_commit,
-#approval_mastercommit,
-#approval_commit {
-    transition: rx .5s ease-in-out, ry .5s ease-in-out;
-    transition-delay: .5s;
-    opacity: 0;
-    rx: 10;
-    ry: 10;
-}
-
-#autobranch_commit.grow,
-#approval_mastercommit.grow,
-#approval_commit.grow {
-    rx: 25;
-    ry: 25;
-    opacity: 1;
-}
-
-#approval_mastercommit {
-    transition-delay: 1.5s;
-}
-
-#commitmessage_commit {
-    transition: stroke .5s linear;
-    transition-delay: .5s;
-    opacity: 0;
-}
-
-#commitmessage_commit.grow {
-    stroke: #F6C341;
-    opacity: 1;
-}
-
-#approval_merge {
-    transition: stroke-dashoffset 1s ease-in-out;
-    transition-delay: 1s;
-    opacity: 0;
-}
-
-#approval_merge.grow {
-    stroke-dashoffset: 0;
-    opacity: 1;
-}
-
-#approval_master {
-    transition-delay: 1.5s;
 }
 
 .zpr-home .badge {
@@ -106,14 +49,6 @@ img.logo {
     vertical-align: baseline;
 }
 
-:root {
-    --white: #fff;
-    --dark-gray: #555;
-    --light-gray: #f5f5f5;
-    --secondary: #F6C341;
-    --primary: #BA79AF;
-}
-
 /* bootstrap overrides */
 
 .list-group-item.active,
@@ -139,8 +74,7 @@ label.btn-primary.toggle-on {
 
 label.btn-primary.toggle-on:active {
     background-color: var(--primary) !important;
-    /* FIXME proper color transition */
-    background-image: radial-gradient(circle, #d2a636 10%, var(--primary) 11%) !important;
+    background-image: radial-gradient(circle, var(--primary-dark) 10%, var(--primary) 11%) !important;
 }
 
 .alert.alert-info {

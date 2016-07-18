@@ -11,6 +11,7 @@ import 'font-awesome/css/font-awesome.css'
 import 'bootstrap-social'
 import 'bootstrap-toggle/css/bootstrap2-toggle.css'
 import './css/main.css'
+import './css/frontpage.css'
 // Webpack copies the favicon file to the output directory.
 import 'file?name=[name].[ext]!./img/favicon.ico'
 

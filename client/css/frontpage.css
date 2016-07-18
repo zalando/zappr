@@ -1,0 +1,52 @@
+#autobranch_branch,
+#approval_branch,
+#approval_master,
+#commitmessage_branch {
+    transition: stroke-dashoffset .5s ease-in-out;
+    opacity: 0;
+    &.grow {
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+}
+
+
+#autobranch_commit,
+#approval_mastercommit,
+#approval_commit {
+    transition: rx .5s ease-in-out, ry .5s ease-in-out;
+    transition-delay: .5s;
+    opacity: 0;
+    rx: 10;
+    ry: 10;
+    &.grow {
+        rx: 25;
+        ry: 25;
+        opacity: 1;
+    }
+}
+
+#approval_mastercommit,
+#approval_master {
+    transition-delay: 1.5s;
+}
+
+#commitmessage_commit {
+    transition: stroke .5s linear;
+    transition-delay: .5s;
+    opacity: 0;
+    &.grow {
+        stroke: #F6C341;
+        opacity: 1;
+    }
+}
+
+#approval_merge {
+    transition: stroke-dashoffset 1s ease-in-out;
+    transition-delay: 1s;
+    opacity: 0;
+    &.grow {
+        stroke-dashoffset: 0;
+        opacity: 1;
+    }
+}
