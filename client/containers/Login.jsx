@@ -3,9 +3,13 @@ import { connect } from 'react-redux'
 import { Link } from 'react-router'
 import { Grid, Row, Col, Image, Navbar } from 'react-bootstrap'
 import { loginGitHub } from '../actions/auth'
+import Approval from './../components/ApprovalAnimation.jsx'
+import Autobranch from './../components/AutobranchAnimation.jsx'
+import CommitMessage from './../components/CommitMessageAnimation.jsx'
 import { logger } from '../../common/debug'
 import logo from '../img/logo.svg'
 const log = logger('login')
+const PRIMARY_COLOR = '#F6C341'
 
 function mapStateToProps(state) {
   return {
@@ -14,228 +18,9 @@ function mapStateToProps(state) {
   }
 }
 
-const YELLOW = '#F6C341'
-
-function CommitMessage({animate}) {
-  return <svg id="commitmessage" width={300} height={200}>
-    <g transform="translate(-50, -50)">
-      <path id="commitmessage_branch"
-            d="m89.5,97c0,78 18,115 100.5,111"
-            fillOpacity="null"
-            className={animate ? 'grow' : ''}
-            strokeOpacity="null"
-            strokeDasharray="200"
-            strokeDashoffset="200"
-            strokeWidth="2"
-            stroke="#000"
-            fill="none"/>
-      <line strokeLinecap="null"
-            strokeLinejoin="null"
-            id="svg_6"
-            y2="94"
-            x2="190.5"
-            y1="94"
-            x1="76.5"
-            fillOpacity="null"
-            strokeOpacity="null"
-            strokeWidth="2"
-            stroke="#000"
-            fill="none"/>
-      <ellipse ry="25"
-               rx="25"
-               id="svg_1"
-               cy="92.5"
-               cx="89.5"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse ry="25"
-               rx="25"
-               id="svg_2"
-               cy="92.5"
-               cx="89.5"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse ry="25"
-               rx="25"
-               id="svg_4"
-               cy="92.5"
-               cx="190.506577"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse stroke="#fff"
-               className={animate ? 'grow' : ''}
-               ry="25"
-               rx="25"
-               id="commitmessage_commit"
-               cy="205.5"
-               cx="191.5"
-               strokeWidth="4"
-               fill="#fff"/>
-    </g>
-  </svg>
-}
-
-function Approval({animate}) {
-  return <svg id="approval" width={300} height={200}>
-    <g transform="translate(-50, -50)">
-      <path id="approval_merge"
-            d="m199.5,209c102,1 102,-27 95,-116"
-            fillOpacity="null"
-            className={animate ? 'grow' : ''}
-            strokeOpacity="null"
-            strokeDasharray="200"
-            strokeDashoffset="200"
-            strokeWidth="4"
-            stroke={YELLOW}
-            fill="#fff"/>
-      <path id="approval_branch"
-            className={animate ? 'grow' : ''}
-            d="m89.5,97c0,78 18,115 100.5,111"
-            strokeDasharray="200"
-            strokeDashoffset="200"
-            strokeOpacity="null"
-            strokeWidth="2"
-            stroke="#000"
-            fill="none"/>
-      <line strokeLinecap="null"
-            strokeLinejoin="null"
-            y2="94"
-            x2="190.5"
-            y1="94"
-            x1="76.5"
-            fillOpacity="null"
-            strokeOpacity="null"
-            strokeWidth="2"
-            stroke="#000"
-            fill="none"/>
-      <line strokeLinecap="null"
-            strokeLinejoin="null"
-            strokeDasharray="200"
-            strokeDashoffset="200"
-            id="approval_master"
-            className={animate ? 'grow' : ''}
-            y2="94"
-            x2="304.5"
-            y1="94"
-            x1="190.5"
-            fillOpacity="null"
-            strokeOpacity="null"
-            strokeWidth="2"
-            stroke="#000"
-            fill="none"/>
-      <ellipse ry="25"
-               rx="25"
-               id="svg_1"
-               cy="92.5"
-               cx="89.5"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse ry="25"
-               rx="25"
-               id="svg_2"
-               cy="92.5"
-               cx="89.5"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse ry="25"
-               rx="25"
-               id="svg_4"
-               cy="92.5"
-               cx="190.506577"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse ry="10"
-               rx="10"
-               id="approval_mastercommit"
-               className={animate ? 'grow' : ''}
-               cy="92.5"
-               cx="291.5"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse stroke="#000"
-               className={animate ? 'grow' : ''}
-               ry="10"
-               rx="10"
-               id="approval_commit"
-               cy="205.5"
-               cx="191.5"
-               strokeWidth="2"
-               fill="#fff"/>
-    </g>
-  </svg>
-}
-
-function Autobranch({animate}) {
-  return <svg id="autobranch" width={300} height={200}>
-    <g transform="translate(-50, -50)">
-      <path id="autobranch_branch"
-            className={animate ? 'grow' : ''}
-            d="m89.5,97c0,78 18,115 100.5,111"
-            fillOpacity="null"
-            strokeDasharray="200"
-            strokeDashoffset="200"
-            strokeOpacity="null"
-            strokeWidth="4"
-            stroke={YELLOW}
-            fill="none"/>
-      <line strokeLinecap="null"
-            strokeLinejoin="null"
-            id="svg_6"
-            y2="94"
-            x2="190.5"
-            y1="94"
-            x1="76.5"
-            fillOpacity="null"
-            strokeOpacity="null"
-            strokeWidth="2"
-            stroke="#000"
-            fill="none"/>
-      <ellipse ry="25"
-               rx="25"
-               id="svg_1"
-               cy="92.5"
-               cx="89.5"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse ry="25"
-               rx="25"
-               id="svg_2"
-               cy="92.5"
-               cx="89.5"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse ry="25"
-               rx="25"
-               id="svg_4"
-               cy="92.5"
-               cx="190.506577"
-               strokeWidth="2"
-               stroke="#000"
-               fill="#fff"/>
-      <ellipse stroke="#000"
-               className={animate ? 'grow' : ''}
-               ry="10"
-               rx="10"
-               id="autobranch_commit"
-               cy="205.5"
-               cx="191.5"
-               strokeWidth="2"
-               fill="#fff"/>
-    </g>
-  </svg>
-}
-
 function Highlight({children}) {
-  return <span style={{backgroundImage: `linear-gradient( to top, rgba(0,0,0,0) 2%, ${YELLOW} 2%, ${YELLOW} 10%, rgba(0,0,0,0) 8%);`}}>{children}</span>;
+  return <span
+    style={{backgroundImage: `linear-gradient( to top, rgba(0,0,0,0) 2%, ${PRIMARY_COLOR} 2%, ${PRIMARY_COLOR} 10%, rgba(0,0,0,0) 8%)`}}>{children}</span>;
 }
 
 class Login extends Component {
@@ -275,6 +60,13 @@ class Login extends Component {
       Sign in with GitHub
     </a>
 
+    const animationProps = {
+      width: 300,
+      height: 200,
+      animate: this.state.animate,
+      primaryColor: PRIMARY_COLOR
+    }
+
     return (
       <section className='zpr-login'>
         <div style={{flex: '1 1 auto', width: '100%'}}>
@@ -295,21 +87,21 @@ class Login extends Component {
               <section>
                 <h4>Pull Request approvals</h4>
                 <p><Highlight>Block pull requests</Highlight> until maintainers approved all proposed changes.</p>
-                <Approval animate={this.state.animate}/>
+                <Approval {...animationProps} />
               </section>
             </Col>
             <Col md={4}>
               <section>
                 <h4>Commit message patterns</h4>
                 <p>Require commit messages in a pull request to <Highlight>follow a pattern you define.</Highlight></p>
-                <CommitMessage animate={this.state.animate}/>
+                <CommitMessage {...animationProps} />
               </section>
             </Col>
             <Col md={4}>
               <section>
                 <h4>Automatic branch creation</h4>
                 <p>Automatically create a branch in your repository <Highlight>for every opened issue.</Highlight></p>
-                <Autobranch animate={this.state.animate}/>
+                <Autobranch {...animationProps} />
               </section>
             </Col>
           </Row>
