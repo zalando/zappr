@@ -19,6 +19,7 @@ describe('Specification', () => {
 
     beforeEach(() => {
       github = sinon.createStubInstance(GithubService)
+      github.readPullRequestTemplate.returns(Promise.reject())
       pullRequest = new Specification(github)
     })
 
@@ -211,6 +212,42 @@ describe('Specification', () => {
         }
       })
 
+      it(`[action: '${action}'] should set status to 'success' if body is not ` +
+      `equal to PR template and other checks are disabled`, async (done) => {
+        try {
+          github.readPullRequestTemplate.returns(
+            Promise.resolve('Issue #'))
+
+          const payload = createPayload(action, {
+            state: 'open',
+            title: 'This is a good title for the PR',
+            body: 'Issue #42'
+          })
+
+          await pullRequest.execute(config({
+            body: {
+              'minimum-length': {
+                enabled: false
+              },
+              'contains-url': false,
+              'contains-issue-number': false,
+              'differs-from-pr-template': true
+            }
+          }), payload, TOKEN)
+
+          expect(github.setCommitStatus.calledWithExactly(
+            'sample', 'one', '1a2b3c', {
+              state: 'success',
+              context: 'zappr/pr/specification',
+              description: 'PR has passed specification checks'
+            }, 'token'
+          ))
+          done()
+        } catch (e) {
+          done(e)
+        }
+      })
+
       it(`[action: '${action}'] should set status to 'failure' if body contains ` +
         `issue number when 'body.contains-issue-number' is false`, async (done) => {
         try {
@@ -261,6 +298,75 @@ describe('Specification', () => {
               state: 'failure',
               context: 'zappr/pr/specification',
               description: `PR's body failed check 'contains-issue-number'`
+            }, 'token'
+          )).to.be.true
+          done()
+        } catch (e) {
+          done(e)
+        }
+      })
+
+      it(`[action: '${action}'] should set status to 'failure' if body is ` +
+      `equal to PR template and other checks are disabled`, async (done) => {
+        try {
+          github.readPullRequestTemplate.returns(
+            Promise.resolve('Fill in this template'))
+
+          const payload = createPayload(action, {
+            state: 'open',
+            title: 'This is a good title for the PR',
+            body: 'Fill in this template'
+          })
+
+          await pullRequest.execute(config({
+            body: {
+              'minimum-length': {
+                enabled: false
+              },
+              'contains-url': false,
+              'contains-issue-number': false,
+              'differs-from-pr-template': true
+            }
+          }), payload, TOKEN)
+          expect(github.setCommitStatus.calledWithExactly(
+            'sample', 'one', '1a2b3c', {
+              state: 'failure',
+              context: 'zappr/pr/specification',
+              description: `PR's body failed check 'differs-from-pr-template'`
+            }, 'token'
+          )).to.be.true
+          done()
+        } catch (e) {
+          done(e)
+        }
+      })
+
+      it(`[action: '${action}'] should set status to 'failure' if there are ` +
+        `no PR template is available and other checks are disabled`, async (done) => {
+        try {
+          github.readPullRequestTemplate.returns(Promise.reject())
+
+          const payload = createPayload(action, {
+            state: 'open',
+            title: 'This is a good title for the PR',
+            body: 'Issue #42'
+          })
+
+          await pullRequest.execute(config({
+            body: {
+              'minimum-length': {
+                enabled: false
+              },
+              'contains-url': false,
+              'contains-issue-number': false,
+              'differs-from-pr-template': true
+            }
+          }), payload, TOKEN)
+          expect(github.setCommitStatus.calledWithExactly(
+            'sample', 'one', '1a2b3c', {
+              state: 'failure',
+              context: 'zappr/pr/specification',
+              description: `PR's body failed check 'differs-from-pr-template'`
             }, 'token'
           )).to.be.true
           done()
