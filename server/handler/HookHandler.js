@@ -53,7 +53,7 @@ class HookHandler {
         const zapprfile = new ZapprConfiguration(zapprFileContent)
         config = zapprfile.getConfiguration()
       }
-      const payloadWithEvent = {githubEventId: `${event}.${payload.action}`, ...payload}
+      const payloadWithEvent = {githubEventType: `${event}.${payload.action}`, ...payload}
       if (Specification.isTriggeredBy(event)) {
         getToken(repo, Specification.TYPE).then(token =>
           this.specification.execute(config, payloadWithEvent, token)

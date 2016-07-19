@@ -361,8 +361,7 @@ export default class Approval extends Check {
                                                                                   .onResource({
                                                                                     commit: sha,
                                                                                     number,
-                                                                                    repositoryId: repository.id,
-                                                                                    repository: repository.full_name
+                                                                                    repository
                                                                                   }))
             info(`${repository.full_name}#${number}: PR was opened, set state to pending`)
             return
@@ -381,8 +380,7 @@ export default class Approval extends Check {
                                                                                 .onResource({
                                                                                   commit: sha,
                                                                                   number,
-                                                                                  repositoryId: repository.id,
-                                                                                  repository: repository.full_name
+                                                                                  repository
                                                                                 }))
           info(`${repository.full_name}#${number}: PR was reopened, set state to ${status.state} (${approvals.total}/${minimum})`)
           // if it was synced, ie a commit added to it
@@ -403,8 +401,7 @@ export default class Approval extends Check {
                                                                                 .onResource({
                                                                                   commit: sha,
                                                                                   number,
-                                                                                  repositoryId: repository.id,
-                                                                                  repository: repository.full_name
+                                                                                  repository
                                                                                 }))
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
@@ -434,8 +431,7 @@ export default class Approval extends Check {
                                                                               .onResource({
                                                                                 commit: sha,
                                                                                 number: issue.number,
-                                                                                repositoryId: repository.id,
-                                                                                repository: repository.full_name
+                                                                                repository
                                                                               }))
         info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals.total}/${minimum} - ${vetos} vetos)`)
       }

@@ -21,7 +21,7 @@ export default class AuditEvent {
     this._rawGithubEvent = githubEvent
     this.githubEvent = {
       sender: getIn(githubEvent, ['sender', 'login'], 'UKNOWN SENDER'),
-      type: githubEvent.githubEventType
+      type: getIn(githubEvent, 'githubEventType')
     }
     return this
   }
@@ -29,8 +29,8 @@ export default class AuditEvent {
   onResource(resource) {
     const repositoryId = getIn(resource, ['repository', 'id'])
     const repository = getIn(resource, ['repository', 'full_name'])
-    const issue = resource.number
-    const commit = resource.commit
+    const issue = getIn(resource, 'number')
+    const commit = getIn(resource, 'commit')
 
     this._rawResource = resource
     this.resource = {
@@ -55,7 +55,7 @@ export default class AuditEvent {
       timestamp: this.timestamp.toISOString(),
       github_event: this.githubEvent,
       zappr_event: {
-        type: this.type,
+        type: symbolToString(this.type),
         sender: this.githubEvent.sender
       },
       resource: this.resource,
