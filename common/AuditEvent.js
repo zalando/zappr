@@ -27,14 +27,15 @@ export default class AuditEvent {
   }
 
   onResource(resource) {
-    const repositoryId = getIn(resource, ['repository', 'id'])
-    const repository = getIn(resource, ['repository', 'full_name'])
+    const id = getIn(resource, ['repository', 'id'])
+    const full_name = getIn(resource, ['repository', 'full_name'])
+    const url = getIn(resource, ['repository', 'url'])
     const issue = getIn(resource, 'number')
     const commit = getIn(resource, 'commit')
 
     this._rawResource = resource
     this.resource = {
-      repositoryId, repository, issue, commit
+      repository: { id, url, full_name}, issue, commit
     }
     return this
   }
