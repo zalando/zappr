@@ -10,7 +10,7 @@ export function metrics(router) {
 
 export default function initMetrics() {
   const metricsRouter = metrics(Router())
-  const metricApp = new Koa()
-  return metricApp.use(metricsRouter.routes())
-                  .use(metricsRouter.allowedMethods())
+  const metricsApp = new Koa()
+  return metricsApp.use(metricsRouter.routes())
+                   .use(metricsRouter.allowedMethods())
 }

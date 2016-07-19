@@ -17,9 +17,9 @@ import DatabaseStore from './session/database-store'
 import { db } from './model'
 import { init as initPassport } from './passport/passport'
 import { logger } from '../common/debug'
-import {GITHUB_ERROR_TYPE} from './service/GithubServiceError'
-import {CHECK_ERROR_TYPE} from './handler/CheckHandlerError'
-import {REPO_ERROR_TYPE} from './handler/RepositoryHandlerError'
+import { GITHUB_ERROR_TYPE } from './service/GithubServiceError'
+import { CHECK_ERROR_TYPE } from './handler/CheckHandlerError'
+import { REPO_ERROR_TYPE } from './handler/RepositoryHandlerError'
 
 const log = logger('app', 'info')
 const app = new Koa()
@@ -56,25 +56,25 @@ const morganSkip = (req, res) => res.statusCode < nconf.get('MORGAN_THRESH')
 export function init(options = {}) {
   const passport = initPassport(options.PassportStrategy)
 
-  return app.
-  use(generatePrometheusMiddleware(router, {
-    ignore: [/^\/repository/]
-  })).
-  use(generateProblemMiddleware({
-    exposableErrorTypes: [
-      CHECK_ERROR_TYPE,
-      GITHUB_ERROR_TYPE,
-      REPO_ERROR_TYPE
-  ]})).
-  use(morgan(morganFormat, {skip: morganSkip})).
-  use(convert(session({store: store}))).
-  use(bodyParser()).
-  use(passport.initialize()).
-  use(passport.session()).
-  use(router.routes()).
-  use(router.allowedMethods()).
-  use(convert(serve(nconf.get('STATIC_DIR'), {index: 'none'}))).
-  use(renderStatic)
+  return app.use(generatePrometheusMiddleware(router, {
+              ignore: [/^\/repository/]
+            }))
+            .use(generateProblemMiddleware({
+              exposableErrorTypes: [
+                CHECK_ERROR_TYPE,
+                GITHUB_ERROR_TYPE,
+                REPO_ERROR_TYPE
+              ]
+            }))
+            .use(morgan(morganFormat, {skip: morganSkip}))
+            .use(convert(session({store: store})))
+            .use(bodyParser())
+            .use(passport.initialize())
+            .use(passport.session())
+            .use(router.routes())
+            .use(router.allowedMethods())
+            .use(convert(serve(nconf.get('STATIC_DIR'), {index: 'none'})))
+            .use(renderStatic)
 }
 
 /**
@@ -82,7 +82,10 @@ export function init(options = {}) {
  *
  * @param {number} port Port to listen on
  */
-async function start(port = nconf.get('APP_PORT'), metricsPort = nconf.get('METRICS_PORT')) {
+async function start(port = nconf.get('APP_PORT'), opts = {
+  metricsEnabled: nconf.get('METRICS_ENABLED'),
+  metricsPort: nconf.get('METRICS_PORT')
+}) {
   const umzug = new Umzug({
     storage: 'sequelize',
     logging: logger('migration', 'info'),
@@ -113,9 +116,11 @@ async function start(port = nconf.get('APP_PORT'), metricsPort = nconf.get('METR
   await db.sync()
   init().listen(port)
   log(`listening on port ${port}`)
-  const actualMetricsPort = metricsPort || 3003
-  initMetrics().listen(actualMetricsPort)
-  log(`metrics available on port ${actualMetricsPort}`)
+  if (opts.metricsEnabled) {
+    const actualMetricsPort = opts.metricsPort || 3003
+    initMetrics().listen(actualMetricsPort)
+    log(`metrics available on port ${actualMetricsPort}`)
+  }
 }
 
 if (require.main === module) {
