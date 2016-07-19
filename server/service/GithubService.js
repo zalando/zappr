@@ -11,6 +11,7 @@ const error = logger('github', 'error')
 const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
 const VALID_ZAPPR_FILE_PATHS = nconf.get('VALID_ZAPPR_FILE_PATHS')
 const VALID_PR_TEMPLATES_PATHS = nconf.get('VALID_PR_TEMPLATE_PATHS')
+const COMMIT_STATUS_MAX_LENGTH = 140
 
 const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
@@ -65,6 +66,10 @@ export class GithubService {
                                 .replace('${owner}', user)
                                 .replace('${repo}', repo)
                                 .replace('${sha}', sha)
+    if (status.description.length > COMMIT_STATUS_MAX_LENGTH) {
+      const ellipsis = '...' // actually three characters instead of one
+      status.description = status.description.substring(0, COMMIT_STATUS_MAX_LENGTH - ellipsis.length) + ellipsis
+    }
     return this.fetchPath('POST', path, status, accessToken)
   }
 
