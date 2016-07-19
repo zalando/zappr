@@ -107,6 +107,7 @@
     "passport": "0.3.2",
     "passport-github": "1.1.0",
     "passport-strategy": "1.0.0",
+    "prom-client": "3.4.6",
     "react": "15.0.1",
     "react-bootstrap": "0.29.0",
     "react-dom": "15.0.1",
