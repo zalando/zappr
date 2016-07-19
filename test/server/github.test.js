@@ -37,7 +37,7 @@ describe('The Github service', () => {
           state: 'success',
           context: 'zappr/test'
         }
-        const result = await github.setCommitStatus(owner, repo, sha, statusToSend, token)
+        await github.setCommitStatus(owner, repo, sha, statusToSend, token)
         try {
           expect(github.fetchPath.calledWithExactly('POST', `/repos/${owner}/${repo}/statuses/${sha}`,
             expectedSentStatus,
