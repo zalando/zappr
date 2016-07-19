@@ -7,7 +7,9 @@ import session from 'koa-generic-session'
 import bodyParser from 'koa-bodyparser'
 import convert from 'koa-convert'
 import morgan from 'koa-morgan'
+import initMetrics from './metrics'
 import generateProblemMiddleware from './middleware/problem'
+import generatePrometheusMiddleware from './middleware/prometheus'
 import Umzug from 'umzug'
 import Sequelize from 'sequelize'
 import nconf from './nconf'
@@ -19,7 +21,7 @@ import {GITHUB_ERROR_TYPE} from './service/GithubServiceError'
 import {CHECK_ERROR_TYPE} from './handler/CheckHandlerError'
 import {REPO_ERROR_TYPE} from './handler/RepositoryHandlerError'
 
-const log = logger('app')
+const log = logger('app', 'info')
 const app = new Koa()
 app.name = 'zappr'
 
@@ -55,6 +57,9 @@ export function init(options = {}) {
   const passport = initPassport(options.PassportStrategy)
 
   return app.
+  use(generatePrometheusMiddleware(router, {
+    ignore: [/^\/repository/]
+  })).
   use(generateProblemMiddleware({
     exposableErrorTypes: [
       CHECK_ERROR_TYPE,
@@ -77,7 +82,7 @@ export function init(options = {}) {
  *
  * @param {number} port Port to listen on
  */
-async function start(port = nconf.get('APP_PORT')) {
+async function start(port = nconf.get('APP_PORT'), metricsPort = nconf.get('METRICS_PORT')) {
   const umzug = new Umzug({
     storage: 'sequelize',
     logging: logger('migration', 'info'),
@@ -108,6 +113,9 @@ async function start(port = nconf.get('APP_PORT')) {
   await db.sync()
   init().listen(port)
   log(`listening on port ${port}`)
+  const actualMetricsPort = metricsPort || 3003
+  initMetrics().listen(actualMetricsPort)
+  log(`metrics available on port ${actualMetricsPort}`)
 }
 
 if (require.main === module) {
