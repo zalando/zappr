@@ -13,7 +13,7 @@ So you want to run your own Zappr because you too have Github Enterprise or... j
 
 We need to build the code!
 
-As we're maintaining two installations (one "Opensource" for public Github and one "Enterprise" for our Github Enterprise instance) we split the configuration in two parts: `config/system.yaml` holds system configuration like session secret to use, Github URLs, database driver and connection settings etc. `config/app.yaml` (not in the repo as we're creating that on build time) contains the default Zappr config that will be used when Zapprfiles are missing config options. Take as an example `config/app-enterprise.yaml`. Note that the more important part of these is the `config/app.yaml` as you can override everything via environment variables and for the stuff in `config/system.yaml` it is just easier to do so.
+The configuration is split in two parts: `config/system.yaml` holds system configuration like session secret to use, Github URLs, database driver and connection settings etc. `config/app.yaml` (not in the repo as we're creating that on build time) contains the default Zappr config that will be used when Zapprfiles are missing config options. (Take as an example `config/app-enterprise.yaml`.) Usually you will enter your desired Zappr default configuration in `config/app.yaml` and leave the system configuration as-is, overriding it via environment variables.
 
 So you have your configuration in place. Now we build everything with:
 
