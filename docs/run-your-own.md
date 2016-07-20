@@ -23,7 +23,7 @@ So you have your configuration in place. Now we build everything with:
     # build zappr code
     npm run dist
 
-Copy the folders `config`, `dist`, `migrations` to your server. Then do there:
+Copy the folders `config`, `dist`, `migrations` and the `package.json` file to your server. Then do there:
 
     # on server
     # install dependencies
