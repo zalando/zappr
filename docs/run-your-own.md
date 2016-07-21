@@ -4,7 +4,7 @@ So, you want to run your own Zappr because you too have GitHub Enterprise—or y
 
 * **(M)** A GitHub. This might be a GitHub Enterprise instance, or you can use the public GitHub.
 * **(M)** A PostgreSQL database. You can use SQLite out of the box too, but we don't recommend it for production. 🙃 Zappr uses [sequelize](http://docs.sequelizejs.com/en/latest/) as an ORM. You could possibly use just a different database driver, but this is at your own risk as an ORM can never *completely* abstract database details away.
-* **(M)** Servers on which you can run Docker containers or JavaScript. We use a `Dockerfile` to build our images, but you can get away without using one.
+* **(M)** Servers on which you can run Docker containers or JavaScript.
 * **(R)** A proper/not self-signed certificate, so that GitHub can verify the SSL connection.
 * **(O)** A load balancer, if you want to run Zappr on multiple nodes.
 * **(O)** For encrypting tokens stored in the database, we use [KMS](https://aws.amazon.com/kms/). If that's not an option, you will have to implement the [EncryptionService interface](https://github.com/zalando/zappr/blob/master/server/service/encryption/NullEncryptionService.js) and make sure it can be created via the [EncryptionServiceCreator](https://github.com/zalando/zappr/blob/master/server/service/EncryptionServiceCreator.js).
