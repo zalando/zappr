@@ -9,7 +9,50 @@ const DEFAULT_CONFIG = {
   }
 }
 
-describe('zapprfile', () => {
+describe('ZapprConfiguration', () => {
+
+  [true, false, 0, -1, 7, Infinity, NaN, undefined, null, []].forEach(throws => {
+    it(`should throw if called with ${throws}`, () => {
+        expect(() => new Configuration(throws)).to.throw
+    })
+  })
+
+  it('should ignore top-level paths', () => {
+    const config = new Configuration({
+        foo: 'bar',
+        baz: 'qux',
+        pattern: 'plus one'
+      }, {
+        baz: 'foo',
+        pattern: 'thumbs up'
+      },
+      ['baz', 'pattern'])
+    expect(config.getConfiguration()).to.deep.equal({
+      foo: 'bar',
+      baz: 'foo',
+      pattern: 'thumbs up'
+    })
+  })
+
+  it('should ignore nested paths', () => {
+    const config = new Configuration({
+        approvals: {
+          pattern: 'lgtm'
+        },
+        commit: {
+          message: {
+            patterns: ['ahhhhhh'],
+            willBeIgnoredToo: true,
+            furtherNesting: {
+              wontHelpEither: true
+            }
+          }
+        }
+      },
+      DEFAULT_CONFIG,
+      ['commit.message', 'approvals.pattern'])
+    expect(config.getConfiguration()).to.deep.equal(Object.assign({approvals: {}}, DEFAULT_CONFIG))
+  })
 
   it('should overwrite arrays correctly', () => {
     const content = 'commit:\n  message:\n    patterns:\n      - baz\n'

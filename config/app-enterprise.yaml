@@ -11,6 +11,9 @@ VALID_PR_TEMPLATE_PATHS:
   - "/PULL_REQUEST_TEMPLATE"
   - "/PULL_REQUEST_TEMPLATE.txt"
   - "/PULL_REQUEST_TEMPLATE.md"
+IGNORE_USER_CONFIG:
+  - "approvals.pattern"
+  - "approvals.veto"
 ZAPPR_DEFAULT_CONFIG:
   autobranch:
     pattern: "{number}-{title}"
