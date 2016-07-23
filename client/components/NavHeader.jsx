@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { Link } from 'react-router'
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Image } from 'react-bootstrap'
-import logo from '../img/logo.svg'
+import mascot from '../img/zappr-logo.png'
 
 export default class NavHeader extends Component {
   static propTypes = {
@@ -45,7 +45,7 @@ export default class NavHeader extends Component {
             <Link to="/"
                   style={{padding: '0 15px'}}>
               <Image alt="Zappr"
-                     src={`/${logo}`}
+                     src={mascot}
                      style={style.logo}/>
             </Link>
           </Navbar.Brand>

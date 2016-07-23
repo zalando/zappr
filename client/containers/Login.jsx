@@ -8,6 +8,7 @@ import Autobranch from './../components/AutobranchAnimation.jsx'
 import CommitMessage from './../components/CommitMessageAnimation.jsx'
 import { logger } from '../../common/debug'
 import logo from '../img/logo.svg'
+import mascot from '../img/zappr_small.png'
 const log = logger('login')
 const PRIMARY_COLOR = '#F6C341'
 
@@ -70,7 +71,7 @@ class Login extends Component {
     return (
       <section className='zpr-login'>
         <div style={{flex: '1 1 auto', width: '100%'}}>
-          <div className="page-header text-center">
+          <div className="page-header mascot-container text-center" style={{backgroundImage: `url(${mascot})`}}>
 
             <h2 className="hero">
               <img src={logo} className="logo"/> Zappr is a <Highlight>GitHub</Highlight> integration
@@ -78,6 +79,7 @@ class Login extends Component {
             <div style={{margin: '30 0'}}>
               {loginButton}
             </div>
+
           </div>
         </div>
 

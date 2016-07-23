@@ -50,3 +50,19 @@
         opacity: 1;
     }
 }
+
+.zpr-login {
+    .mascot-container {
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-color: #6b6b6b;
+        padding: 30px 0;
+        color: white;
+        margin: 0px;
+    }
+    .hero {
+        color: inherit;
+        text-shadow: 2px 2px #6b6b6b;
+        margin: 0;
+    }
+}
