@@ -55,6 +55,8 @@
     .mascot-container {
         background-size: contain;
         background-repeat: no-repeat;
+        background-origin: content-box;
+        background-position: 10px;
         background-color: #6b6b6b;
         padding: 30px 0;
         color: white;
@@ -62,7 +64,7 @@
     }
     .hero {
         color: inherit;
-        text-shadow: 2px 2px #6b6b6b;
+        text-shadow: 3px 3px #6b6b6b;
         margin: 0;
     }
 }
