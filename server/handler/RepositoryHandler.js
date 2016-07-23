@@ -1,4 +1,4 @@
-import RepositoryHandlerError, {REPOSITORY_NOT_FOUND, DATABASE_ERROR} from './RepositoryHandlerError'
+import RepositoryHandlerError, { REPOSITORY_NOT_FOUND, DATABASE_ERROR } from './RepositoryHandlerError'
 import { githubService } from '../service/GithubService'
 import { db, Repository, UserRepository, Check } from '../model'
 import { logger } from '../../common/debug'

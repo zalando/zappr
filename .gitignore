@@ -110,3 +110,5 @@ fabric.properties
 scm-source.json
 *.sqlite
 *.secret
+.env.properties
+

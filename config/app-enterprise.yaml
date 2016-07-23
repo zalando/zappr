@@ -4,6 +4,16 @@
 VALID_ZAPPR_FILE_PATHS:
   - "/.zappr.yaml"
   - "/.zappr.yml"
+VALID_PR_TEMPLATE_PATHS:
+  - "/.github/PULL_REQUEST_TEMPLATE"
+  - "/.github/PULL_REQUEST_TEMPLATE.md"
+  - "/.github/PULL_REQUEST_TEMPLATE.txt"
+  - "/PULL_REQUEST_TEMPLATE"
+  - "/PULL_REQUEST_TEMPLATE.txt"
+  - "/PULL_REQUEST_TEMPLATE.md"
+IGNORE_USER_CONFIG:
+  - "approvals.pattern"
+  - "approvals.veto"
 ZAPPR_DEFAULT_CONFIG:
   autobranch:
     pattern: "{number}-{title}"
@@ -11,8 +21,9 @@ ZAPPR_DEFAULT_CONFIG:
   commit:
     message:
       patterns:
-        - "^(?:(?:[a-zA-Z0-9_\\-]*|[a-zA-Z0-9_\\-]+\\/[a-zA-Z0-9_\\-]+)#|GH-)\\d+$"
-        - "^#?[A-Z]+-[0-9]+"
+        - "^(?:(?:[a-zA-Z0-9_\\-]*|[a-zA-Z0-9_\\-]+\\/[a-zA-Z0-9_\\-]+)#|GH-)\\d+"
+        - "^#?[A-Z]+-[0-9]+" # like JIRA-123
+        - "^#[0-9+]" # regular github pattern like #123
   approvals:
     minimum: 2
     ignore: none
@@ -20,3 +31,15 @@ ZAPPR_DEFAULT_CONFIG:
     veto:
       # veto/blocking a PR = comment that matches this regex
       pattern: "^(:\\-1:|👎)$"
+  specification:
+    title:
+      minimum-length:
+        enabled: true
+        length: 8
+    body:
+      minimum-length:
+        enabled: true
+        length: 8
+      contains-url: true
+      contains-issue-number: true
+      differs-from-pr-template: true

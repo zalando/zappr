@@ -1,9 +1,11 @@
 import crypto from 'crypto'
 import nconf from '../nconf'
+import { githubService } from '../service/GithubService'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
 import { checkHandler } from '../handler/CheckHandler'
 import { repositoryHandler } from '../handler/RepositoryHandler'
+import ZapprConfiguration from '../zapprfile/Configuration'
 import { logger } from '../../common/debug'
 
 const error = logger('api', 'error')
@@ -75,6 +77,31 @@ export function repo(router) {
     } catch (e) {
       ctx.throw(404, e)
     }
+  })
+  .get('/api/repos/:id/zapprfile', requireAuth, async(ctx) => {
+    const user = ctx.req.user
+    const id = parseInt(ctx.params.id, 10)
+    let repo
+    try {
+      repo = await repositoryHandler.onGetOne(id, user, true)
+    } catch(e) {
+      ctx.throw(404, e)
+    }
+    const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, user.accessToken)
+    const config = new ZapprConfiguration(zapprFileContent)
+
+    const message = zapprFileContent === '' ?
+      'No Zapprfile found, using default config' :
+      (config.isValid() ?
+        '' :
+        config.getParseError())
+
+    ctx.body = {
+      config: config.getConfiguration(),
+      message,
+      valid: config.isValid()
+    }
+    ctx.response.status = 200
   })
   .put('/api/repos/:id/:type', requireAuth, async(ctx) => {
     try {

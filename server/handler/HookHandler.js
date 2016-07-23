@@ -1,14 +1,11 @@
-import merge from 'lodash/merge'
-
-import nconf from '../nconf'
-import { Approval, Autobranch, CommitMessage } from '../checks'
+import { Approval, Autobranch, CommitMessage, Specification } from '../checks'
 import { logger } from '../../common/debug'
 import { githubService as defaultGithubService } from '../service/GithubService'
 import { repositoryHandler as defaultRepositoryHandler } from './RepositoryHandler'
 import { pullRequestHandler as defaultPullRequestHandler } from './PullRequestHandler'
+import ZapprConfiguration from '../zapprfile/Configuration'
 
 const info = logger('hook', 'info')
-const DEFAULT_CONFIG = nconf.get('ZAPPR_DEFAULT_CONFIG')
 
 class HookHandler {
 
@@ -26,6 +23,7 @@ class HookHandler {
     this.approval = new Approval(this.githubService, this.pullRequestHandler)
     this.autobranch = new Autobranch(this.githubService)
     this.commitMessage = new CommitMessage(this.githubService)
+    this.specification = new Specification(this.githubService)
   }
 
   /**
@@ -46,12 +44,18 @@ class HookHandler {
     if (payload.repository) {
       const {name, id, owner} = payload.repository
       const repo = await this.repositoryHandler.onGetOne(id, null, true)
-      const zapprUserConfig = repo.checks.length ?
-        await this.githubService.readZapprFile(owner.login, name, repo.checks[0].token)
-        : {}
+      let config = {}
+      if (repo.checks.length) {
+        const zapprFileContent = await this.githubService.readZapprFile(owner.login, name, repo.checks[0].token)
+        const zapprfile = new ZapprConfiguration(zapprFileContent)
+        config = zapprfile.getConfiguration()
+      }
 
-      const config = merge({}, DEFAULT_CONFIG, zapprUserConfig)
-
+      if (Specification.isTriggeredBy(event)) {
+        getToken(repo, Specification.TYPE).then(token =>
+          this.specification.execute(config, payload, token)
+        )
+      }
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
           this.approval.execute(config, payload, token, repo.id)
