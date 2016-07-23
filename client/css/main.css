@@ -3,8 +3,8 @@
     --dark-gray: #555;
     --light-gray: #f5f5f5;
     --secondary: #F6C341;
-    --primary: #BA79AF;
-    --primary-dark: #a16096;
+    --primary: #C750C0;
+    --primary-dark: #BA96F1;
 }
 
 body {
@@ -79,4 +79,14 @@ label.btn-primary.toggle-on:active {
 
 .alert.alert-info {
     background-color: var(--primary);
+}
+
+.panel.panel-default {
+  .panel-heading {
+      .panel-title {
+        a {
+          color: var(--dark-gray)
+        }
+      }
+  }
 }
