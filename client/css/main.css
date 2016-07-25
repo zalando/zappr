@@ -16,39 +16,6 @@ svg:not(.icon) {
     margin: 0 auto;
 }
 
-.zpr-home .badge {
-    cursor: default;
-}
-
-.zpr-login {
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    min-height: 100%;
-
-    img {
-        max-width: 100%;
-    }
-
-    footer {
-        flex: 0 0 auto;
-        width: 100%;
-        height: 80px;
-        margin-top: 30px;
-        border-top: 1px solid #eee;
-        text-align: center;
-        font-size: 1.5rem;
-        padding-top: 15px;
-    }
-}
-
-img.logo {
-    width: 33px;
-    vertical-align: baseline;
-}
-
 /* bootstrap overrides */
 
 .list-group-item.active,

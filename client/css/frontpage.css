@@ -61,11 +61,10 @@
 
 .zpr-login {
     .mascot-container {
-    }
-    .alt-mascot-container {
-      display: none;
       img {
-        max-height: 150px;
+        max-width: 100%;
+        margin: 0 auto;
+        display: inherit;
       }
     }
     .hero {
@@ -76,8 +75,13 @@
 
 @media(max-width: 768px) {
   .zpr-login {
+    text-align: center;
     .mascot-container {
-      padding-top: 2rem;
+      padding-top: 4rem;
+      img {
+        min-width: 200px;
+        width: 50%;
+      }
     }
   }
 }
