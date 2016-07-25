@@ -341,6 +341,41 @@ describe('Specification', () => {
         }
       })
 
+      it(`[action: '${action}'] should set status to 'failure' if cleaned body ` +
+      `is equal to cleaned PR template and other checks are disabled`, async (done) => {
+        try {
+          github.readPullRequestTemplate.returns(
+            Promise.resolve('Fix #\n'))
+
+          const payload = createPayload(action, {
+            state: 'open',
+            title: 'This is a good title for the PR',
+            body: 'Fix #'
+          })
+
+          await pullRequest.execute(config({
+            body: {
+              'minimum-length': {
+                enabled: false
+              },
+              'contains-url': false,
+              'contains-issue-number': false,
+              'differs-from-pr-template': true
+            }
+          }), payload, TOKEN)
+          expect(github.setCommitStatus.calledWithExactly(
+            'sample', 'one', '1a2b3c', {
+              state: 'failure',
+              context: 'zappr/pr/specification',
+              description: `PR's body failed check 'differs-from-pr-template'`
+            }, 'token'
+          )).to.be.true
+          done()
+        } catch (e) {
+          done(e)
+        }
+      })
+
       it(`[action: '${action}'] should set status to 'failure' if there are ` +
         `no PR template is available and other checks are disabled`, async (done) => {
         try {
