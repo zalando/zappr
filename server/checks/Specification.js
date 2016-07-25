@@ -179,7 +179,7 @@ export default class Specification extends Check {
    */
   _differsFromPrTemplate(content, user, repo, accessToken) {
     return this.github.readPullRequestTemplate(user, repo, accessToken)
-      .then((template) => template !== content, () => {
+      .then((template) => template.trim() !== content.trim(), () => {
         info(`${user}/${repo}: No PULL_REQUEST_TEMPLATE found`)
         return false
       })
