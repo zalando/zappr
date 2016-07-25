@@ -225,13 +225,15 @@ describe('Specification', () => {
           })
 
           await pullRequest.execute(config({
+            template: {
+              'was-adjusted': true
+            },
             body: {
               'minimum-length': {
                 enabled: false
               },
               'contains-url': false,
-              'contains-issue-number': false,
-              'differs-from-pr-template': true
+              'contains-issue-number': false
             }
           }), payload, TOKEN)
 
@@ -319,13 +321,15 @@ describe('Specification', () => {
           })
 
           await pullRequest.execute(config({
+            template: {
+              'was-adjusted': true
+            },
             body: {
               'minimum-length': {
                 enabled: false
               },
               'contains-url': false,
-              'contains-issue-number': false,
-              'differs-from-pr-template': true
+              'contains-issue-number': false
             }
           }), payload, TOKEN)
           expect(github.setCommitStatus.calledWithExactly(
@@ -354,13 +358,15 @@ describe('Specification', () => {
           })
 
           await pullRequest.execute(config({
+            template: {
+              'was-adjusted': true
+            },
             body: {
               'minimum-length': {
                 enabled: false
               },
               'contains-url': false,
-              'contains-issue-number': false,
-              'differs-from-pr-template': true
+              'contains-issue-number': false
             }
           }), payload, TOKEN)
           expect(github.setCommitStatus.calledWithExactly(
@@ -388,13 +394,15 @@ describe('Specification', () => {
           })
 
           await pullRequest.execute(config({
+            template: {
+              'was-adjusted': true
+            },
             body: {
               'minimum-length': {
                 enabled: false
               },
               'contains-url': false,
-              'contains-issue-number': false,
-              'differs-from-pr-template': true
+              'contains-issue-number': false
             }
           }), payload, TOKEN)
           expect(github.setCommitStatus.calledWithExactly(

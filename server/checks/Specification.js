@@ -9,9 +9,9 @@ const DEFAULT_REQUIRED_LENGTH = 8
 const ISSUE_PATTERN = /^(?:[-\w]+\/[-\w]+)?#\d+$/
 // Grubber's pattern
 const URL_PATTERN = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i
-const [MINIMUM_LENGTH, CONTAINS_URL, CONTAINS_ISSUE_NUMBER, DIFFERS_FROM_TEMPLATE] =
+const [MINIMUM_LENGTH, CONTAINS_URL, CONTAINS_ISSUE_NUMBER, WAS_ADJUSTED] =
   ['minimum-length', 'contains-url', 'contains-issue-number',
-    'differs-from-pr-template']
+    'was-adjusted']
 
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
@@ -70,13 +70,15 @@ export default class Specification extends Check {
     const { owner: { login: user } } = repo
     const { specification: {
       title: titleChecks = {},
-      body: bodyChecks = {}
+      body: bodyChecks = {},
+      template: templateChecks = {}
     } = {}} = config
 
     try {
       await Promise.all([
         this._validateTitle(title, titleChecks),
-        this._validateBody(body, user, repo.name, token, bodyChecks)
+        this._validateTemplate(body, user, repo.name, token, templateChecks),
+        this._validateBody(body, bodyChecks)
       ])
       info(`${repo.full_name}#${pr.number}: Set status to success`)
       return this.github.setCommitStatus(user, repo.name, sha,
@@ -106,22 +108,31 @@ export default class Specification extends Check {
     }
   }
 
+  async _validateTemplate(body, user, repo, token, checks = {}) {
+    const shouldCheckWasAdjusted = checks[WAS_ADJUSTED]
+    const template = await this.github.readPullRequestTemplate(user, repo, token)
+    if (!template) {
+      info(`${user}/${repo}: No PULL_REQUEST_TEMPLATE found`)
+      return true
+    }
+    if (shouldCheckWasAdjusted && this._differsFromPrTemplate(body, template)) {
+      throw new Error(`PR's body is the same as template`)
+    }
+    return true
+  }
+
   /**
    * @param {string} body to be validated
-   * @param {string} user
-   * @param {string} repo
-   * @param {string} token
    * @param {Object} checks part of `specification` that contains body's checks
    */
-  async _validateBody(body, user, repo, token, checks = {}) {
+  _validateBody(body, checks = {}) {
     const {
       [MINIMUM_LENGTH]: {
         enabled: shouldCheckLength = true,
         length: requiredLength = DEFAULT_REQUIRED_LENGTH
       } = {},
       [CONTAINS_URL]: shouldCheckUrl = true,
-      [CONTAINS_ISSUE_NUMBER]: shouldCheckIssue = true,
-      [DIFFERS_FROM_TEMPLATE]: shouldCheckPrTemplate = true
+      [CONTAINS_ISSUE_NUMBER]: shouldCheckIssue = true
     } = checks
 
     const checksMapping = {
@@ -136,22 +147,17 @@ export default class Specification extends Check {
       [MINIMUM_LENGTH]: {
         enabled: shouldCheckLength,
         fn: isLongEnough.bind(null, body, requiredLength)
-      },
-      [DIFFERS_FROM_TEMPLATE]: {
-        enabled: shouldCheckPrTemplate,
-        fn: this._differsFromPrTemplate.bind(this, body, user, repo, token)
       }
     }
 
     // array to force the order
-    const [success, failedChecks] = await [
-      CONTAINS_ISSUE_NUMBER, CONTAINS_URL, DIFFERS_FROM_TEMPLATE, MINIMUM_LENGTH
-    ].reduce(async(awaitable, checkName) => {
+    const [success, failedChecks] = [
+      CONTAINS_ISSUE_NUMBER, CONTAINS_URL, MINIMUM_LENGTH
+    ].reduce(([success, failedChecks], checkName) => {
       const {enabled, fn: check} = checksMapping[checkName]
-      let [success, failedChecks] = await awaitable
 
       if (enabled) {
-        const res = await check()
+        const res = check()
         if (!res) {
           failedChecks.push(`'${checkName}'`)
         }
@@ -160,7 +166,7 @@ export default class Specification extends Check {
       }
 
       return [success, failedChecks]
-    }, [undefined, []])
+    }, [false, []])
 
     if (!success) {
       throw new Error(`PR's body failed check ${failedChecks[0]}`)
@@ -169,19 +175,13 @@ export default class Specification extends Check {
 
   /**
    * @param {string} content to compare
-   * @param {string} user
-   * @param {string} repo
-   * @param {string} accessToken
+   * @param {string} template pr template to compare content to
    *
    * @return {boolean} true if `content` is not equal to template. False otherwise
    *
    * @private
    */
-  _differsFromPrTemplate(content, user, repo, accessToken) {
-    return this.github.readPullRequestTemplate(user, repo, accessToken)
-      .then((template) => template.trim() !== content.trim(), () => {
-        info(`${user}/${repo}: No PULL_REQUEST_TEMPLATE found`)
-        return false
-      })
+  _differsFromPrTemplate(content, template) {
+      return content.trim() !== template.trim()
   }
 }
