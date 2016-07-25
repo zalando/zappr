@@ -52,7 +52,11 @@
 }
 
 .zpr-login-navbar {
-
+  .github-buttons > iframe {
+    top: 18px;
+    position: relative;
+    margin-left: 1rem;
+  }
 }
 
 .zpr-login {
@@ -70,13 +74,10 @@
     }
 }
 
-@media(max-width: 900px) {
+@media(max-width: 768px) {
   .zpr-login {
     .mascot-container {
-      background-image: none;
-    }
-    .alt-mascot-container {
-      display: block;
+      padding-top: 2rem;
     }
   }
 }

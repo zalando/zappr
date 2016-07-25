@@ -60,12 +60,7 @@ class Login extends Component {
       <section className='zpr-login'>
         <Grid>
           <Row>
-            <Col md={6}>
-              <div className="mascot-container">
-                <img src={mascot}/>
-              </div>
-            </Col>
-            <Col md={6}>
+            <Col sm={6} smPush={6}>
               <h1 className="hero">
                 Zappr is a <Highlight>GitHub</Highlight> integration
               </h1>
@@ -80,6 +75,11 @@ class Login extends Component {
                 <span className='fa fa-github'/>
                 Sign in with Github
               </a>
+            </Col>
+            <Col sm={6} smPull={6}>
+              <div className="mascot-container">
+                <img src={mascot}/>
+              </div>
             </Col>
           </Row>
         </Grid>

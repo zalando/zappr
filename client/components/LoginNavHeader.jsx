@@ -38,25 +38,31 @@ class LoginNavHeader extends Component {
           Zappr
         </Navbar.Text>
       </Navbar.Header>
-      <Nav>
-        <NavItem href="#features">
-          Features
-        </NavItem>
-        <NavItem href="#benefits">
-          Benefits
-        </NavItem>
-      </Nav>
-      <Nav pullRight>
-        <NavItem href='/auth/github'>
-          <button type='button'
-                  className='btn btn-social btn-github btn-sm'
-                  disabled={this.props.isAuthenticating}
-                  onClick={this.props.loginGithub}>
-            <span className='fa fa-github'/>
-            Sign in with GitHub
-          </button>
-        </NavItem>
-      </Nav>
+      <Navbar.Collapse>
+        <Nav>
+          <NavItem href="#features">
+            Features
+          </NavItem>
+          <NavItem href="#benefits">
+            Benefits
+          </NavItem>
+        </Nav>
+        <Nav pullRight className="github-buttons">
+          <a className="github-button"
+             href="https://github.com/zalando/zappr"
+             data-icon="octicon-star"
+             data-style="mega"
+             data-count-href="/zalando/zappr/stargazers"
+             data-count-api="/repos/zalando/zappr#stargazers_count"
+             data-count-aria-label="# stargazers on GitHub"
+             aria-label="Star zalando/zappr on GitHub">Star</a>
+          <a className="github-button"
+             href="https://github.com/zalando/zappr/archive/master.zip"
+             data-icon="octicon-cloud-download"
+             data-style="mega"
+             aria-label="Download zalando/zappr on GitHub">Download</a>
+        </Nav>
+      </Navbar.Collapse>
     </Navbar>
   }
 }

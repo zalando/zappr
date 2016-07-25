@@ -48,6 +48,7 @@ export default class Index extends Component {
       <main id="main" dangerouslySetInnerHTML={html}/>
       <script dangerouslySetInnerHTML={initialState} defer/>
       {js.map((s, i) => (<script key={i} src={`/${s}`} defer/>))}
+      <script async defer src="https://buttons.github.io/buttons.js" />
       </body>
       </html>
     )
