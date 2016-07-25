@@ -119,13 +119,10 @@ export default class Specification extends Check {
     try {
       template = await this.github.readPullRequestTemplate(user, repo, token)
     } catch (e) {
-      // do nothing
-    }
-    if (!template) {
       info(`${user}/${repo}: No PULL_REQUEST_TEMPLATE found`)
       return
     }
-    if (!this._differsFromPrTemplate(body, template)) {
+    if (template.trim() === body.trim()) {
       throw new Error(`PR's body is the same as template`)
     }
   }
@@ -180,17 +177,5 @@ export default class Specification extends Check {
     if (!success && failedChecks.length > 0) {
       throw new Error(`PR's body failed check ${failedChecks[0]}`)
     }
-  }
-
-  /**
-   * @param {string} content to compare
-   * @param {string} template pr template to compare content to
-   *
-   * @return {boolean} true if `content` is not equal to template. False otherwise
-   *
-   * @private
-   */
-  _differsFromPrTemplate(content, template) {
-    return content.trim() !== template.trim()
   }
 }
