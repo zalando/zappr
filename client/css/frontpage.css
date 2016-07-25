@@ -51,17 +51,12 @@
     }
 }
 
+.zpr-login-navbar {
+
+}
+
 .zpr-login {
     .mascot-container {
-        background-size: contain;
-        background-image: url('../img/banner_small.png');
-        background-repeat: no-repeat;
-        background-origin: content-box;
-        background-position: 10px;
-        background-color: rgba(103,103,103);
-        padding: 30px 0;
-        color: white;
-        margin: 0px;
     }
     .alt-mascot-container {
       display: none;
@@ -71,8 +66,7 @@
     }
     .hero {
         color: inherit;
-        text-shadow: 3px 3px rgba(103,103,103);
-        margin: 0;
+        padding-top: 2rem;
     }
 }
 

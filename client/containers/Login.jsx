@@ -2,12 +2,11 @@ import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { Link } from 'react-router'
 import { Grid, Row, Col, Image, Navbar } from 'react-bootstrap'
-import { loginGitHub } from '../actions/auth'
+import { loginGithub } from '../actions/auth'
 import Approval from './../components/ApprovalAnimation.jsx'
 import Autobranch from './../components/AutobranchAnimation.jsx'
 import CommitMessage from './../components/CommitMessageAnimation.jsx'
 import { logger } from '../../common/debug'
-import icon from '../img/icon.svg'
 import mascot from '../img/banner_small.png';
 const log = logger('login')
 const PRIMARY_COLOR = '#F6C341'
@@ -46,20 +45,9 @@ class Login extends Component {
     setTimeout(() => this.setState({
       animate: true
     }), 1000)
-    if (this.props.isAuthenticated) {
-      this.context.router.replace('/')
-    }
   }
 
   render() {
-    const loginButton = <a type='button'
-                           className='btn btn-social btn-github'
-                           disabled={this.props.isAuthenticating}
-                           href='/auth/github'
-                           onClick={this.props.loginGitHub}>
-      <span className='fa fa-github'/>
-      Sign in with GitHub
-    </a>
 
     const animationProps = {
       width: 300,
@@ -70,22 +58,37 @@ class Login extends Component {
 
     return (
       <section className='zpr-login'>
-        <div style={{flex: '1 1 auto', width: '100%'}}>
-          <div className="page-header mascot-container text-center">
-            <h2 className="hero">
-              <img src={icon} className="logo"/> Zappr is a <Highlight>GitHub</Highlight> integration
-            </h2>
-            <div style={{margin: '30 0'}}>
-              {loginButton}
-            </div>
-            <div className="alt-mascot-container">
-              <img src={mascot} />
-            </div>
-          </div>
-        </div>
+        <Grid>
+          <Row>
+            <Col md={6}>
+              <div className="mascot-container">
+                <img src={mascot}/>
+              </div>
+            </Col>
+            <Col md={6}>
+              <h1 className="hero">
+                Zappr is a <Highlight>GitHub</Highlight> integration
+              </h1>
+              <p className="lead">
+                Focus on writing code. Let Zappr help you with reviewing it.
+              </p>
+              <a type='button'
+                 href="/auth/github"
+                 className='btn btn-social btn-github btn-lg'
+                 disabled={this.props.isAuthenticating}
+                 onClick={this.props.loginGithub}>
+                <span className='fa fa-github'/>
+                Sign in with Github
+              </a>
+            </Col>
+          </Row>
+        </Grid>
 
         <Grid type="fluid" style={{marginTop: '1em'}}>
           <Row>
+            <Col md={12}>
+              <h2 id="features" className="page-header text-center">Features</h2>
+            </Col>
             <Col md={4}>
               <section>
                 <h4>Pull Request approvals</h4>
@@ -110,7 +113,7 @@ class Login extends Component {
           </Row>
           <Row>
             <Col md={12}>
-              <h2 className="page-header text-center">Benefits</h2>
+              <h2 id="benefits" className="page-header text-center">Benefits</h2>
             </Col>
             <Col md={4}>
               <section>
@@ -150,4 +153,4 @@ class Login extends Component {
   }
 }
 
-export default connect(mapStateToProps, {loginGitHub})(Login)
+export default connect(mapStateToProps, {loginGithub})(Login)
