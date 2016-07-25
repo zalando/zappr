@@ -9,9 +9,9 @@ const DEFAULT_REQUIRED_LENGTH = 8
 const ISSUE_PATTERN = /^(?:[-\w]+\/[-\w]+)?#\d+$/
 // Grubber's pattern
 const URL_PATTERN = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i
-const [MINIMUM_LENGTH, CONTAINS_URL, CONTAINS_ISSUE_NUMBER, WAS_ADJUSTED] =
+const [MINIMUM_LENGTH, CONTAINS_URL, CONTAINS_ISSUE_NUMBER, TEMPLATE_DIFFERS_FROM_BODY] =
   ['minimum-length', 'contains-url', 'contains-issue-number',
-    'was-adjusted']
+    'differs-from-body']
 
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
@@ -24,7 +24,7 @@ const status = (description, state = 'success') => ({
 
 const isLongEnough = (str, requiredLength) => (str || '').length > requiredLength
 const containsPattern = pattern => str => (str || '').split(' ')
-  .some(s => pattern.test(s))
+                                                     .some(s => pattern.test(s))
 const containsUrl = containsPattern(URL_PATTERN)
 const containsIssueNumber = containsPattern(ISSUE_PATTERN)
 
@@ -42,7 +42,7 @@ export default class Specification extends Check {
   }
 
   async execute(config, hookPayload, token) {
-    const { action, pull_request: pr, repository: repo } = hookPayload
+    const {action, pull_request: pr, repository: repo} = hookPayload
 
     if (ACTIONS.indexOf(action) === -1 || !pr || 'open' !== pr.state) {
       info(`${repo.full_name}#${pr.number}: Nothing to do, action was "${action}" with state "${pr.state}".`)
@@ -66,13 +66,15 @@ export default class Specification extends Check {
    * @param token access token
    */
   async validate(config, pr, repo, token) {
-    const { title = '', body = '', head: { sha } } = pr
-    const { owner: { login: user } } = repo
-    const { specification: {
-      title: titleChecks = {},
-      body: bodyChecks = {},
-      template: templateChecks = {}
-    } = {}} = config
+    const {title = '', body = '', head: {sha}} = pr
+    const {owner: {login: user}} = repo
+    const {
+      specification: {
+        title: titleChecks = {},
+        body: bodyChecks = {},
+        template: templateChecks = {}
+      } = {}
+    } = config
 
     try {
       await Promise.all([
@@ -83,7 +85,7 @@ export default class Specification extends Check {
       info(`${repo.full_name}#${pr.number}: Set status to success`)
       return this.github.setCommitStatus(user, repo.name, sha,
         status('PR has passed specification checks'), token)
-    } catch(e) {
+    } catch (e) {
       info(`${repo.full_name}#{pr.number}: Set status to failure: ${e.message}`)
       return this.github.setCommitStatus(user, repo.name, sha, status(
         e.message, 'failure'), token)
@@ -109,16 +111,23 @@ export default class Specification extends Check {
   }
 
   async _validateTemplate(body, user, repo, token, checks = {}) {
-    const shouldCheckWasAdjusted = checks[WAS_ADJUSTED]
-    const template = await this.github.readPullRequestTemplate(user, repo, token)
+    const shouldCheckWasAdjusted = checks[TEMPLATE_DIFFERS_FROM_BODY]
+    if (!shouldCheckWasAdjusted) {
+      return
+    }
+    let template
+    try {
+      template = await this.github.readPullRequestTemplate(user, repo, token)
+    } catch (e) {
+      // do nothing
+    }
     if (!template) {
       info(`${user}/${repo}: No PULL_REQUEST_TEMPLATE found`)
-      return true
+      return
     }
-    if (shouldCheckWasAdjusted && this._differsFromPrTemplate(body, template)) {
+    if (!this._differsFromPrTemplate(body, template)) {
       throw new Error(`PR's body is the same as template`)
     }
-    return true
   }
 
   /**
@@ -168,7 +177,7 @@ export default class Specification extends Check {
       return [success, failedChecks]
     }, [false, []])
 
-    if (!success) {
+    if (!success && failedChecks.length > 0) {
       throw new Error(`PR's body failed check ${failedChecks[0]}`)
     }
   }
@@ -182,6 +191,6 @@ export default class Specification extends Check {
    * @private
    */
   _differsFromPrTemplate(content, template) {
-      return content.trim() !== template.trim()
+    return content.trim() !== template.trim()
   }
 }
