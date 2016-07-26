@@ -36,6 +36,8 @@ module.exports = {
       test: /\.json$/, exclude: /node_modules/, loader: 'json'
     }, {
       test: /\.png$/, loader: 'url-loader?mimetype=image/png'
+    }, {
+      test: /\.svg$/, loader: 'file'
     }]
   },
   externals: nodeModules()

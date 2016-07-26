@@ -2,7 +2,8 @@ import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
 import Optional from '../components/Optional.jsx'
-import NavHeader from '../components/NavHeader.jsx'
+import AppNavHeader from '../components/NavHeader.jsx'
+import LoginNavHeader from '../components/LoginNavHeader.jsx'
 import { requestReposIfNeeded } from '../actions/repos'
 import { logger } from '../../common/debug'
 
@@ -35,8 +36,11 @@ class App extends Component {
     return (
       <div className='zpr-app'>
         <Optional if={!showLogin}>
-          <NavHeader path={this.props.location.pathname}
-                     user={this.props.user}/>
+          <AppNavHeader path={this.props.location.pathname}
+                        user={this.props.user}/>
+        </Optional>
+        <Optional if={showLogin}>
+          <LoginNavHeader />
         </Optional>
         <div className={showLogin ? '' : 'container-fluid'}>
           {this.props.children}

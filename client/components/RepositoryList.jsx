@@ -73,19 +73,19 @@ export default class RepositoryList extends Component {
                        onChange={this.updateSearch.bind(this)}
                        placeholder='zalando/zappr'/>
         </FormGroup>
+        <Button
+          style={{width: '100%', marginBottom: '1rem'}}
+          disabled={isUpdating}
+          onClick={this.onFetchAll.bind(this)}
+          bsStyle='default' lg>
+          <i className={classes('fa', 'fa-fw', 'fa-refresh', {'fa-spin': isUpdating})}/>&nbsp;Sync with Github
+        </Button>
         <ListGroup componentClass="ul">
           {repos.length > 0
             ? repos.map((repo, i) =>
             <RepositoryListItem key={i} repository={repo} active={repo.full_name === selected}/>)
-            : <ListGroupItem>Oops, no repository found! Try the button below, it could help.</ListGroupItem>}
+            : <ListGroupItem>Oops, no repository found! Try the sync button above, it could help.</ListGroupItem>}
         </ListGroup>
-        <Button
-          style={{width: '100%'}}
-          disabled={isUpdating}
-          onClick={this.onFetchAll.bind(this)}
-          bsStyle='primary' lg>
-          <i className={classes('fa', 'fa-refresh', {'fa-spin': isUpdating})}/>&nbsp;Sync with Github
-        </Button>
       </Panel>
     )
   }

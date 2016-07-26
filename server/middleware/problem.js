@@ -24,7 +24,7 @@ export function generateProblemResponseFromAppError(e = {}) {
 }
 
 export function generateProblemResponseFromKoaError(e) {
-  const members = {status: e.status, title: e.message}
+  const members = {status: e.status || DEFAULT_STATUS, title: e.expose ? e.message : DEFAULT_TITLE}
   const body = new Problem(members).toJSON()
   delete body.expose
   delete body.statusCode

@@ -39,14 +39,16 @@ export default class Index extends Component {
         <meta httpEquiv="x-ua-compatible" content="ie=edge"/>
         <meta name="description" content="Approvals for Github pull requests"/>
         <meta name="viewport" content="width=device-width,initial-scale=1"/>
-        <title>ZAPPR</title>
-        <link rel="shortcut icon" href="favicon.ico"/>
+        <title>Zappr</title>
+        <link rel="shortcut icon" href="/favicon.ico"/>
+
         {css.map((s, i) => (<link key={i} href={`/${s}`} rel="stylesheet"/>))}
       </head>
       <body>
       <main id="main" dangerouslySetInnerHTML={html}/>
       <script dangerouslySetInnerHTML={initialState} defer/>
       {js.map((s, i) => (<script key={i} src={`/${s}`} defer/>))}
+      <script async defer src="https://buttons.github.io/buttons.js" />
       </body>
       </html>
     )
