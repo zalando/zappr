@@ -78,7 +78,7 @@ export default class RepositoryList extends Component {
           disabled={isUpdating}
           onClick={this.onFetchAll.bind(this)}
           bsStyle='default' lg>
-          <i className={classes('fa', 'fa-refresh', {'fa-spin': isUpdating})}/>&nbsp;Sync with Github
+          <i className={classes('fa', 'fa-fw', 'fa-refresh', {'fa-spin': isUpdating})}/>&nbsp;Sync with Github
         </Button>
         <ListGroup componentClass="ul">
           {repos.length > 0
