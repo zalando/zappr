@@ -20,8 +20,8 @@ function LoginNavHeader() {
         <NavItem href="#benefits">
           Benefits
         </NavItem>
-        <NavItem href="#documentation">
-          Documentation
+        <NavItem href="#gettingstarted">
+          Getting started
         </NavItem>
       </Nav>
       <Nav pullRight className="github-buttons">
@@ -33,14 +33,8 @@ function LoginNavHeader() {
            data-count-api="/repos/zalando/zappr#stargazers_count"
            data-count-aria-label="# stargazers on GitHub"
            aria-label="Star zalando/zappr on GitHub">Star</a>
-        <a className="github-button"
-           href="https://github.com/zalando/zappr/archive/master.zip"
-           data-icon="octicon-cloud-download"
-           data-style="mega"
-           aria-label="Download zalando/zappr on GitHub">Download</a>
       </Nav>
     </Navbar.Collapse>
   </Navbar>
 }
-
 export default LoginNavHeader

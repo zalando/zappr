@@ -86,6 +86,11 @@
 
 @media(max-width: 768px) {
   .zpr-login {
+    .btn-github {
+      display: block;
+      width: 250px;
+      margin: 0 auto;
+    }
     .mascot-container {
       padding-top: 4rem;
       img {

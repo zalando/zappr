@@ -65,7 +65,8 @@ class Login extends Component {
                 Zappr is a <Highlight>GitHub</Highlight> integration
               </h1>
               <p className="lead">
-                Focus on reviewing code. Zappr ensures only approved changes make it into your <code>master</code> branch.
+                An agent that enforces guidelines for your GitHub repositories. It automatically checks pull requests
+                before they are merged.
               </p>
               <a type='button'
                  href="/auth/github"
@@ -133,7 +134,7 @@ class Login extends Component {
           </Row>
           <Row>
             <Col sm={12}>
-              <h2 className="text-center page-header" id="documentation">Documentation</h2>
+              <h2 className="text-center page-header" id="gettingstarted">Getting started</h2>
             </Col>
             <Col sm={4} smOffset={2}>
               <h4>Setup</h4>
