@@ -1,6 +1,6 @@
-![zappr](https://cloud.githubusercontent.com/assets/1183636/12652806/eded78d0-c5ec-11e5-9736-0b2a75dfd8ab.png)
+![zappr](client/img/banner_tiny.png)
 
-*Approval checks for GitHub pull requests.*
+**Approval checks for GitHub pull requests.**
 
 [![Build Status](https://travis-ci.org/zalando/zappr.svg?branch=master)](https://travis-ci.org/zalando/zappr)
 [![Code Climate](https://codeclimate.com/github/zalando/zappr/badges/gpa.svg)](https://codeclimate.com/github/zalando/zappr)
