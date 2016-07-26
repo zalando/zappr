@@ -20,6 +20,9 @@ function LoginNavHeader() {
         <NavItem href="#benefits">
           Benefits
         </NavItem>
+        <NavItem href="#documentation">
+          Documentation
+        </NavItem>
       </Nav>
       <Nav pullRight className="github-buttons">
         <a className="github-button"

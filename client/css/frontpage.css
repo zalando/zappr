@@ -86,7 +86,6 @@
 
 @media(max-width: 768px) {
   .zpr-login {
-    text-align: center;
     .mascot-container {
       padding-top: 4rem;
       img {

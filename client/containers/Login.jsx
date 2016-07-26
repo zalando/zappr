@@ -65,7 +65,7 @@ class Login extends Component {
                 Zappr is a <Highlight>GitHub</Highlight> integration
               </h1>
               <p className="lead">
-                Focus on writing code. Let Zappr help you with reviewing it.
+                Focus on reviewing code. Zappr ensures only approved changes make it into your <code>master</code> branch.
               </p>
               <a type='button'
                  href="/auth/github"
@@ -86,61 +86,81 @@ class Login extends Component {
 
         <Grid type="fluid" style={{marginTop: '1em'}}>
           <Row>
-            <Col md={12}>
+            <Col sm={12}>
               <h2 id="features" className="page-header text-center">Features</h2>
             </Col>
-            <Col md={4}>
-              <section>
-                <h4>Pull Request approvals</h4>
-                <p><Highlight>Block pull requests</Highlight> until maintainers approved all proposed changes.</p>
-                <Approval {...animationProps} />
-              </section>
+            <Col sm={4}>
+              <h4>Pull Request approvals</h4>
+              <p><Highlight>Block pull requests</Highlight> until maintainers approved all proposed changes.</p>
+              <Approval {...animationProps} />
             </Col>
-            <Col md={4}>
-              <section>
-                <h4>Commit message patterns</h4>
-                <p>Require commit messages in a pull request to <Highlight>follow a pattern you define.</Highlight></p>
-                <CommitMessage {...animationProps} />
-              </section>
+            <Col sm={4}>
+              <h4>Commit message patterns</h4>
+              <p>Require commit messages in a pull request to <Highlight>follow a pattern you define.</Highlight></p>
+              <CommitMessage {...animationProps} />
             </Col>
-            <Col md={4}>
-              <section>
-                <h4>Automatic branch creation</h4>
-                <p>Automatically create a branch in your repository <Highlight>for every opened issue.</Highlight></p>
-                <Autobranch {...animationProps} />
-              </section>
+            <Col sm={4}>
+              <h4>Automatic branch creation</h4>
+              <p>Automatically create a branch in your repository <Highlight>for every opened issue.</Highlight></p>
+              <Autobranch {...animationProps} />
             </Col>
           </Row>
           <Row>
-            <Col md={12}>
+            <Col sm={12}>
               <h2 id="benefits" className="page-header text-center">Benefits</h2>
             </Col>
-            <Col md={4}>
-              <section>
-                <h4 className="text-center">Code Review</h4>
-                <p>Zappr is our attempt to <Highlight>restore and improve code review</Highlight> to the process of
-                  developing a project on
-                  GitHub. GitHub doesn't impose restrictions on project contributions. While great for openness, this
-                  can pose challenges for project developers who want contributors to follow certain guidelines.</p>
-              </section>
+            <Col sm={4}>
+              <h4>Code Review</h4>
+              <p>Zappr is our attempt to <Highlight>restore and improve code review</Highlight> to the process of
+                developing a project on
+                GitHub. GitHub doesn't impose restrictions on project contributions. While great for openness, this
+                can pose challenges for project developers who want contributors to follow certain guidelines.</p>
             </Col>
-            <Col md={4}>
-              <section>
-                <h4 className="text-center">Compliance</h4>
-                <p>We are proponents of being able to do as much work as possible in GitHub, using GitHub. When working
-                  with compliance requirements, however, this can get tricky: <Highlight>how can developers employ the
-                    four-eyes
-                    principle on GitHub?</Highlight> Zappr aims to address this by applying a review/approval function
-                  to the project
-                  workflow at a critical point of transition.</p>
-              </section>
+            <Col sm={4}>
+              <h4>Compliance</h4>
+              <p>We are proponents of being able to do as much work as possible in GitHub, using GitHub. When working
+                with compliance requirements, however, this can get tricky: <Highlight>how can developers employ the
+                  four-eyes
+                  principle on GitHub?</Highlight> Zappr aims to address this by applying a review/approval function
+                to the project
+                workflow at a critical point of transition.</p>
             </Col>
-            <Col md={4}>
-              <section>
-                <h4 className="text-center">No More Bottlenecks</h4>
-                <p>We think it could be very useful for larger open-source projects that can't rely on a handful of
-                  admins to handle all PRs <Highlight>without sacrificing quality control.</Highlight></p>
-              </section>
+            <Col sm={4}>
+              <h4>No More Bottlenecks</h4>
+              <p>We think it could be very useful for larger open-source projects that can't rely on a handful of
+                admins to handle all PRs <Highlight>without sacrificing quality control.</Highlight></p>
+            </Col>
+          </Row>
+          <Row>
+            <Col sm={12}>
+              <h2 className="text-center page-header" id="documentation">Documentation</h2>
+            </Col>
+            <Col sm={4} smOffset={2}>
+              <h4>Setup</h4>
+              <p>It's easy:</p>
+              <ol>
+                <li>Sign in with your <Highlight>GitHub</Highlight> account</li>
+                <li>Select your repository</li>
+                <li><Highlight>Enable the checks</Highlight> you want to use</li>
+                <li>Optionally <Highlight>refine</Highlight> your configuration via a <code>.zappr.yaml</code>.</li>
+              </ol>
+              <p>
+                <a href="https://zappr.readthedocs.io/en/latest/setup/">Here</a> you can find more information about
+                these steps.
+              </p>
+            </Col>
+            <Col sm={4}>
+              <h4>Comparison to similar solutions</h4>
+              <p>
+                Zappr's biggest adantages:
+              </p>
+              <ul>
+                <li>it's <Highlight>free</Highlight> as in beer and freedom</li>
+                <li>it works only with GitHub, <Highlight>no custom UI</Highlight> needed</li>
+                <li>it offers <Highlight>features beyond code review</Highlight></li>
+              </ul>
+              <p>Read a more detailed comparison <a href="https://zappr.readthedocs.io/en/latest/competitors/">here</a>.
+              </p>
             </Col>
           </Row>
         </Grid>
