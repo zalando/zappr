@@ -166,7 +166,7 @@ class Login extends Component {
           </Row>
         </Grid>
         <footer>
-          Made with ♥︎ by <a href='https://zalando.com'>Zalando</a>.<br/>
+          Made with ♥︎ by <a href='http://www.zalando.com/'>Zalando</a>.<br/>
           <a href='https://tech.zalando.com'>Zalando Tech</a> is <a href='https://tech.zalando.com/jobs'>hiring</a>!
         </footer>
       </section>
