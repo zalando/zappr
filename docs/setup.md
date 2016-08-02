@@ -126,16 +126,23 @@ It is configured by putting your config under `specification` and supports the f
 
 ~~~ yaml
 specification:
-  # title requirements AND body requirements have to match
+  # title requirements AND body AND template requirements have to match
   title:
+    # PR title is at least this many characters long
     minimum-length:
       enabled: true
-      length: 8 # minimum length of PR title
+      length: 8
   body:
+    # either of these verifications has to be true
+    # PR body is at least this many characters long
     minimum-length:
       enabled: true
-      length: 8 # minimum length of PR body
-    # either of these verifications has to be true
+      length: 8
+    # contains a link
     contains-url: true
+    # contains an issue number
     contains-issue-number: true
+   template:
+     # is different from pull request body
+     differs-from-body: true
 ~~~

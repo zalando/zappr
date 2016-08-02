@@ -225,13 +225,15 @@ describe('Specification', () => {
           })
 
           await pullRequest.execute(config({
+            template: {
+              'differs-from-body': true
+            },
             body: {
               'minimum-length': {
                 enabled: false
               },
               'contains-url': false,
-              'contains-issue-number': false,
-              'differs-from-pr-template': true
+              'contains-issue-number': false
             }
           }), payload, TOKEN)
 
@@ -319,20 +321,22 @@ describe('Specification', () => {
           })
 
           await pullRequest.execute(config({
+            template: {
+              'differs-from-body': true
+            },
             body: {
               'minimum-length': {
                 enabled: false
               },
               'contains-url': false,
-              'contains-issue-number': false,
-              'differs-from-pr-template': true
+              'contains-issue-number': false
             }
           }), payload, TOKEN)
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',
               context: 'zappr/pr/specification',
-              description: `PR's body failed check 'differs-from-pr-template'`
+              description: `PR's body is the same as template`
             }, 'token'
           )).to.be.true
           done()
@@ -354,20 +358,22 @@ describe('Specification', () => {
           })
 
           await pullRequest.execute(config({
+            template: {
+              'differs-from-body': true
+            },
             body: {
               'minimum-length': {
                 enabled: false
               },
               'contains-url': false,
-              'contains-issue-number': false,
-              'differs-from-pr-template': true
+              'contains-issue-number': false
             }
           }), payload, TOKEN)
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',
               context: 'zappr/pr/specification',
-              description: `PR's body failed check 'differs-from-pr-template'`
+              description: `PR's body is the same as template`
             }, 'token'
           )).to.be.true
           done()
@@ -376,7 +382,7 @@ describe('Specification', () => {
         }
       })
 
-      it(`[action: '${action}'] should set status to 'failure' if there are ` +
+      it(`[action: '${action}'] should set status to 'success' if ` +
         `no PR template is available and other checks are disabled`, async (done) => {
         try {
           github.readPullRequestTemplate.returns(Promise.reject())
@@ -388,20 +394,59 @@ describe('Specification', () => {
           })
 
           await pullRequest.execute(config({
+            template: {
+              'differs-from-body': true
+            },
             body: {
               'minimum-length': {
                 enabled: false
               },
               'contains-url': false,
-              'contains-issue-number': false,
-              'differs-from-pr-template': true
+              'contains-issue-number': false
+            }
+          }), payload, TOKEN)
+          expect(github.setCommitStatus.calledWithExactly(
+            'sample', 'one', '1a2b3c', {
+              state: 'success',
+              context: 'zappr/pr/specification',
+              description: `PR has passed specification checks`
+            }, 'token'
+          )).to.be.true
+          done()
+        } catch (e) {
+          done(e)
+        }
+      })
+
+      it(`[action: '${action}'] should set status to 'failure' if ` +
+        `no PR template is available and minimum-length is enabled`, async (done) => {
+        try {
+          github.readPullRequestTemplate.returns(Promise.reject())
+
+          const payload = createPayload(action, {
+            state: 'open',
+            title: 'This is a good title for the PR',
+            body: 'Lol?'
+          })
+
+          await pullRequest.execute(config({
+            template: {
+              'differs-from-body': true
+            },
+            body: {
+              'minimum-length': {
+                enabled: true,
+                length: 8
+              },
+              'contains-url': false,
+              'contains-issue-number': false
             }
           }), payload, TOKEN)
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',
               context: 'zappr/pr/specification',
-              description: `PR's body failed check 'differs-from-pr-template'`
+              description: `PR's body failed check 'minimum-length'`
             }, 'token'
           )).to.be.true
           done()

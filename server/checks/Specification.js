@@ -9,9 +9,9 @@ const DEFAULT_REQUIRED_LENGTH = 8
 const ISSUE_PATTERN = /^(?:[-\w]+\/[-\w]+)?#\d+$/
 // Grubber's pattern
 const URL_PATTERN = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i
-const [MINIMUM_LENGTH, CONTAINS_URL, CONTAINS_ISSUE_NUMBER, DIFFERS_FROM_TEMPLATE] =
+const [MINIMUM_LENGTH, CONTAINS_URL, CONTAINS_ISSUE_NUMBER, TEMPLATE_DIFFERS_FROM_BODY] =
   ['minimum-length', 'contains-url', 'contains-issue-number',
-    'differs-from-pr-template']
+    'differs-from-body']
 
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
@@ -24,7 +24,7 @@ const status = (description, state = 'success') => ({
 
 const isLongEnough = (str, requiredLength) => (str || '').length > requiredLength
 const containsPattern = pattern => str => (str || '').split(' ')
-  .some(s => pattern.test(s))
+                                                     .some(s => pattern.test(s))
 const containsUrl = containsPattern(URL_PATTERN)
 const containsIssueNumber = containsPattern(ISSUE_PATTERN)
 
@@ -42,7 +42,7 @@ export default class Specification extends Check {
   }
 
   async execute(config, hookPayload, token) {
-    const { action, pull_request: pr, repository: repo } = hookPayload
+    const {action, pull_request: pr, repository: repo} = hookPayload
 
     if (ACTIONS.indexOf(action) === -1 || !pr || 'open' !== pr.state) {
       info(`${repo.full_name}#${pr.number}: Nothing to do, action was "${action}" with state "${pr.state}".`)
@@ -66,22 +66,26 @@ export default class Specification extends Check {
    * @param token access token
    */
   async validate(config, pr, repo, token) {
-    const { title = '', body = '', head: { sha } } = pr
-    const { owner: { login: user } } = repo
-    const { specification: {
-      title: titleChecks = {},
-      body: bodyChecks = {}
-    } = {}} = config
+    const {title = '', body = '', head: {sha}} = pr
+    const {owner: {login: user}} = repo
+    const {
+      specification: {
+        title: titleChecks = {},
+        body: bodyChecks = {},
+        template: templateChecks = {}
+      } = {}
+    } = config
 
     try {
       await Promise.all([
         this._validateTitle(title, titleChecks),
-        this._validateBody(body, user, repo.name, token, bodyChecks)
+        this._validateTemplate(body, user, repo.name, token, templateChecks),
+        this._validateBody(body, bodyChecks)
       ])
       info(`${repo.full_name}#${pr.number}: Set status to success`)
       return this.github.setCommitStatus(user, repo.name, sha,
         status('PR has passed specification checks'), token)
-    } catch(e) {
+    } catch (e) {
       info(`${repo.full_name}#{pr.number}: Set status to failure: ${e.message}`)
       return this.github.setCommitStatus(user, repo.name, sha, status(
         e.message, 'failure'), token)
@@ -106,22 +110,35 @@ export default class Specification extends Check {
     }
   }
 
+  async _validateTemplate(body, user, repo, token, checks = {}) {
+    const shouldCheckWasAdjusted = checks[TEMPLATE_DIFFERS_FROM_BODY]
+    if (!shouldCheckWasAdjusted) {
+      return
+    }
+    let template
+    try {
+      template = await this.github.readPullRequestTemplate(user, repo, token)
+    } catch (e) {
+      info(`${user}/${repo}: No PULL_REQUEST_TEMPLATE found`)
+      return
+    }
+    if (template.trim() === body.trim()) {
+      throw new Error(`PR's body is the same as template`)
+    }
+  }
+
   /**
    * @param {string} body to be validated
-   * @param {string} user
-   * @param {string} repo
-   * @param {string} token
    * @param {Object} checks part of `specification` that contains body's checks
    */
-  async _validateBody(body, user, repo, token, checks = {}) {
+  _validateBody(body, checks = {}) {
     const {
       [MINIMUM_LENGTH]: {
         enabled: shouldCheckLength = true,
         length: requiredLength = DEFAULT_REQUIRED_LENGTH
       } = {},
       [CONTAINS_URL]: shouldCheckUrl = true,
-      [CONTAINS_ISSUE_NUMBER]: shouldCheckIssue = true,
-      [DIFFERS_FROM_TEMPLATE]: shouldCheckPrTemplate = true
+      [CONTAINS_ISSUE_NUMBER]: shouldCheckIssue = true
     } = checks
 
     const checksMapping = {
@@ -136,22 +153,17 @@ export default class Specification extends Check {
       [MINIMUM_LENGTH]: {
         enabled: shouldCheckLength,
         fn: isLongEnough.bind(null, body, requiredLength)
-      },
-      [DIFFERS_FROM_TEMPLATE]: {
-        enabled: shouldCheckPrTemplate,
-        fn: this._differsFromPrTemplate.bind(this, body, user, repo, token)
       }
     }
 
     // array to force the order
-    const [success, failedChecks] = await [
-      CONTAINS_ISSUE_NUMBER, CONTAINS_URL, DIFFERS_FROM_TEMPLATE, MINIMUM_LENGTH
-    ].reduce(async(awaitable, checkName) => {
+    const [success, failedChecks] = [
+      CONTAINS_ISSUE_NUMBER, CONTAINS_URL, MINIMUM_LENGTH
+    ].reduce(([success, failedChecks], checkName) => {
       const {enabled, fn: check} = checksMapping[checkName]
-      let [success, failedChecks] = await awaitable
 
       if (enabled) {
-        const res = await check()
+        const res = check()
         if (!res) {
           failedChecks.push(`'${checkName}'`)
         }
@@ -160,28 +172,10 @@ export default class Specification extends Check {
       }
 
       return [success, failedChecks]
-    }, [undefined, []])
+    }, [false, []])
 
-    if (!success) {
+    if (!success && failedChecks.length > 0) {
       throw new Error(`PR's body failed check ${failedChecks[0]}`)
     }
-  }
-
-  /**
-   * @param {string} content to compare
-   * @param {string} user
-   * @param {string} repo
-   * @param {string} accessToken
-   *
-   * @return {boolean} true if `content` is not equal to template. False otherwise
-   *
-   * @private
-   */
-  _differsFromPrTemplate(content, user, repo, accessToken) {
-    return this.github.readPullRequestTemplate(user, repo, accessToken)
-      .then((template) => template.trim() !== content.trim(), () => {
-        info(`${user}/${repo}: No PULL_REQUEST_TEMPLATE found`)
-        return false
-      })
   }
 }

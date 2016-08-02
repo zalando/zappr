@@ -37,4 +37,5 @@ ZAPPR_DEFAULT_CONFIG:
         length: 8
       contains-url: true
       contains-issue-number: true
-      differs-from-pr-template: true
+    pr-template:
+      differs-from-body: true
