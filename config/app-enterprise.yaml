@@ -45,3 +45,7 @@ ZAPPR_DEFAULT_CONFIG:
       contains-issue-number: true
     pr-template:
       differs-from-body: true
+  linkticket:
+    url: "https://github.bus.zalan.do/${owner}/${repo}/issues/${id}"
+    pattern: "^#([0-9]+)"
+    headline: "#### Tickets:"

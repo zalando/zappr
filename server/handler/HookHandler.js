@@ -1,4 +1,4 @@
-import { Approval, Autobranch, CommitMessage, Specification } from '../checks'
+import { Approval, Autobranch, CommitMessage, Specification, LinkTickets } from '../checks'
 import { logger } from '../../common/debug'
 import { githubService as defaultGithubService } from '../service/GithubService'
 import { repositoryHandler as defaultRepositoryHandler } from './RepositoryHandler'
@@ -24,6 +24,7 @@ class HookHandler {
     this.autobranch = new Autobranch(this.githubService)
     this.commitMessage = new CommitMessage(this.githubService)
     this.specification = new Specification(this.githubService)
+    this.linkTickets = new LinkTickets(this.githubService)
   }
 
   /**
@@ -51,7 +52,17 @@ class HookHandler {
         config = zapprfile.getConfiguration()
       }
 
-      if (Specification.isTriggeredBy(event)) {
+      if (LinkTickets.isTriggeredBy(event)) {
+        let token = await getToken(repo, LinkTickets.TYPE);
+        let newPayload = await this.linkTickets.execute(config, payload, token);
+        // Execute the specification check after linking tickets since it adds the required links to specifications
+        if (Specification.isTriggeredBy(event)) {
+          getToken(repo, Specification.TYPE).then(token => {
+            this.specification.execute(config, newPayload, token)
+          })
+        }
+      }
+      else if (Specification.isTriggeredBy(event)) {
         getToken(repo, Specification.TYPE).then(token =>
           this.specification.execute(config, payload, token)
         )

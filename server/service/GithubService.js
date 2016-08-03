@@ -141,6 +141,22 @@ export class GithubService {
     }
   }
 
+  async updatePullRequest(owner, repo, prNumber, payload, accessToken) {
+    const path = API_URL_TEMPLATES.PR
+                                  .replace('${owner}', owner)
+                                  .replace('${repo}', repo)
+                                  .replace('${number}', prNumber);
+    try {
+      const newPr = await this.fetchPath('PATCH', path, payload, accessToken);
+      debug(`${owner}/${repo}:${newPr.number} updated the pull request`);
+      return newPr;
+    }
+    catch (e) {
+      debug(`${owner}/${repo}:${pr.number} didn\'t updated the pull request`);
+      return false
+    }
+  }
+
   async getHead(owner, repo, branch, accessToken) {
     const path = API_URL_TEMPLATES.REF
                                   .replace('${owner}', owner)

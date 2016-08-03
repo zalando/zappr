@@ -14,7 +14,10 @@ const INFO_TEXT = {
   commitmessage: <p>The commit message feature (<a href='https://zappr.readthedocs.io/en/latest/setup/#commitmessages'>docs</a>) will check that commit messages
                     in a pull request match at least one of some patterns you provide.
                  </p>,
-  specification: <p>The specification check (<a href='https://zappr.readthedocs.io/en/latest/setup/#specification'>docs</a>) will verify that a pull request's title and body conform to the length and content requirements.</p>
+  specification: <p>The specification check (<a href='https://zappr.readthedocs.io/en/latest/setup/#specification'>docs</a>)
+                    will verify that a pull request's title and body conform to the length and content requirements.</p>,
+  linktickets: <p>When enabling the linking of tickets (<a href='https://zappr.readthedocs.io/en/latest/setup/#linktickets'>docs</a>),
+                  ZAPPR will append a link to the pull request for each ticket mentioned in a commit message. </p>
 }
 
 export default class RepositoryCheck extends Component {
