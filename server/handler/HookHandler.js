@@ -51,16 +51,16 @@ class HookHandler {
         const zapprfile = new ZapprConfiguration(zapprFileContent)
         config = zapprfile.getConfiguration()
       }
-
       if (LinkTickets.isTriggeredBy(event)) {
-        let token = await getToken(repo, LinkTickets.TYPE);
-        let newPayload = await this.linkTickets.execute(config, payload, token);
-        // Execute the specification check after linking tickets since it adds the required links to specifications
-        if (Specification.isTriggeredBy(event)) {
-          getToken(repo, Specification.TYPE).then(token => {
-            this.specification.execute(config, newPayload, token)
-          })
-        }
+        getToken(repo, LinkTickets.TYPE).then(linkToken => {
+          let newPayload = this.linkTickets.execute(config, payload, linkToken);
+          // Execute the specification check after linking tickets since it adds the required links to specifications
+          if (Specification.isTriggeredBy(event)) {
+            getToken(repo, Specification.TYPE).then(token => {
+              this.specification.execute(config, newPayload, token)
+            })
+          }
+        });
       }
       else if (Specification.isTriggeredBy(event)) {
         getToken(repo, Specification.TYPE).then(token =>

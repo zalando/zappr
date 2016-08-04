@@ -2,8 +2,8 @@ import Check from './Check';
 import {logger} from '../../common/debug';
 import * as EVENTS from '../model/GithubEvents';
 
-const info = logger('approval', 'info');
-const error = logger('approval', 'error');
+const info = logger('linktickets', 'info');
+const error = logger('linktickets', 'error');
 const ACTIONS = ['opened', 'edited', 'reopened', 'synchronize'];
 
 export default class LinkTickets extends Check {
