@@ -153,7 +153,7 @@ class Login extends Component {
             <Col sm={4}>
               <h4>Comparison to similar solutions</h4>
               <p>
-                Zappr's biggest adantages:
+                Zappr's biggest advantages:
               </p>
               <ul>
                 <li>it's <Highlight>free</Highlight> as in beer and freedom</li>
@@ -168,12 +168,19 @@ class Login extends Component {
         <footer>
           <Grid>
             <Row>
-              <Col mdOffset={2} md={4}>
-                Made with ♥︎ by <a href='https://zalando.com'>Zalando</a>.<br/>
+              <Col sm={4}>
+                <h6>Made with ♥︎ by <a href='https://zalando.com'>Zalando</a></h6>
                 <a href='https://tech.zalando.com'>Zalando Tech</a> is <a
                 href='https://tech.zalando.com/jobs'>hiring</a>!
               </Col>
-              <Col md={4}>
+              <Col sm={4}>
+                <h6>Contact & Status</h6>
+                <a href='https://gitter.im/zalando/zappr'>Gitter</a><br/>
+                <a href='mailto:zappr@zalando.de'>Email</a><br/>
+                <a href='https://twitter.com/zalando_zappr'>@zalando_zappr</a>
+              </Col>
+              <Col sm={4}>
+                <h6>Legal</h6>
                 <a href='https://zappr.readthedocs.io/en/latest/tos/'>Terms of Service</a><br/>
                 <a href='https://zappr.readthedocs.io/en/latest/imprint/'>Imprint & Data Protection Declaration</a>
               </Col>
