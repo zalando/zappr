@@ -166,8 +166,19 @@ class Login extends Component {
           </Row>
         </Grid>
         <footer>
-          Made with ♥︎ by <a href='https://zalando.com'>Zalando</a>.<br/>
-          <a href='https://tech.zalando.com'>Zalando Tech</a> is <a href='https://tech.zalando.com/jobs'>hiring</a>!
+          <Grid>
+            <Row>
+              <Col mdOffset={2} md={4}>
+                Made with ♥︎ by <a href='https://zalando.com'>Zalando</a>.<br/>
+                <a href='https://tech.zalando.com'>Zalando Tech</a> is <a
+                href='https://tech.zalando.com/jobs'>hiring</a>!
+              </Col>
+              <Col md={4}>
+                <a href='https://zappr.readthedocs.io/en/latest/tos/'>Terms of Service</a><br/>
+                <a href='https://zappr.readthedocs.io/en/latest/imprint/'>Imprint & Data Protection Declaration</a>
+              </Col>
+            </Row>
+          </Grid>
         </footer>
       </section>
     )
