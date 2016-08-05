@@ -7,5 +7,7 @@ pages:
   - Setup: setup.md
   - Comparison to other tools: competitors.md
   - FAQ: faq.md
+  - Terms of Service: tos.md
+  - Imprint and Data protection clause: imprint.md
 extra_css:
   - images.css
