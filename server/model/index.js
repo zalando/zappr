@@ -2,6 +2,7 @@ import User from './User'
 import Repository from './Repository'
 import Check from './Check'
 import PullRequest from './PullRequest'
+import BlacklistedComment from './BlacklistedComment'
 import { UserRepository } from './relations'
 
 // Relations, see http://docs.sequelizejs.com/en/latest/docs/associations
@@ -15,6 +16,9 @@ Check.belongsTo(Repository, {foreignKey: {allowNull: false}})
 // Repository <(1)---(m)> PullRequest
 Repository.hasMany(PullRequest, {foreignKey: {allowNull: false}})
 PullRequest.belongsTo(Repository, {foreignKey: {allowNull: false}})
+// PullRequest <(1)---(m)> BlacklistedComment
+PullRequest.hasMany(BlacklistedComment, {foreignKey: {allowNull: false}})
+BlacklistedComment.belongsTo(PullRequest, {foreignKey: {allowNull: false}})
 
 export { db } from './Database'
 export { default as User } from './User'
@@ -22,4 +26,5 @@ export { default as Repository } from './Repository'
 export { default as Check } from './Check'
 export { default as PullRequest } from './PullRequest'
 export { default as Session } from './Session'
+export { default as BlacklistedComment} from './BlacklistedComment'
 export { UserRepository } from './relations'
