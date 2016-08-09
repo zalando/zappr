@@ -48,14 +48,14 @@ const DEFAULT_CONFIG = {
     }
   }
 }
-const SUCCESS_STATUS = Approval.generateStatus({approvals: {total: 2}, vetos: 0}, DEFAULT_CONFIG.approvals)
-const BLOCKED_BY_VETO_STATUS = Approval.generateStatus({approvals: {total: 2}, vetos: 1}, DEFAULT_CONFIG.approvals)
+const SUCCESS_STATUS = Approval.generateStatus({approvals: {total: ['foo', 'bar']}, vetos: []}, DEFAULT_CONFIG.approvals)
+const BLOCKED_BY_VETO_STATUS = Approval.generateStatus({approvals: {total: ['foo', 'bar']}, vetos: ['mr-foo']}, DEFAULT_CONFIG.approvals)
 const PENDING_STATUS = {
   state: 'pending',
   description: 'Approval validation in progress.',
   context: 'zappr'
 }
-const ZERO_APPROVALS_STATUS = Approval.generateStatus({approvals: {total: 0}, vetos: 0}, DEFAULT_CONFIG.approvals)
+const ZERO_APPROVALS_STATUS = Approval.generateStatus({approvals: {total: []}, vetos: []}, DEFAULT_CONFIG.approvals)
 const DB_PR = {
   last_push: new Date(),
   number: 3
@@ -131,6 +131,17 @@ describe('Approval#fetchIgnoredUsers', () => {
   })
 })
 
+describe('Approval#generateStatus', () => {
+  it('should favor vetos over approvals', () => {
+    const result = Approval.generateStatus({approvals: { total: ['mr-foo']}, vetos: ['mr-bar']}, {minimum: 1})
+    expect(result.state).to.equal('failure')
+  })
+  it('should be successful without vetos', () => {
+    const result = Approval.generateStatus({approvals: { total: ['mr-foo']}, vetos: []}, {minimum: 1})
+    expect(result.state).to.equal('success')
+  })
+})
+
 describe('Approval#countApprovalsAndVetos', () => {
   it('should honor the provided pattern', async(done) => {
     const comments = [{
@@ -146,7 +157,7 @@ describe('Approval#countApprovalsAndVetos', () => {
     try {
       const approval = new Approval(null, null)
       const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, {}, comments, DEFAULT_CONFIG.approvals)
-      expect(approvals).to.deep.equal({total: 1})
+      expect(approvals).to.deep.equal({total: ['mfellner']})
       done()
     } catch (e) {
       done(e)
@@ -180,11 +191,11 @@ describe('Approval#getCommentStatsForConfig', () => {
         user: {login: 'user3'}
       }]
       let approvals = await approval.getCommentStatsForConfig(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
-      expect(approvals.total).to.equal(3)
+      expect(approvals.total).to.deep.equal(['user1', 'user2', 'user3'])
       // and with empty comments
       comments = []
       approvals = await approval.getCommentStatsForConfig(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
-      expect(approvals.total).to.equal(0)
+      expect(approvals.total).to.deep.equal([])
       done()
     } catch (e) {
       done(e)
@@ -206,7 +217,7 @@ describe('Approval#getCommentStatsForConfig', () => {
       const config = Object.assign({}, DEFAULT_CONFIG.approvals, {from: {orgs: ['zalando']}})
       const approvals = await approval.getCommentStatsForConfig(DEFAULT_REPO, comments, config, TOKEN)
       expect(github.isMemberOfOrg.callCount).to.equal(3)
-      expect(approvals.total).to.equal(1)
+      expect(approvals.total).to.deep.equal(['user3'])
       done()
     } catch (e) {
       done(e)
@@ -238,9 +249,9 @@ describe('Approval#getCommentStatsForConfig', () => {
       )
       const approvals = await approval.getCommentStatsForConfig(DEFAULT_REPO, comments, config, TOKEN)
       expect(github.isMemberOfOrg.callCount).to.equal(3)
-      expect(approvals.total).to.equal(3)
+      expect(approvals.total).to.deep.equal(['user1', 'user2', 'user3'])
       expect(approvals.groups.zalando).to.be.defined
-      expect(approvals.groups.zalando).to.equal(3)
+      expect(approvals.groups.zalando).to.deep.equal(['user1', 'user2', 'user3'])
       done()
     }
     catch
@@ -417,7 +428,7 @@ describe('Approval#execute', () => {
       PR_PAYLOAD.action = 'reopened'
       github.fetchPullRequestCommits = sinon.stub().returns([])
       github.getComments = sinon.stub().returns([])
-      approval.countApprovalsAndVetos = sinon.stub().returns({approvals: {total: 4}})
+      approval.countApprovalsAndVetos = sinon.stub().returns({approvals: {total: ['red', 'blue', 'green', 'yellow']}, vetos: []})
       await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -436,7 +447,7 @@ describe('Approval#execute', () => {
         'mfellner',
         'hello-world',
         PR_PAYLOAD.pull_request.head.sha,
-        Approval.generateStatus({approvals: {total: 4}, vetos: 0}, {minimum: 2}),
+        Approval.generateStatus({approvals: {total: ['red', 'blue', 'green', 'yellow']}, vetos: []}, {minimum: 2}),
         TOKEN
       ])
       done()
