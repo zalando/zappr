@@ -146,3 +146,35 @@ specification:
      # is different from pull request body
      differs-from-body: true
 ~~~
+
+### Ticket linking
+
+With enabled ticket linking ZAPPR will add a section with links to all tickets which are metioned in the commits of a pull request.
+The ticket ID's are recognized by a configurable pattern and the url will be generated using the configured base url.
+
+The result could look like this (example for github and jira)
+```
+Initial pr body content
+ 
+#### Tickets:
+http://github.com/owner/repository/23
+http://jira.domain.com/issue/PROJ-23
+```
+
+Possible options are:
+- `url` The URL is the url to a ticket without it's ID. It accepts the placeholders
+  - `owner` The name of the repository owner
+  - `repo` The name of the repository itself
+  - `id` The parsed ticket identifier
+- `pattern` This pattern is a javascript valid regular expression which matches either the first group or if no group is available the whole string.
+  - Example pattern for Github issues `"^#([0-9]+)"`
+  - Example pattern for JIRA tickets `"^[A-Z][A-Z0-9_]+[0-9]+"`
+- `headline` The headline above the link enumeration in the pr body.
+
+Here you can find the default configuration
+```
+linkticket:
+	url: "https://github.com/${owner}/${repo}/issues/${id}"
+	pattern: "^#([0-9]+)"
+	headline: "#### Tickets:"
+```

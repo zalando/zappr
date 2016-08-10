@@ -9,6 +9,7 @@ Zappr is a Github integration built to enhance your project workflow. Created by
 - you can enable/disable pull request approval checks per repository, with the simple flip of a toggle
 - you can configure what counts an approval and what doesn't
 - via a configuration file that you insert in your repository, you can override Github's default settings and endow users with PR approval authorization by inviting them by name, organization and/or contributor status.
+- automagically append links to issues / tickets to the body of a pull request
 
 ## Why We Developed Zappr
 
