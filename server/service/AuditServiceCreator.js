@@ -34,6 +34,7 @@ export default function create() {
       .withLogger(DefaultLogger)
     case 'zalando-audittrail':
       const URL = nconf.get('AUDITTRAIL_URL')
+      info(`writing audit logs to zalando audit trail API on ${url}`)
       return new ZalandoAuditService({url: URL}).withLogger(DefaultLogger)
     default:
       warn('audit logging disabled')
