@@ -5,6 +5,8 @@ docs_dir: docs
 pages:
   - Overview: index.md
   - Setup: setup.md
+  - Comparison to other tools: competitors.md
+  - Run your own: run-your-own.md
   - FAQ: faq.md
 extra_css:
   - images.css

@@ -1,15 +1,19 @@
 import path from 'path'
 import nconf from '../nconf'
+import { Counter } from 'prom-client'
 import GithubServiceError from './GithubServiceError'
 import { joinURL, promiseFirst, decode, getIn } from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
 
+const CallCounter = new Counter('github_api_requests', 'Status codes from Github API', ['type'])
 const debug = logger('github')
 const info = logger('github', 'info')
 const error = logger('github', 'error')
 const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
 const VALID_ZAPPR_FILE_PATHS = nconf.get('VALID_ZAPPR_FILE_PATHS')
+const VALID_PR_TEMPLATES_PATHS = nconf.get('VALID_PR_TEMPLATE_PATHS')
+const COMMIT_STATUS_MAX_LENGTH = 140
 
 const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
@@ -51,12 +55,21 @@ export class GithubService {
     const [response, body] = await request(options)
     const {statusCode} = response || {}
 
+    CallCounter.inc({type: 'total'}, 1)
     // 300 codes are for github membership checks
     if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
       error(`${statusCode} ${method} ${path}`, response.body)
+      if (statusCode >= 400 && statusCode <= 499) {
+        CallCounter.inc({type: '4xx'}, 1)
+      } else if (statusCode >= 500 && statusCode <= 599) {
+        CallCounter.inc({ type: '5xx'}, 1)
+      }
       throw new GithubServiceError(response)
     }
-    else return body
+    else {
+      CallCounter.inc({type: 'success'}, 1)
+      return body
+    }
   }
 
   setCommitStatus(user, repo, sha, status, accessToken) {
@@ -64,6 +77,10 @@ export class GithubService {
                                 .replace('${owner}', user)
                                 .replace('${repo}', repo)
                                 .replace('${sha}', sha)
+    if (status.description.length > COMMIT_STATUS_MAX_LENGTH) {
+      const ellipsis = '...' // actually three characters instead of one
+      status.description = status.description.substring(0, COMMIT_STATUS_MAX_LENGTH - ellipsis.length) + ellipsis
+    }
     return this.fetchPath('POST', path, status, accessToken)
   }
 
@@ -146,21 +163,15 @@ export class GithubService {
   }
 
   readZapprFile(user, repo, accessToken) {
-    const repoContentUrl = API_URL_TEMPLATES.REPO_CONTENT
-                                            .replace('${owner}', user)
-                                            .replace('${repo}', repo)
-    const validZapprFileUrls = VALID_ZAPPR_FILE_PATHS.map(zapprFilePath => path.join(repoContentUrl, zapprFilePath))
-
-    const zapprFileRequests = validZapprFileUrls.map(zapprFileUrl => this.fetchPath('GET', zapprFileUrl, null, accessToken))
-    return promiseFirst(zapprFileRequests)
+    return this._readFile(VALID_ZAPPR_FILE_PATHS, user, repo, accessToken)
     .catch(() => {
       info('%s/%s: No Zapprfile found, falling back to default configuration.', user, repo)
       return ''
     })
-    .then(({content, encoding, name}) => {
-      info('%s/%s: Found %s.', user, repo, name)
-      return name ? decode(content, encoding) : ''
-    })
+  }
+
+  readPullRequestTemplate(user, repo, accessToken) {
+    return this._readFile(VALID_PR_TEMPLATES_PATHS, user, repo, accessToken)
   }
 
   async updateWebhookFor(user, repo, events, accessToken) {
@@ -273,6 +284,29 @@ export class GithubService {
     const commits = await this.fetchPullRequestCommits(owner, repo, number, accessToken)
     const lastCommit = commits[commits.length - 1]
     return getIn(lastCommit, ['committer', 'login'])
+  }
+
+  /**
+   * @param {string | Array<string>} paths of possible file location
+   * @param {string} user
+   * @param {string} repo
+   * @param {string} accessToken
+   *
+   * @return {Promise} of github API response
+   *
+   * @private
+   */
+  _readFile(paths, user, repo, accessToken) {
+    const repoUrl = API_URL_TEMPLATES.REPO_CONTENT
+      .replace('${owner}', user).replace('${repo}', repo)
+
+    return promiseFirst((Array.isArray(paths) ? paths : [paths])
+      .map(filename => path.join(repoUrl, filename))
+      .map(url => this.fetchPath('GET', url, null, accessToken))
+    ).then(({content, encoding, name}) => {
+      info(`${user}/${repo}: Found ${name}.`)
+      return name ? decode(content, encoding) : ''
+    })
   }
 }
 

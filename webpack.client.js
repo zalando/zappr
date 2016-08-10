@@ -27,13 +27,17 @@ module.exports = {
         presets: ['es2015', 'stage-1', 'react']
       }
     }, {
-      test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css-loader?minimize')
+      test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css?minimize!postcss')
     }, {
       test: /\.(otf|eot|svg|ttf|woff2?)/, loader: 'file'
     }, {
       test: /\.png$/, loader: 'url-loader?mimetype=image/png'
     }]
   },
+  postcss: [
+    require('postcss-nested'),
+    require('postcss-css-variables')
+  ],
   plugins: [
     new ExtractTextPlugin('styles.min.css'),
     new CommonsChunkPlugin('vendor', '0-vendor.min.js'),
