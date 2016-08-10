@@ -2,14 +2,13 @@ import { Transport } from 'winston'
 import { request } from '../../util'
 import manageTokens from 'node-tokens'
 
-const tokens = manageTokens({
-  audittrail: {scope: ['uid']}
-})
-
 export default class ZalandoAuditTrail extends Transport {
   constructor(opts) {
     super(opts)
     this.url = opts.url
+    this.tokens = manageTokens({
+      audittrail: {scope: ['uid']}
+    })
   }
 
   log(level, msg, meta, cb = x => x) {
@@ -22,7 +21,7 @@ export default class ZalandoAuditTrail extends Transport {
       body: meta,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${tokens.get('audittrail')}`
+        'Authorization': `Bearer ${this.tokens.get('audittrail')}`
       }
     })
     .then(resp => cb(null, resp))

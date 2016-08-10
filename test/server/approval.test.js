@@ -2,6 +2,7 @@ import sinon from 'sinon'
 import { expect } from 'chai'
 import { formatDate } from '../../common/debug'
 import Approval from '../../server/checks/Approval'
+import NullAuditService from '../../server/service/audit/NullAuditService'
 
 const DEFAULT_REPO = {
   name: 'hello-world',
@@ -280,7 +281,7 @@ describe('Approval#execute', () => {
       getComments: sinon.spy(),
       fetchPullRequestCommits: sinon.spy()
     }
-    approval = new Approval(github, pullRequestHandler)
+    approval = new Approval(github, pullRequestHandler, new NullAuditService())
   })
 
   it('should set status to failure on last issue comment when there is a veto comment', async(done) => {
