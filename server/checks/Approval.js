@@ -55,7 +55,7 @@ export default class Approval extends Check {
   static generateStatus({approvals, vetos}, {minimum, groups}) {
     if (vetos.length > 0) {
       return {
-        description: `Veto by ${vetos.map(u => `@${u}`).join(', ')}.`,
+        description: `Vetoes: ${vetos.map(u => `@${u}`).join(', ')}.`,
         state: 'failure',
         context
       }
@@ -93,7 +93,7 @@ export default class Approval extends Check {
     }
 
     return {
-      description: `Approvers: ${approvals.total.map(u => `@${u}`).join(', ')}.`,
+      description: `Approvals: ${approvals.total.map(u => `@${u}`).join(', ')}.`,
       state: 'success',
       context
     }
