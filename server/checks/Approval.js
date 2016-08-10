@@ -58,9 +58,9 @@ export default class Approval extends Check {
    * @returns {Object} Object consumable by Github Status API
    */
   static generateStatus({approvals, vetos}, {minimum, groups}) {
-    if (vetos > 0) {
+    if (vetos.length > 0) {
       return {
-        description: `This PR is blocked by vetos of ${vetos} users`,
+        description: `Vetoes: ${vetos.map(u => `@${u}`).join(', ')}.`,
         state: 'failure',
         context
       }
@@ -71,7 +71,7 @@ export default class Approval extends Check {
       const unsatisfied = Object.keys(approvals.groups)
                                 .reduce((result, approvalGroup) => {
                                   const needed = groups[approvalGroup].minimum
-                                  const given = approvals.groups[approvalGroup]
+                                  const given = approvals.groups[approvalGroup].length
                                   const diff = needed - given
                                   if (diff > 0) {
                                     result.push({approvalGroup, diff, needed, given})
@@ -89,16 +89,16 @@ export default class Approval extends Check {
       }
     }
 
-    if (approvals.total < minimum) {
+    if (approvals.total.length < minimum) {
       return {
-        description: `This PR needs ${minimum - approvals.total} more approvals (${approvals.total}/${minimum} given).`,
+        description: `This PR needs ${minimum - approvals.total.length} more approvals (${approvals.total.length}/${minimum} given).`,
         state: 'pending',
         context
       }
     }
 
     return {
-      description: `This PR has ${approvals.total}/${minimum} approvals since the last commit.`,
+      description: `Approvals: ${approvals.total.map(u => `@${u}`).join(', ')}.`,
       state: 'success',
       context
     }
@@ -158,35 +158,35 @@ export default class Approval extends Check {
         matchesTotal = await that.doesCommentMatchConfig(repository, comment, config.from, token)
         if (matchesTotal) {
           info(`${repository.full_name}: Counting ${comment.user.login}'s comment`)
-          stats.total += 1
+          stats.total.push(comment.user.login)
         }
       } else {
         // if there is no from clause, every comment counts
-        stats.total += 1
+        stats.total.push(comment.user.login)
         matchesTotal = true
       }
       if (config.groups) {
         await Promise.all(Object.keys(config.groups).map(async(group) => {
           // update group counter
           if (!stats.groups[group]) {
-            stats.groups[group] = 0
+            stats.groups[group] = []
           }
           const matchesGroup = await that.doesCommentMatchConfig(repository, comment, config.groups[group].from, token)
           if (matchesGroup) {
             // counting this as total as well if it didn't before
             if (!matchesTotal) {
               info(`${repository.full_name}: Counting ${comment.user.login}'s comment`)
-              stats.total += 1
+              stats.total.push(comment.user.login)
             }
             info(`${repository.full_name}: Counting ${comment.user.login}'s comment for group ${group}`)
-            stats.groups[group] += 1
+            stats.groups[group].push(comment.user.login)
           }
         }))
       }
       return stats
     }
 
-    return promiseReduce(comments, checkComment, {total: 0, groups: {}})
+    return promiseReduce(comments, checkComment, {total: [], groups: {}})
   }
 
   /**
@@ -232,10 +232,10 @@ export default class Approval extends Check {
 
     const approvals = (config.from || config.groups) ?
       await this.getCommentStatsForConfig(repository, potentialApprovalComments, config, token) :
-    {total: potentialApprovalComments.length}
+    {total: potentialApprovalComments.map(c => c.user.login)}
 
 
-    let vetos = 0
+    let vetos = []
     if (vetoPattern) {
       const potentialVetoComments = comments.filter(comment => {
                                               const text = comment.body.trim()
@@ -247,7 +247,7 @@ export default class Approval extends Check {
 
       vetos = (config.from || config.groups) ?
         (await this.getCommentStatsForConfig(repository, potentialVetoComments, config, token)).total :
-        potentialVetoComments.length
+        potentialVetoComments.map(c => c.user.login)
 
     }
 
@@ -348,9 +348,9 @@ export default class Approval extends Check {
 
           if (action === 'opened' && minimum > 0) {
             // if it was opened, set to pending
-            const approvals = {total: 0}
-            const vetos = 0
-            const status = Approval.generateStatus({approvals, vetos}, config.approvals)
+            const approvals = {total: []}
+            const vetos = []
+            const status = Approval.generateStatus({ approvals, vetos}, config.approvals)
             await this.github.setCommitStatus(user, repoName, sha, status, token)
             await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
                                                                                   .withResult({
@@ -382,14 +382,14 @@ export default class Approval extends Check {
                                                                                   number,
                                                                                   repository
                                                                                 }))
-          info(`${repository.full_name}#${number}: PR was reopened, set state to ${status.state} (${approvals.total}/${minimum})`)
+          info(`${repository.full_name}#${number}: PR was reopened, set state to ${status.state} (${approvals.total.length}/${minimum})`)
           // if it was synced, ie a commit added to it
         } else if (action === 'synchronize') {
           // update last push in db
           await this.pullRequestHandler.onAddCommit(dbRepoId, number)
           // set status to pending (has to be unlocked with further comments)
-          const approvals = {total: 0}
-          const vetos = 0
+          const approvals = {total: []}
+          const vetos = []
           const status = Approval.generateStatus({approvals, vetos}, config.approvals)
           await this.github.setCommitStatus(user, repoName, sha, status, token)
           await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
@@ -433,7 +433,7 @@ export default class Approval extends Check {
                                                                                 number: issue.number,
                                                                                 repository
                                                                               }))
-        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals.total}/${minimum} - ${vetos} vetos)`)
+        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals.total.length}/${minimum} - ${vetos} vetos)`)
       }
     }
     catch (e) {
