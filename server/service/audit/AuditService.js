@@ -1,21 +1,14 @@
 import AuditEvent  from '../../../common/AuditEvent'
-import { logger } from '../../../common/debug'
-const error = logger('audit', 'error')
 
 export default class AuditService {
   constructor(opts = {}) {
     this.options = opts
   }
 
-  /**
-   * Same as log(), but doesn't wait.
-   */
-  logSync() {
-    try {
-      this.ship(this.transform(...arguments))
-    } catch (e) {
-      error(e)
-    }
+  withLogger(logger) {
+    // implement in subclass
+    this.logger = logger
+    return this
   }
 
   /**
@@ -49,6 +42,6 @@ export default class AuditService {
    * @param body
    */
   async ship(body) {
-    throw new Error('Implement in subclass')
+    this.logger.info(body)
   }
 }

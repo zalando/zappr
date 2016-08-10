@@ -1,5 +1,4 @@
 import Check from './Check'
-import NullAuditService from '../service/audit/NullAuditService';
 import AuditEvent from '../../common/AuditEvent'
 import { logger, formatDate } from '../../common/debug'
 import { promiseReduce, getIn } from '../../common/util'
@@ -23,7 +22,7 @@ export default class Approval extends Check {
    * @param {PullRequestHandler} pullRequestHandler
    * @param {AuditService} auditService
    */
-  constructor(github, pullRequestHandler, auditService = new NullAuditService()) {
+  constructor(github, pullRequestHandler, auditService) {
     super()
     this.github = github
     this.pullRequestHandler = pullRequestHandler
