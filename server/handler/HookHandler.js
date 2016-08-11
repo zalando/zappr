@@ -53,25 +53,24 @@ class HookHandler {
         const zapprfile = new ZapprConfiguration(zapprFileContent)
         config = zapprfile.getConfiguration()
       }
-      const payloadWithEvent = {githubEventType: `${event}.${payload.action}`, ...payload}
       if (Specification.isTriggeredBy(event)) {
         getToken(repo, Specification.TYPE).then(token =>
-          this.specification.execute(config, payloadWithEvent, token)
+          this.specification.execute(config, payload, token)
         )
       }
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
-          this.approval.execute(config, payloadWithEvent, token, repo.id)
+          this.approval.execute(config, payload, token, repo.id)
         )
       }
       if (Autobranch.isTriggeredBy(event)) {
         getToken(repo, Autobranch.TYPE).then(token =>
-          this.autobranch.execute(config, payloadWithEvent, token)
+          this.autobranch.execute(config, payload, token)
         )
       }
       if (CommitMessage.isTriggeredBy(event)) {
         getToken(repo, CommitMessage.TYPE).then(token =>
-          this.commitMessage.execute(config, payloadWithEvent, token)
+          this.commitMessage.execute(config, payload, token)
         )
       }
     }

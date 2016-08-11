@@ -7,7 +7,6 @@ const issueWebhook = require('../../fixtures/webhook.issue_comment.json')
 
 describe('The AuditTrailTransformer', () => {
   describe('should produce correct output (pr-interaction)', () => {
-    issueWebhook.githubEventType = 'issue_comment.create'
     const commitId = '123'
     const status = {state: 'success'}
     const auditEvent = new AuditEvent(EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(issueWebhook)
