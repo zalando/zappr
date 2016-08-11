@@ -29,11 +29,6 @@ export default function zalandoAuditTrailTransformer(auditEvent) {
     case EVENTS.COMMIT_STATUS_UPDATE:
       return getPrInteractionEvent(auditEvent)
     default:
-      /**
-       * Don't wanna throw here because:
-       * 1) What would be the fallback?
-       * 2) We would block people from merging their stuff.
-       */
-      return null
+      return {}
   }
 }
