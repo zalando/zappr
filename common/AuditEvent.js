@@ -30,19 +30,24 @@ export default class AuditEvent {
     const id = getIn(resource, ['repository', 'id'])
     const full_name = getIn(resource, ['repository', 'full_name'])
     const url = getIn(resource, ['repository', 'url'])
+    const clone_url = getIn(resource, ['repository', 'clone_url'])
+    const git_url = getIn(resource, ['repository', 'git_url'])
+    const ssh_url = getIn(resource, ['repository', 'ssh_url'])
     const issue = getIn(resource, 'number')
     const commit = getIn(resource, 'commit')
 
     this._rawResource = resource
     this.resource = {
-      repository: { id, url, full_name}, issue, commit
+      repository: {id, full_name, url, clone_url, git_url, ssh_url},
+      issue,
+      commit
     }
     return this
   }
 
   withResult(result) {
     this._rawResult = result
-    switch(this.type) {
+    switch (this.type) {
       case EVENTS.COMMIT_STATUS_UPDATE:
         this.result = getCommitStatusData(result)
         break;
