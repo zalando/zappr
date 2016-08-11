@@ -479,4 +479,19 @@ describe('Approval#execute', () => {
     expect(auditService.log.callCount).to.equal(1)
     done()
   })
+
+  it('should set status to error when auditService.log throws', async(done) => {
+    try {
+      PR_PAYLOAD.action = 'synchronize'
+      auditService.log = sinon.stub().throws(new Error('Audit API Error'))
+      await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.setCommitStatus.args[1][3].state).to.equal('error')
+      expect(github.setCommitStatus.args[1][3].description).to.equal('Audit API Error')
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
 })

@@ -65,7 +65,7 @@ describe('The AuditTrailTransformer', () => {
                                          .and.equal(1)
     })
 
-    it('[payload.pull_request]', () => {
+    it('[payload.commit_id]', () => {
       expect(result.payload.commit_id).to.be.a('string')
                                       .and.equal(commitId)
     })

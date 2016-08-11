@@ -1,7 +1,12 @@
 import identity from './transform/Identity'
+import nconf from '../../../server/nconf'
+import { getIn } from '../../../common/util'
+
+function noop() {
+}
 
 export default class AuditService {
-  constructor(logFn = () => {}, transformFn = identity) {
+  constructor(logFn = noop, transformFn = identity) {
     this.logFn = logFn
     this.transformFn = transformFn
   }
@@ -9,11 +14,13 @@ export default class AuditService {
   /**
    * Same API as transform(). Convenience method to transform + ship.
    */
-  async log() {
-    try {
-      await this.ship(this.transform(...arguments))
-    } catch (e) {
-      error(e)
+  async log(auditEvent) {
+    const AUDIT_RELEVANT_ORGS = nconf.get('AUDIT_RELEVANT_ORGS')
+    const repoName = getIn(auditEvent, ['resource', 'repository', 'full_name'], '')
+    if (!Array.isArray(AUDIT_RELEVANT_ORGS)) {
+      await this.ship(this.transform(auditEvent))
+    } else if (repoName && AUDIT_RELEVANT_ORGS.indexOf(repoName.split('/')[0]) !== -1) {
+      await this.ship(this.transform(auditEvent))
     }
   }
 
@@ -21,7 +28,6 @@ export default class AuditService {
    * Transforms various event data to single JSON object that will be logged. Default implementation!
    *
    * @param auditEvent - an instance of AuditEvent
-   * @returns {{id, github_event: {type: string, sender: string}, resource: {repositoryId: number, repository: string, pull_request: number, commit: string}, zappr_event: {type: string, sender: string}, timestamp: string, result: {}}}
    */
   transform(auditEvent) {
     return this.transformFn(auditEvent)
@@ -33,7 +39,7 @@ export default class AuditService {
    *
    * @param body
    */
-  async ship(body) {
+  ship(body) {
     return this.logFn(body)
   }
 }
