@@ -6,6 +6,8 @@ We are happy to accept your contributions to make Zappr better and more awesome!
 2. If there is not, open a new one to start a discussion. We hate to close finished PRs!
 3. If we decide your concern needs code changes, we would be happy to accept a pull request. Please consider the commit guidelines below.
 
+In case you just want to help out and don't know where to start, [issues with "help wanted" label](https://github.com/zalando/zappr/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aopen%20label%3A%22help%20wanted%22) are good for first-time contributors. 
+
 ## Git Commit Guidelines
 
 If there is already a ticket, use this number at the start of your commit message. This is [automatically checked with Zappr](https://zappr.readthedocs.org/en/latest/setup/#commit-messages)!
