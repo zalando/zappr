@@ -1,8 +1,8 @@
-import { Transport } from 'winston'
-import { request } from '../../util'
+import { Logger, Transport } from 'winston'
 import manageTokens from 'node-tokens'
+import { request } from '../../../util'
 
-export default class ZalandoAuditTrail extends Transport {
+class ZalandoAuditTrail extends Transport {
   constructor(opts) {
     super(opts)
     this.url = opts.url
@@ -27,4 +27,8 @@ export default class ZalandoAuditTrail extends Transport {
     .then(resp => cb(null, resp))
     .catch(console.error.bind(console))
   }
+}
+
+export default function (opts) {
+  return new Logger().add(ZalandoAuditTrail, opts).info
 }

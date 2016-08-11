@@ -1,14 +1,10 @@
 import AuditEvent  from '../../../common/AuditEvent'
+import identity from './transform/Identity'
 
 export default class AuditService {
-  constructor(opts = {}) {
-    this.options = opts
-  }
-
-  withLogger(logger) {
-    // implement in subclass
-    this.logger = logger
-    return this
+  constructor(logFn = () => {}, transformFn = identity) {
+    this.logFn = logFn
+    this.transformFn = transformFn
   }
 
   /**
@@ -30,9 +26,9 @@ export default class AuditService {
    */
   transform(auditEvent) {
     if (auditEvent instanceof AuditEvent) {
-      return auditEvent.toJSON()
+      return this.transformFn(auditEvent.toJSON())
     }
-    return auditEvent
+    return this.transformFn(auditEvent)
   }
 
 
@@ -42,6 +38,6 @@ export default class AuditService {
    * @param body
    */
   async ship(body) {
-    this.logger.info(body)
+    return this.logFn(body)
   }
 }
