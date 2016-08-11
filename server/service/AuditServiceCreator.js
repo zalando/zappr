@@ -1,6 +1,6 @@
 import nconf from '../nconf'
 import AuditService from './audit/AuditService'
-import getFileShipper from './audit/ship/file'
+import getFileShipper from './audit/ship/File'
 import getZalandoAuditTrailShipper from './audit/ship/ZalandoAuditTrail'
 import IdentityTransform from './audit/transform/Identity'
 
