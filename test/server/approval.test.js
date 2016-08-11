@@ -282,6 +282,21 @@ describe('Approval#execute', () => {
     }
     approval = new Approval(github, pullRequestHandler)
   })
+  
+  const SKIP_ACTIONS = ['assigned', 'unassigned', 'labeled', 'unlabeled', 'closed']
+  
+  SKIP_ACTIONS.forEach(action=> {
+    it(`should do nothing on "${action}"`, async(done) => {
+      try {
+        await approval.execute(DEFAULT_CONFIG, Object.assign(PR_PAYLOAD, {action}), TOKEN, DB_REPO_ID)
+        expect(github.setCommitStatus.callCount).to.equal(0)
+        expect(github.getApprovals.callCount).to.equal(0)
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
 
   it('should set status to failure on last issue comment when there is a veto comment', async(done) => {
     github.getComments = sinon.stub().returns([{
