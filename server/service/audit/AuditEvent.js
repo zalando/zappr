@@ -12,7 +12,7 @@ export default class AuditEvent {
   fromGithubEvent(githubEvent) {
     this._rawGithubEvent = githubEvent
     this.githubEvent = {
-      sender: getIn(githubEvent, ['sender', 'login'], 'UKNOWN SENDER'),
+      sender: getIn(githubEvent, ['sender', 'login'], 'UNKNOWN SENDER'),
       action: getIn(githubEvent, 'action')
     }
     return this
