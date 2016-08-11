@@ -27,19 +27,19 @@ describe('The AuditTrailTransformer', () => {
       expect(result.identity).to.equal(null)
       expect(result.time).to.be.a('string').and.equal(auditEvent.timestamp.toISOString())
       expect(result.event_type).to.be.a('object')
-                               .and.have.keys('namespace', 'name', 'version')
+                               .and.have.all.keys('namespace', 'name', 'version')
                                .and.deep.equal({
         namespace: 'internal',
         name: 'pull-request-interaction',
         version: '1'
       })
       expect(result.payload).to.be.a('object')
-                            .and.have.keys('repository', 'approvers', 'is_approved', 'pull_request', 'commit_id')
+                            .and.have.all.keys('repository', 'approvers', 'is_approved', 'pull_request', 'commit_id')
     })
 
     it('[payload.repository]', () => {
       expect(result.payload.repository).to.be.a('object')
-                                       .and.have.keys('id', 'full_name', 'url', 'git_url', 'clone_url', 'ssh_url')
+                                       .and.have.all.keys('id', 'full_name', 'url', 'git_url', 'clone_url', 'ssh_url')
                                        .and.deep.equal({
         id: issueWebhook.repository.id,
         full_name: issueWebhook.repository.full_name,
