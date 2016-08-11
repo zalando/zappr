@@ -3,6 +3,7 @@ import AuditService from './audit/AuditService'
 import getFileShipper from './audit/ship/File'
 import getZalandoAuditTrailShipper from './audit/ship/ZalandoAuditTrail'
 import IdentityTransform from './audit/transform/Identity'
+import ZalandoAuditTrailTransform from './audit/transform/ZalandoAuditTrail'
 
 import { logger } from '../../common/debug'
 const warn = logger('audit', 'warn')
@@ -32,8 +33,8 @@ function createShipper() {
         showLevel: false,
         zippedArchive: true
       })
-    case 'zalando-audittrail':
-      const url = nconf.get('AUDITTRAIL_URL')
+    case 'zalando-audit-trail':
+      const url = nconf.get('AUDIT_TRAIL_API_URL')
       info(`writing audit logs to zalando audit trail API on ${url}`)
       return getZalandoAuditTrailShipper({url})
     default:
@@ -46,6 +47,8 @@ function createTransformer() {
   switch (transformEngine) {
     case 'identity':
       return IdentityTransform
+    case 'zalando-audit-trail':
+      return ZalandoAuditTrailTransform
     default:
       return IdentityTransform
   }

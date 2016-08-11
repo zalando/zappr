@@ -1,14 +1,6 @@
 import { v4 as generateId } from 'uuid'
-import { getIn, symbolToString } from './util'
+import { getIn, symbolToString } from '../../../common/util'
 import * as EVENTS from './AuditEventTypes'
-
-export function getCommitStatusData({status, approvals, vetos}) {
-  return {
-    status: status.state,
-    approvals,
-    vetos
-  }
-}
 
 export default class AuditEvent {
   constructor(auditEventType) {
@@ -49,7 +41,7 @@ export default class AuditEvent {
     this._rawResult = result
     switch (this.type) {
       case EVENTS.COMMIT_STATUS_UPDATE:
-        this.result = getCommitStatusData(result)
+        this.result = result
         break;
     }
     return this

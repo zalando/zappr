@@ -1,4 +1,3 @@
-import AuditEvent  from '../../../common/AuditEvent'
 import identity from './transform/Identity'
 
 export default class AuditService {
@@ -25,9 +24,6 @@ export default class AuditService {
    * @returns {{id, github_event: {type: string, sender: string}, resource: {repositoryId: number, repository: string, pull_request: number, commit: string}, zappr_event: {type: string, sender: string}, timestamp: string, result: {}}}
    */
   transform(auditEvent) {
-    if (auditEvent instanceof AuditEvent) {
-      return this.transformFn(auditEvent.toJSON())
-    }
     return this.transformFn(auditEvent)
   }
 

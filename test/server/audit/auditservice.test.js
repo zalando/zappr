@@ -1,6 +1,6 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
-import AuditService from '../../server/service/audit/AuditService'
+import AuditService from '../../../server/service/audit/AuditService'
 
 describe('The AuditService', () => {
   let service, logger, transformer

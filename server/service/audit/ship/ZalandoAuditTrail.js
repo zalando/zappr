@@ -30,5 +30,7 @@ class ZalandoAuditTrail extends Transport {
 }
 
 export default function (opts) {
-  return new Logger().add(ZalandoAuditTrail, opts).info
+  const logger = new Logger()
+  logger.add(ZalandoAuditTrail, opts)
+  return logger.info.bind(logger)
 }

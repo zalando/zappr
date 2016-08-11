@@ -1,9 +1,9 @@
 import Check from './Check'
-import AuditEvent from '../../common/AuditEvent'
+import AuditEvent from '../service/audit/AuditEvent'
 import { logger, formatDate } from '../../common/debug'
 import { promiseReduce, getIn } from '../../common/util'
 import * as EVENTS from '../model/GithubEvents'
-import * as AUDIT_EVENTS from '../../common/AuditEventTypes'
+import * as AUDIT_EVENTS from '../service/audit/AuditEventTypes'
 import * as _ from 'lodash'
 
 const context = 'zappr'
