@@ -190,12 +190,14 @@ export default class Approval extends Check {
    * remaining approvals/vetos.
    *
    * @param repository The repository
+   * @param pull_request The pull request
    * @param comments The comments to process
+   * @param blacklistedCommentIds IDs of blacklisted comments (will be ignored)
    * @param config The approval configuration
    * @param token The access token to use
    * @returns {Object} Object of the shape {approvals: {total: int, groups: { groupName: int }}, vetos: int }
    */
-  async countApprovalsAndVetos(repository, pull_request, comments, config, token) {
+  async countApprovalsAndVetos(repository, pull_request, comments, blacklistedCommentIds, config, token) {
     const ignore = await this.fetchIgnoredUsers(repository, pull_request, config, token)
     const approvalPattern = config.pattern
     const vetoPattern = _.get(config, 'veto.pattern')
@@ -203,9 +205,15 @@ export default class Approval extends Check {
     const fullName = `${repository.full_name}`
     // slightly unperformant filtering here:
     const containsAlreadyCommentByUser = (c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login)
-    const blacklistedCommentIds = []
     // filter ignored users
-    const potentialApprovalComments = comments.filter(({id}) => blacklistedCommentIds.indexOf(id) !== -1)
+    const potentialApprovalComments = comments.filter(({id, user}) => {
+                                                const {login} = user
+                                                const include = blacklistedCommentIds.indexOf(id) === -1
+                                                if (!include) {
+                                                  info('%s: Comment %s of user %s is blacklisted.', fullName, id, login)
+                                                }
+                                                return include
+                                              })
                                               .filter(comment => {
                                                 const {login} = comment.user
                                                 const include = ignore.indexOf(login) === -1
@@ -295,13 +303,14 @@ export default class Approval extends Check {
    * @param config The approval configuration
    * @param pull_request The pull request
    * @param last_push When the pull reuqest was last updated
+   * @param blacklistedCommentIds IDs of blacklisted comments
    * @param token The access token to use
    * @returns {Object} Object of the shape {approvals: {total: int, groups: { groupName: int }}, vetos: int }
    */
-  async fetchAndCountApprovalsAndVetos(repository, pull_request, last_push, config, token) {
+  async fetchAndCountApprovalsAndVetos(repository, pull_request, last_push, blacklistedCommentIds, config, token) {
     const user = repository.owner.login
     const comments = await this.github.getComments(user, repository.name, pull_request.number, formatDate(last_push), token)
-    return await this.countApprovalsAndVetos(repository, pull_request, comments, config.approvals, token)
+    return await this.countApprovalsAndVetos(repository, pull_request, comments, blacklistedCommentIds, config.approvals, token)
   }
 
   /**
@@ -317,7 +326,7 @@ export default class Approval extends Check {
    * - PR synchronize (new commits on top):
    *   1. set status back to pending (b/c there can't be comments afterwards already)
    */
-  async execute(config, hookPayload, token, dbRepoId) {
+  async execute(config, event, hookPayload, token, dbRepoId) {
     const {action, repository, pull_request, number, issue} = hookPayload
     const repoName = repository.name
     const user = repository.owner.login
@@ -333,7 +342,7 @@ export default class Approval extends Check {
 
     try {
       // on an open pull request
-      if (!!pull_request && pull_request.state === 'open') {
+      if (event === 'pull_request' && pull_request.state === 'open') {
         sha = pull_request.head.sha
         // if it was (re)opened
         if (action === 'opened' || action === 'reopened') {
@@ -352,7 +361,8 @@ export default class Approval extends Check {
             return
           }
           // get approvals for pr
-          const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pull_request, dbPR.last_push, config, token)
+          const blacklistedCommentIds = await this.pullRequestHandler.onGetBlacklistedComments(dbPR.id)
+          const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pull_request, dbPR.last_push, blacklistedCommentIds, config, token)
           const status = Approval.generateStatus({approvals, vetos}, config.approvals)
           // update status
           await this.github.setCommitStatus(user, repoName, sha, status, token)
@@ -369,7 +379,7 @@ export default class Approval extends Check {
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
         // on an issue comment
-      } else if (!!issue) {
+      } else if (event === 'issue_comment') {
         // check it belongs to an open pr
         const pr = await this.github.getPullRequest(user, repoName, issue.number, token)
         if (!pr || pr.state !== 'open') {
@@ -381,7 +391,21 @@ export default class Approval extends Check {
         await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
         // read last push date from db
         const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, issue.number)
-        const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pr, dbPR.last_push, config, token)
+        // read blacklisted comments and update if appropriate
+        const blacklistedCommentIds = await this.pullRequestHandler.onGetBlacklistedComments(dbPR.id)
+        const commentId = hookPayload.comment.id
+        if (action === 'edited' && blacklistedCommentIds.indexOf(commentId) === -1) {
+          // check if it was edited by someone else than the original author
+          const editor = hookPayload.sender.login
+          const author = hookPayload.comment.user.login
+          if (editor !== author) {
+            // OMFG
+            await this.pullRequestHandler.onAddBlacklistedComment(dbPR.id, commentId)
+            blacklistedCommentIds.push(commentId)
+            info(`${repository.full_name}#${issue.number}: ${editor} edited ${author}'s comment ${commentId}, it's now blacklisted.`)
+          }
+        }
+        const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pr, dbPR.last_push, blacklistedCommentIds, config, token)
         const status = Approval.generateStatus({approvals, vetos}, config.approvals)
         // update status
         await this.github.setCommitStatus(user, repoName, sha, status, token)

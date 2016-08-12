@@ -11,11 +11,16 @@ export default db.define('blacklisted_comment', {
   }
 }, {
   schema: db.schema,
-  classMethods: {
-    pullRequestScope: prId => ({
+  scopes: {
+    pullRequest: prId => ({
       where: {
         pullRequestId: prId
       }
     })
+  },
+  classMethods: {
+    pullRequestScope: function (prId) {
+      return this.scope({method: ['pullRequest', prId]})
+    }
   }
 })

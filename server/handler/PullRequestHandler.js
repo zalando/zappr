@@ -21,10 +21,19 @@ class PullRequestHandler {
 
   onGetBlacklistedComments(pullRequestId) {
     return BlacklistedComment.pullRequestScope(pullRequestId)
+                             .findAll()
+                             .then(comments => comments ? comments.map(({id}) => id) : [])
   }
 
-  onAddBlacklistedComment(repositoryId, pullRequestId, commentId) {
-    return BlacklistedComment.create({ repositoryId, pullRequestId, commentId })
+  onAddBlacklistedComment(pullRequestId, commentId) {
+    debug(`blacklist comment ${commentId} for pull request ${pullRequestId}`)
+    return BlacklistedComment.create({ pullRequestId, id: commentId })
+  }
+
+  // not sure if we need this
+  onRemoveBlacklistedComments(pullRequestId) {
+    debug(`remove blacklisted comments ffor pull request ${pullRequestId}`)
+    return BlacklistedComment.pullRequestScope(pullRequestId).delete()
   }
 
   onAddCommit(id, number) {
