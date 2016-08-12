@@ -203,9 +203,10 @@ export default class Approval extends Check {
     const fullName = `${repository.full_name}`
     // slightly unperformant filtering here:
     const containsAlreadyCommentByUser = (c1, i, cmts) => i === cmts.findIndex(c2 => c1.user.login === c2.user.login)
-
+    const blacklistedCommentIds = []
     // filter ignored users
-    const potentialApprovalComments = comments.filter(comment => {
+    const potentialApprovalComments = comments.filter(({id}) => blacklistedCommentIds.indexOf(id) !== -1)
+                                              .filter(comment => {
                                                 const {login} = comment.user
                                                 const include = ignore.indexOf(login) === -1
                                                 if (!include) info('%s: Ignoring user: %s.', fullName, login)

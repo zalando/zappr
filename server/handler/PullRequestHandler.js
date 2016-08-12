@@ -1,4 +1,4 @@
-import { PullRequest } from '../model'
+import { PullRequest, BlacklistedComment } from '../model'
 
 import { logger } from '../../common/debug'
 const debug = logger('pr-handler')
@@ -17,6 +17,14 @@ class PullRequestHandler {
     return PullRequest.findOne({
       where: {repositoryId, number}
     })
+  }
+
+  onGetBlacklistedComments(pullRequestId) {
+    return BlacklistedComment.pullRequestScope(pullRequestId)
+  }
+
+  onAddBlacklistedComment(repositoryId, pullRequestId, commentId) {
+    return BlacklistedComment.create({ repositoryId, pullRequestId, commentId })
   }
 
   onAddCommit(id, number) {

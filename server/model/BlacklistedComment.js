@@ -10,5 +10,12 @@ export default db.define('blacklisted_comment', {
     autoIncrement: false
   }
 }, {
-  schema: db.schema
+  schema: db.schema,
+  classMethods: {
+    pullRequestScope: prId => ({
+      where: {
+        pullRequestId: prId
+      }
+    })
+  }
 })
