@@ -90,7 +90,7 @@ Zappr provides a whole lot of configuration options for flexibility.
 
 ### Audit logs
 
-* `AUDIT_SHIP_ENGINE`: Where to ship the audit logs to. Can be `file` or `zalando-audit-trail` (not for public use)
+* `AUDIT_SHIP_ENGINE`: Where to ship the audit logs to. Can be `console`, `file` or `zalando-audit-trail` (not for public use)
 * `AUDIT_TRANSFORM_ENGINE`: How the shipped logs should look like. Can be `identity` or `zalando-audit-trail` (not for public use)
 * `AUDIT_RELEVANT_ORGS`: Array of organisations that you want to audit. If it's not an array, everything will be logged.
 

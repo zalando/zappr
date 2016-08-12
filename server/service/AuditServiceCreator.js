@@ -1,13 +1,14 @@
 import nconf from '../nconf'
 import AuditService from './audit/AuditService'
 import getFileShipper from './audit/ship/File'
+import getConsoleShipper from './audit/ship/Console'
 import getZalandoAuditTrailShipper from './audit/ship/ZalandoAuditTrail'
 import IdentityTransform from './audit/transform/Identity'
 import ZalandoAuditTrailTransform from './audit/transform/ZalandoAuditTrail'
 
 import { logger } from '../../common/debug'
-const warn = logger('audit', 'warn')
-const info = logger('audit', 'info')
+const warn = logger('audit-service-creator', 'warn')
+const info = logger('audit-service-creator', 'info')
 
 const transformEngine = nconf.get('AUDIT_TRANSFORM_ENGINE')
 const shipEngine = nconf.get('AUDIT_SHIP_ENGINE')
@@ -37,9 +38,12 @@ function createShipper() {
       const url = nconf.get('AUDIT_TRAIL_API_URL')
       info(`writing audit logs to zalando audit trail API on ${url}`)
       return getZalandoAuditTrailShipper({url})
+    case 'console':
+      info('writing audit logs to console')
+      return getConsoleShipper()
     default:
-      warn('writing audit logs to console')
-      return console.log.bind(console)
+      warn('not writing audit logs')
+      return () => {}
   }
 }
 
