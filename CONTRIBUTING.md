@@ -1,16 +1,16 @@
 # Contributing to Zappr
 
-We are happy to accept your contributions to make Zappr better and more awesome!
-Here are the guidelines we would like you to follow:
+We are happy to accept your contributions to make Zappr better and more awesome! To avoid unnecessary work on either side, please stick to the following process:
 
-- [Coding style](/doc/style.md)
-- [Commit Message Guidelines](#gitcommitguidelines)
+1. Check if there is already [an issue](https://github.com/zalando/zappr/issues) for your concern.
+2. If there is not, open a new one to start a discussion. We hate to close finished PRs!
+3. If we decide your concern needs code changes, we would be happy to accept a pull request. Please consider the commit guidelines below.
+
+In case you just want to help out and don't know where to start, [issues with "help wanted" label](https://github.com/zalando/zappr/issues?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aopen%20label%3A%22help%20wanted%22) are good for first-time contributors. 
 
 ## Git Commit Guidelines
 
-You **must** first create an issue in our [Github issues](https://github.com/zalando/zappr/issues).
-
-Use this issue number at the start of your commit message. This check is [automatically enforced with Zappr](https://zappr.readthedocs.org/en/latest/setup/#commit-messages)!
+If there is already a ticket, use this number at the start of your commit message. This is [automatically checked with Zappr](https://zappr.readthedocs.org/en/latest/setup/#commit-messages)!
 
 Use [semantic commit messages](http://seesparkbox.com/foundry/semantic_commit_messages):
 
