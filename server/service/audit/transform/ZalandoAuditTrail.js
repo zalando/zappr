@@ -19,7 +19,6 @@ function getPrInteractionEvent(auditEvent) {
     id: auditEvent.id,
     event_type,
     time: auditEvent.timestamp.toISOString(),
-    identity: null,
     payload
   }
 }

@@ -23,8 +23,9 @@ describe('The AuditTrailTransformer', () => {
     const result = transform(auditEvent)
 
     it('[envelope]', () => {
+      expect(result).to.be.a('object')
+                    .and.have.all.keys('id', 'time', 'event_type', 'payload')
       expect(result.id).to.be.a('string').and.equal(auditEvent.id)
-      expect(result.identity).to.equal(null)
       expect(result.time).to.be.a('string').and.equal(auditEvent.timestamp.toISOString())
       expect(result.event_type).to.be.a('object')
                                .and.have.all.keys('namespace', 'name', 'version')
