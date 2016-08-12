@@ -18,7 +18,7 @@ function getPrInteractionEvent(auditEvent) {
   return {
     id: auditEvent.id,
     event_type,
-    time: auditEvent.timestamp.toISOString(),
+    triggered_at: auditEvent.timestamp.toISOString(),
     payload
   }
 }
