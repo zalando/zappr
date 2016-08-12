@@ -1,4 +1,4 @@
-import { v4 as generateId } from 'uuid'
+import { v4 as generateId } from 'node-uuid'
 import { getIn, symbolToString } from '../../../common/util'
 import * as EVENTS from './AuditEventTypes'
 

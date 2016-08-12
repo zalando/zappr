@@ -5,6 +5,7 @@ function getLogger(opts, tokens) {
   return async function log(data) {
     const {id} = data
     delete data.id
+    delete data.identity
     const options = {
       method: 'PUT',
       json: true,
@@ -17,7 +18,7 @@ function getLogger(opts, tokens) {
     }
     const [resp] = await request(options)
     if (resp.statusCode !== 200) {
-      throw new Error(`HTTP Status ${resp.statusCode}) received from Audit API!`)
+      throw new Error(`HTTP Status (${resp.statusCode}) received from Audit API.`)
     }
   }
 }
