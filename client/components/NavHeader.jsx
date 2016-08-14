@@ -66,9 +66,6 @@ export default class NavHeader extends Component {
           </Nav>
           <Nav pullRight>
             <NavDropdown title={displayName || username} id="basic-nav-dropdown">
-              <MenuItem href={html_url}>
-                Profile
-              </MenuItem>
               {this.props.usingExtendedMode ?
                 <MenuItem href={`/change-mode?mode=${Mode.MINIMAL}`}>
                   Disable private repositories
@@ -76,6 +73,9 @@ export default class NavHeader extends Component {
                 <MenuItem href={`/change-mode?mode=${Mode.EXTENDED}`}>
                   Enable private repositories
                 </MenuItem>}
+              <MenuItem href={html_url}>
+                Profile
+              </MenuItem>
               <MenuItem divider/>
               <MenuItem href="/logout">
                 <i className="fa fa-sign-out"/>&nbsp;sign out
