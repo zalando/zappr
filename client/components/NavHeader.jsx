@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react'
 import { Link } from 'react-router'
+import cookie from 'react-cookie'
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Image } from 'react-bootstrap'
 import mascot from '../img/mascot_small.png'
 
@@ -17,9 +18,13 @@ export default class NavHeader extends Component {
     }
   }
 
+  upgrade() {
+    cookie.save('zappr_mode', 'extended')
+  }
+
   render() {
     const { displayName, username, html_url, avatar_url } = this.props.user
-
+    const usingExtendedMode = cookie.load('zappr_mode') === 'extended'
     const style = {
       logo: {
         marginTop: '-1px',
@@ -68,6 +73,10 @@ export default class NavHeader extends Component {
               <MenuItem href={html_url}>
                 Profile
               </MenuItem>
+              {!usingExtendedMode ?
+                <MenuItem href="/auth/github" onClick={this.upgrade.bind(this)}>
+                  Upgrade
+                </MenuItem> : null}
               <MenuItem divider/>
               <MenuItem href="/logout">
                 <i className="fa fa-sign-out"/>&nbsp;sign out

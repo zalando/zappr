@@ -14,6 +14,11 @@ export default db.define('user', {
     allowNull: false,
     autoIncrement: false
   },
+  zappr_mode: {
+    type: Sequelize.TEXT,
+    allowNull: false,
+    defaultValue: 'default'
+  },
   json: {
     type: Sequelize.JSONB,
     allowNull: false,

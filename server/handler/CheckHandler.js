@@ -29,17 +29,19 @@ class CheckHandler {
   /**
    * @param {Number} repoId - Repository ID
    * @param {String} type - Check type
+   * @param {String} user - The user who enabled it
    * @param {String} token - Authentication token
    * @returns {Promise.<Check>}
    * @throws {CheckHandlerError}
    */
-  async onCreateCheck(repoId, type, token) {
-    debug(`create check ${type} for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'}`)
+  async onCreateCheck(repoId, type, user, token) {
+    debug(`create check ${type} for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'} by user ${user}`)
     try {
       return await Check.create({
         repositoryId: repoId,
         type,
         token,
+        created_by: user,
         arguments: {}
       }, {
         attributes: {exclude: ['token']}
@@ -72,7 +74,7 @@ class CheckHandler {
         }
       })
     } catch (e) {
-      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId })
+      throw new CheckHandlerError(DATABASE_ERROR, {type, repository: repoId})
     }
     if (!check) throw new CheckHandlerError(CHECK_NOT_FOUND, {type, repository: repoId})
     return check
@@ -95,7 +97,7 @@ class CheckHandler {
         }
       })
     } catch (e) {
-      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId})
+      throw new CheckHandlerError(DATABASE_ERROR, {type, repository: repoId})
     }
   }
 
@@ -110,7 +112,6 @@ class CheckHandler {
     const repo = repository.get('json')
     const types = [type, ...repository.checks.map(c => c.type)]
     const events = findHookEventsFor(types)
-
     // TODO: could use a database constraint instead?
     let existingCheck
     try {
@@ -121,7 +122,7 @@ class CheckHandler {
     if (existingCheck) throw new CheckHandlerError(CHECK_EXISTS, {type, repository: repo.id})
 
     await this.github.updateWebhookFor(repo.owner.login, repo.name, events, user.accessToken)
-    const check = await checkHandler.onCreateCheck(repo.id, type, user.accessToken)
+    const check = await checkHandler.onCreateCheck(repo.id, type, user.json.login, user.accessToken)
     info(`${repo.full_name}: enabled check ${type}`)
     return check
   }

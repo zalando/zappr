@@ -7,9 +7,11 @@ import passport from 'koa-passport'
  * https://developer.github.com/v3/oauth/#scopes
  */
 export function login(router) {
-  return router.get('login', '/auth/github', passport.authenticate('github', {
-    scope: nconf.get('GITHUB_SCOPES')
-  }))
+  return router.get('login', '/auth/github', (ctx, next) => {
+    const inExtendedMode = ctx.cookies.get('zappr_mode') === 'extended'
+    const scope = nconf.get(inExtendedMode ? 'GITHUB_SCOPES_EXTENDED' : 'GITHUB_SCOPES')
+    return passport.authenticate('github', {scope})(ctx, next)
+  })
 }
 
 /**
