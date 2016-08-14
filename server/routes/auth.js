@@ -3,7 +3,6 @@ import assert from 'assert'
 import passport from 'koa-passport'
 import UserHandler from '../handler/UserHandler'
 import * as Mode from '../../common/ZapprModes'
-const IN_PRODUCTION = nconf.get('NODE_ENV') === 'production'
 
 /**
  * Login endpoint.
@@ -38,8 +37,9 @@ export function changeMode(router) {
     try {
       assert(Mode.MODES.indexOf(mode) !== -1, 'Invalid mode')
       await UserHandler.onChangeMode(ctx.req.user.id, mode)
+      const IN_PRODUCTION = nconf.get('NODE_ENV') === 'production'
       ctx.cookies.set(Mode.COOKIE_NAME, mode, {
-        httpOnly: false, // needs to be read by client
+        httpOnly: true,
         signed: IN_PRODUCTION,
         secure: IN_PRODUCTION,
         maxAge: 3.6 * (10 ** 10) // ~ 1 year

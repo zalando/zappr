@@ -12,6 +12,7 @@ const log = logger('app')
 function mapStateToProps(state) {
   return {
     user: state.user,
+    usingExtendedMode: state.env.USING_EXTENDED_MODE,
     isAuthenticated: state.auth.isAuthenticated
   }
 }
@@ -37,7 +38,8 @@ class App extends Component {
       <div className='zpr-app'>
         <Optional if={!showLogin}>
           <AppNavHeader path={this.props.location.pathname}
-                        user={this.props.user}/>
+                        user={this.props.user}
+                        usingExtendedMode={this.props.usingExtendedMode}/>
         </Optional>
         <Optional if={showLogin}>
           <LoginNavHeader />
