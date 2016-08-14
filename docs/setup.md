@@ -10,6 +10,12 @@ Once you're back at Zappr you will see all _public_ repositories that we know li
 
 ![IMAGE](img/setup/enable-private.png)
 
+<p class="admonition note">
+Be aware that once you gave Zappr permission to read your private repositories, the only way to <strong>really</strong> revoke it is by revoking access for Zappr <a href="https://github.com/settings/applications">here</a>. (When you accepted a scope once, Github will never ask you again about it.) We promise not to do sneaky things, but you should act according to your paranoia level.
+
+However be also aware that once you revoked access for Zappr, you effectively broke all checks that you enabled, because the stored access tokens were invalidated.
+</p>
+
 Initially we only fetch the first couple of repositories, so if you don't find the one you're looking for please click the blue "Sync with Github" button. It will then load all the repositories, which might take a couple of seconds. Also use this button every time you want to udpate your repository list, e.g. after renamings, deletions or when you created new repositories.
 
 ![IMAGE](img/setup/repo-list.png)
