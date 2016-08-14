@@ -31,7 +31,8 @@ export default class RepositoryCheck extends Component {
   };
 
   static defaultProps = {
-    check: {}
+    check: {},
+    githubUrl: 'https://github.com'
   };
 
   render() {
@@ -41,13 +42,15 @@ export default class RepositoryCheck extends Component {
     const {check, onToggle} = this.props
     const checkMeta = check.isEnabled ?
       (!!check.created_by ?
-        <span>was enabled by <a href={`${this.props.githubUrl || 'https://github.com'}/${check.created_by}`}>@{check.created_by}</a> <Time
+        <span>was enabled by <a href={`${this.props.githubUrl}/${check.created_by}`}>@{check.created_by}</a> <Time
           value={check.createdAt} relative/></span> :
           <span>is enabled</span>) :
       <span>is disabled</span>
     const header = (
       <div>
-        <Toggle checked={check.isEnabled} isUpdating={check.isUpdating} onToggle={onToggle}/>
+        <Toggle checked={check.isEnabled}
+                isUpdating={check.isUpdating}
+                onToggle={onToggle}/>
         <b style={style}>{check.name}</b> {checkMeta}
       </div>
     )

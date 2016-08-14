@@ -30,11 +30,22 @@ describe('Model', () => {
       const userId = user.id
 
       try {
-        await User.create({id: userId, json: user})
+        await User.create({
+          id: userId,
+          json: user
+        })
         const savedUser = await User.findById(userId)
 
+        expect(savedUser.get({plain: true})).to.be.an('object')
+                                            .and.contain.all.keys(
+          'id',
+          'json',
+          'zappr_mode'
+        )
+        expect(savedUser.get('zappr_mode')).to.be.a('string')
+                                           .and.equal('minimal')
         expect(savedUser.get('json')).to.be.an('object')
-        expect(savedUser.get('json')).to.deep.equal(user)
+                                     .and.deep.equal(user)
 
         done()
       } catch (e) {
@@ -102,9 +113,7 @@ describe('Model', () => {
       const reposB = users.b.repos
 
       try {
-        const sharedRepos = reposA.
-          filter(repoA => reposB.
-            findIndex(repoB => repoA.id === repoB.id) !== -1)
+        const sharedRepos = reposA.filter(repoA => reposB.findIndex(repoB => repoA.id === repoB.id) !== -1)
 
         expect(sharedRepos.length).to.be.above(1)
 
@@ -181,6 +190,7 @@ describe('Model', () => {
       const repoId = repo.id
       const user = users.a.data
       const userId = user.id
+      const userLogin = user.login
       const checkId = 42
       const token = 'abcd'
 
@@ -188,10 +198,25 @@ describe('Model', () => {
         await User.create({id: userId, json: user})
         await Repository.create({id: repoId, userId, json: repo})
         await Check.create({
-          id: checkId, token, repositoryId: repoId,
-          type: Approval.TYPE, arguments: {}
+          id: checkId,
+          token,
+          repositoryId: repoId,
+          type: Approval.TYPE, arguments: {},
+          created_by: userLogin
         })
         const savedCheck = await Check.findById(checkId)
+        expect(savedCheck.get({plain: true})).to.be.an('object')
+                                             .and.contain.all.keys(
+          // fields we added
+          'id',
+          'token',
+          'created_by',
+          'type',
+          // fields added by sequelize
+          'repositoryId',
+          'createdAt',
+          'updatedAt')
+        expect(savedCheck.get('created_by')).to.equal(userLogin)
         expect(savedCheck.get('token')).to.equal(token)
 
         done()
