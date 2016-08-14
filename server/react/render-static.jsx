@@ -35,13 +35,13 @@ export function getStaticAssets() {
   const dir = nconf.get('STATIC_DIR')
 
   return Promise.all([
-    find(path.join(dir, '*.js')),
-    find(path.join(dir, '*.css'))
-  ])
-  .then(([js, css]) => ({
-    js,
-    css
-  }))
+                  find(path.join(dir, '*.js')),
+                  find(path.join(dir, '*.css'))
+                ])
+                .then(([js, css]) => ({
+                  js,
+                  css
+                }))
 }
 
 export default async function renderStatic(ctx, next) {
@@ -54,9 +54,11 @@ export default async function renderStatic(ctx, next) {
     auth: {
       isAuthenticated
     },
+    env: {
+      GITHUB_UI_URL: nconf.get('GITHUB_UI_URL')
+    },
     user
   })
-
   match({routes, location: ctx.url}, (err, redirectLocation, renderProps) => {
     if (err) {
       log('error', error.message)

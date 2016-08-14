@@ -15,6 +15,7 @@ class RepositoryDetail extends Component {
     repository: PropTypes.object.isRequired,
     checks: PropTypes.object.isRequired,
     validations: PropTypes.object.isRequired,
+    env: PropTypes.object.isRequired,
     toggleCheck: PropTypes.func.isRequired,
     requestConfigValidation: PropTypes.func.isRequired
   };
@@ -64,7 +65,9 @@ class RepositoryDetail extends Component {
             ...checks[checkId(repository.id, type)]
           }))
           .map(check => (
-            <RepositoryCheck key={check.type} check={check}
+            <RepositoryCheck key={check.type}
+                             check={check}
+                             githubUrl={this.props.env.GITHUB_UI_URL}
                              onToggle={this.onToggleCheck.bind(this, check)}/>
           ))}
         </Col>
@@ -73,4 +76,4 @@ class RepositoryDetail extends Component {
   }
 }
 
-export default connect(null, {toggleCheck, requestConfigValidation})(RepositoryDetail)
+export default connect(state => ({env: state.env}), {toggleCheck, requestConfigValidation})(RepositoryDetail)

@@ -11,7 +11,7 @@ const INFO_TEXT = {
     until it has the required amount of approvals.
   </p>,
   autobranch: <p>When enabling automatic branch creation (<a
-    href='https://zappr.readthedocs.io/en/latest/setup/#autobranch'>docs</a>), ZAPPR will automatically
+    href='https://zappr.readthedocs.io/en/latest/setup/#autobranch'>docs</a>), Zappr will automatically
     create a branch in your repository for every opened issue.
   </p>,
   commitmessage: <p>The commit message feature (<a href='https://zappr.readthedocs.io/en/latest/setup/#commitmessages'>docs</a>)
@@ -26,6 +26,7 @@ const INFO_TEXT = {
 export default class RepositoryCheck extends Component {
   static propTypes = {
     check: PropTypes.object.isRequired,
+    githubUrl: PropTypes.string,
     onToggle: PropTypes.func.isRequired
   };
 
@@ -40,7 +41,7 @@ export default class RepositoryCheck extends Component {
     const {check, onToggle} = this.props
     const checkMeta = check.isEnabled ?
       (!!check.created_by ?
-        <span>was enabled by <a href={`https://github.com/${check.created_by}`}>@{check.created_by}</a> <Time
+        <span>was enabled by <a href={`${this.props.githubUrl || 'https://github.com'}/${check.created_by}`}>@{check.created_by}</a> <Time
           value={check.createdAt} relative/></span> :
           <span>is enabled</span>) :
       <span>is disabled</span>
