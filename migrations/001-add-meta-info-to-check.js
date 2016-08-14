@@ -1,5 +1,4 @@
 module.exports.up = function up(queryInterface, Sequelize) {
-  console.log(queryInterface)
   const dialect = queryInterface.sequelize.options.dialect
   return Promise.all([
     /*
