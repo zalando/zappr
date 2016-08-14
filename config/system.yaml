@@ -12,8 +12,12 @@ GITHUB_CLIENT_SECRET: secret
 GITHUB_HOOK_SECRET: captainHook
 GITHUB_SCOPES:
   - user:email
-  - public_repo
   - admin:repo_hook
+  - public_repo
+GITHUB_SCOPES_EXTENDED:
+  - user:email
+  - admin:repo_hook
+  - repo
 # See https://developer.github.com/v3/enterprise
 # for GitHub Enterprise configuration.
 GITHUB_UI_URL: https://github.com
