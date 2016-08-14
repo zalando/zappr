@@ -1,7 +1,8 @@
 import nconf from '../nconf'
+import assert from 'assert'
 import passport from 'koa-passport'
 import UserHandler from '../handler/UserHandler'
-
+import * as Mode from '../../common/ZapprModes'
 const IN_PRODUCTION = nconf.get('NODE_ENV') === 'production'
 
 /**
@@ -11,7 +12,7 @@ const IN_PRODUCTION = nconf.get('NODE_ENV') === 'production'
  */
 export function login(router) {
   return router.get('/auth/github', (ctx, next) => {
-    const inExtendedMode = ctx.cookies.get('zappr_mode') === 'extended'
+    const inExtendedMode = ctx.cookies.get(Mode.COOKIE_NAME) === Mode.EXTENDED
     const scope = nconf.get(inExtendedMode ? 'GITHUB_SCOPES_EXTENDED' : 'GITHUB_SCOPES')
     return passport.authenticate('github', {scope})(ctx, next)
   })
@@ -21,9 +22,9 @@ export async function ensureModeMiddleware(ctx, next) {
   const user = ctx.req.user
   if (!!user) {
     const {zappr_mode} = await UserHandler.onGet(user.id)
-    const zapprCookie = ctx.cookies.get('zappr_mode')
+    const zapprCookie = ctx.cookies.get(Mode.COOKIE_NAME)
     if (zappr_mode !== zapprCookie) {
-      // database beats cookie
+      // database beats COOKIE_NAME
       ctx.redirect(`/change-mode?mode=${zappr_mode}`)
     }
   }
@@ -35,8 +36,9 @@ export function changeMode(router) {
   return router.get('/change-mode', requireAuth, async(ctx, next) => {
     const mode = ctx.query.mode
     try {
+      assert(Mode.MODES.indexOf(mode) !== -1, 'Invalid mode')
       await UserHandler.onChangeMode(ctx.req.user.id, mode)
-      ctx.cookies.set('zappr_mode', mode, {
+      ctx.cookies.set(Mode.COOKIE_NAME, mode, {
         httpOnly: false, // needs to be read by client
         signed: IN_PRODUCTION,
         secure: IN_PRODUCTION,

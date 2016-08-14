@@ -2,6 +2,7 @@ import Sequelize from 'sequelize'
 
 import { db } from './Database'
 import { deserializeJson } from './properties'
+import * as Mode from '../../common/ZapprModes'
 
 /**
  * Zappr/Github user. Has many {@link Repository}.
@@ -15,9 +16,9 @@ export default db.define('user', {
     autoIncrement: false
   },
   zappr_mode: {
-    type: Sequelize.TEXT,
+    type: Sequelize.ENUM(...Mode.MODES),
     allowNull: false,
-    defaultValue: 'default'
+    defaultValue: Mode.MINIMAL
   },
   json: {
     type: Sequelize.JSONB,

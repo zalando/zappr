@@ -1,9 +1,11 @@
+var Modes = require('../common/ZapprModes')
+
 module.exports.up = function up(query, Sequelize) {
   return Promise.all([
                   query.addColumn('users', 'zappr_mode', {
-                    type: Sequelize.TEXT,
+                    type: Sequelize.ENUM(...Modes.MODES),
                     allowNull: false,
-                    defaultValue: 'default'
+                    defaultValue: Modes.MINIMAL
                   }),
                   query.addColumn('checks', 'created_by', {
                     type: Sequelize.TEXT,

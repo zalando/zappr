@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { Link } from 'react-router'
 import cookie from 'react-cookie'
+import * as Mode from '../../common/ZapprModes'
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Image } from 'react-bootstrap'
 import mascot from '../img/mascot_small.png'
 
@@ -20,7 +21,7 @@ export default class NavHeader extends Component {
 
   render() {
     const {displayName, username, html_url, avatar_url} = this.props.user
-    const usingExtendedMode = cookie.load('zappr_mode') === 'extended'
+    const usingExtendedMode = cookie.load(Mode.COOKIE_NAME) === Mode.EXTENDED
     const style = {
       logo: {
         marginTop: '-1px',
@@ -70,10 +71,10 @@ export default class NavHeader extends Component {
                 Profile
               </MenuItem>
               {usingExtendedMode ?
-                <MenuItem href="/change-mode?mode=default">
+                <MenuItem href={`/change-mode?mode=${Mode.MINIMAL}`}>
                   Disable private repositories
                 </MenuItem> :
-                <MenuItem href="/change-mode?mode=extended">
+                <MenuItem href={`/change-mode?mode=${Mode.EXTENDED}`}>
                   Enable private repositories
                 </MenuItem>}
               <MenuItem divider/>
