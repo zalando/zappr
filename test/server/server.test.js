@@ -29,13 +29,13 @@ describe('Server', () => {
   })
 
   describe('GET /change-mode', () => {
-    it('should return 500 when an invalid mode is provided', done => {
+    it('should return 400 when an invalid mode is provided', done => {
       request.get('/change-mode?mode=foo')
-             .expect(500, done)
+             .expect(400, done)
     })
-    it('should return 500 when no mode is provided', done => {
+    it('should return 400 when no mode is provided', done => {
       request.get('/change-mode')
-             .expect(500, done)
+             .expect(400, done)
     })
   })
 
