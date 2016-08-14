@@ -39,7 +39,10 @@ export default class RepositoryCheck extends Component {
     }
     const {check, onToggle} = this.props
     const checkMeta = check.isEnabled ?
-      <span>was enabled by <a href={`https://github.com/${check.created_by}`}>@{check.created_by}</a> <Time value={check.createdAt} relative/></span> :
+      (!!check.created_by ?
+        <span>was enabled by <a href={`https://github.com/${check.created_by}`}>@{check.created_by}</a> <Time
+          value={check.createdAt} relative/></span> :
+          <span>is enabled</span>) :
       <span>is disabled</span>
     const header = (
       <div>

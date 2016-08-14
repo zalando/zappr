@@ -25,5 +25,17 @@ export default db.define('user', {
     get: deserializeJson('json')
   }
 }, {
-  schema: db.schema
+  schema: db.schema,
+  classMethods: {
+    userScope: function (userId) {
+      return this.scope({method: ['userId', userId]})
+    }
+  },
+  scopes: {
+    userId: (userId) => ({
+      where: {
+        id: userId
+      }
+    })
+  }
 })

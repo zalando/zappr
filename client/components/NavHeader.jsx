@@ -18,12 +18,8 @@ export default class NavHeader extends Component {
     }
   }
 
-  upgrade() {
-    cookie.save('zappr_mode', 'extended')
-  }
-
   render() {
-    const { displayName, username, html_url, avatar_url } = this.props.user
+    const {displayName, username, html_url, avatar_url} = this.props.user
     const usingExtendedMode = cookie.load('zappr_mode') === 'extended'
     const style = {
       logo: {
@@ -73,10 +69,13 @@ export default class NavHeader extends Component {
               <MenuItem href={html_url}>
                 Profile
               </MenuItem>
-              {!usingExtendedMode ?
-                <MenuItem href="/auth/github" onClick={this.upgrade.bind(this)}>
-                  Upgrade
-                </MenuItem> : null}
+              {usingExtendedMode ?
+                <MenuItem href="/change-mode?mode=default">
+                  Disable private repositories
+                </MenuItem> :
+                <MenuItem href="/change-mode?mode=extended">
+                  Enable private repositories
+                </MenuItem>}
               <MenuItem divider/>
               <MenuItem href="/logout">
                 <i className="fa fa-sign-out"/>&nbsp;sign out
