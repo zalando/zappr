@@ -111,8 +111,6 @@ async function start(port = nconf.get('APP_PORT'), opts = {
       columnType: new Sequelize.TEXT
     }
   })
-  // apply migrations
-  await umzug.up()
   /**
    * Syncing models (db.sync()) is basically CREATE TABLE for every model.
    *
@@ -130,6 +128,8 @@ async function start(port = nconf.get('APP_PORT'), opts = {
    * half a year, this cannot be achieved without fiddling directly on the migrations table.
    */
   await db.sync()
+  // apply migrations
+  await umzug.up()
   init().listen(port)
   log(`listening on port ${port}`)
   if (opts.metricsEnabled) {
