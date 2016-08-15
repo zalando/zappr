@@ -1,4 +1,5 @@
 import { Approval, Autobranch, CommitMessage, Specification } from '../checks'
+import createAuditService from '../service/AuditServiceCreator'
 import { logger } from '../../common/debug'
 import { githubService as defaultGithubService } from '../service/GithubService'
 import { repositoryHandler as defaultRepositoryHandler } from './RepositoryHandler'
@@ -13,14 +14,16 @@ class HookHandler {
    * @param {GithubService} githubService
    * @param {RepositoryHandler} repositoryHandler
    * @param {PullRequestHandler} pullRequestHandler
+   * @param {AuditService} auditService
    */
   constructor(githubService = defaultGithubService,
               repositoryHandler = defaultRepositoryHandler,
-              pullRequestHandler = defaultPullRequestHandler) {
+              pullRequestHandler = defaultPullRequestHandler,
+              auditService = createAuditService()) {
     this.githubService = githubService
     this.repositoryHandler = repositoryHandler
     this.pullRequestHandler = pullRequestHandler
-    this.approval = new Approval(this.githubService, this.pullRequestHandler)
+    this.approval = new Approval(this.githubService, this.pullRequestHandler, auditService)
     this.autobranch = new Autobranch(this.githubService)
     this.commitMessage = new CommitMessage(this.githubService)
     this.specification = new Specification(this.githubService)
@@ -50,7 +53,6 @@ class HookHandler {
         const zapprfile = new ZapprConfiguration(zapprFileContent)
         config = zapprfile.getConfiguration()
       }
-
       if (Specification.isTriggeredBy(event)) {
         getToken(repo, Specification.TYPE).then(token =>
           this.specification.execute(config, payload, token)

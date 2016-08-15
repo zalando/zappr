@@ -1,7 +1,9 @@
 import Check from './Check'
+import AuditEvent from '../service/audit/AuditEvent'
 import { logger, formatDate } from '../../common/debug'
 import { promiseReduce, getIn, toGenericComment } from '../../common/util'
 import * as EVENTS from '../model/GithubEvents'
+import * as AUDIT_EVENTS from '../service/audit/AuditEventTypes'
 import * as _ from 'lodash'
 
 const context = 'zappr'
@@ -18,11 +20,13 @@ export default class Approval extends Check {
   /**
    * @param {GithubService} github
    * @param {PullRequestHandler} pullRequestHandler
+   * @param {AuditService} auditService
    */
-  constructor(github, pullRequestHandler) {
+  constructor(github, pullRequestHandler, auditService) {
     super()
     this.github = github
     this.pullRequestHandler = pullRequestHandler
+    this.audit = auditService
   }
 
   /**
@@ -345,10 +349,21 @@ export default class Approval extends Check {
 
           if (action === 'opened' && minimum > 0) {
             // if it was opened, set to pending
-            await this.github.setCommitStatus(user, repoName, sha, Approval.generateStatus({
-              approvals: {total: []},
-              vetos: []
-            }, config.approvals), token)
+            const approvals = {total: []}
+            const vetos = []
+            const status = Approval.generateStatus({ approvals, vetos}, config.approvals)
+            await this.github.setCommitStatus(user, repoName, sha, status, token)
+            await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+                                                                                  .withResult({
+                                                                                    approvals,
+                                                                                    vetos,
+                                                                                    status
+                                                                                  })
+                                                                                  .onResource({
+                                                                                    commit: sha,
+                                                                                    number,
+                                                                                    repository
+                                                                                  }))
             info(`${repository.full_name}#${number}: PR was opened, set state to pending`)
             return
           }
@@ -358,16 +373,38 @@ export default class Approval extends Check {
           const status = Approval.generateStatus({approvals, vetos}, config.approvals)
           // update status
           await this.github.setCommitStatus(user, repoName, sha, status, token)
+          await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+                                                                                .withResult({
+                                                                                  approvals,
+                                                                                  vetos,
+                                                                                  status
+                                                                                })
+                                                                                .onResource({
+                                                                                  commit: sha,
+                                                                                  number,
+                                                                                  repository
+                                                                                }))
           info(`${repository.full_name}#${number}: PR was reopened, set state to ${status.state} (${approvals.total.length}/${minimum})`)
           // if it was synced, ie a commit added to it
         } else if (action === 'synchronize') {
           // update last push in db
           await this.pullRequestHandler.onAddCommit(dbRepoId, number)
           // set status to pending (has to be unlocked with further comments)
-          await this.github.setCommitStatus(user, repoName, sha, Approval.generateStatus({
-            approvals: {total: []},
-            vetos: []
-          }, config.approvals), token)
+          const approvals = {total: []}
+          const vetos = []
+          const status = Approval.generateStatus({approvals, vetos}, config.approvals)
+          await this.github.setCommitStatus(user, repoName, sha, status, token)
+          await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+                                                                                .withResult({
+                                                                                  approvals,
+                                                                                  vetos,
+                                                                                  status
+                                                                                })
+                                                                                .onResource({
+                                                                                  commit: sha,
+                                                                                  number,
+                                                                                  repository
+                                                                                }))
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
         // on an issue comment
@@ -408,6 +445,17 @@ export default class Approval extends Check {
         const status = Approval.generateStatus({approvals, vetos}, config.approvals)
         // update status
         await this.github.setCommitStatus(user, repoName, sha, status, token)
+        await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+                                                                              .withResult({
+                                                                                approvals,
+                                                                                vetos,
+                                                                                status
+                                                                              })
+                                                                              .onResource({
+                                                                                commit: sha,
+                                                                                number: issue.number,
+                                                                                repository
+                                                                              }))
         info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals.total.length}/${minimum} - ${vetos} vetos)`)
       }
     }
