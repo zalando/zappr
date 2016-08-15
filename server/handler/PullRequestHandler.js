@@ -31,9 +31,9 @@ class PullRequestHandler {
                         .then(comments => comments || [])
   }
 
-  onAddFrozenComment(pullRequestId, {id, body, created_at}) {
+  onAddFrozenComment(pullRequestId, {id, body, created_at, user}) {
     debug(`freeze comment ${id} for pull request ${pullRequestId}`)
-    return FrozenComment.create({pullRequestId, id, body, created_at})
+    return FrozenComment.create({pullRequestId, id, body, created_at, user})
   }
 
   // not sure if we need this

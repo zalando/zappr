@@ -383,7 +383,7 @@ export default class Approval extends Check {
         await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
         // read last push date from db
         const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, issue.number)
-        // read blacklisted comments and update if appropriate
+        // read frozen comments and update if appropriate
         const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
         const commentId = hookPayload.comment.id
         if (['edited', 'deleted'].indexOf(action) !== -1 && frozenComments.indexOf(commentId) === -1) {
