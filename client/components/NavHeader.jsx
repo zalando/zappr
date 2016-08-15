@@ -68,10 +68,10 @@ export default class NavHeader extends Component {
             <NavDropdown title={displayName || username} id="basic-nav-dropdown">
               {this.props.usingExtendedAccess ?
                 <MenuItem href={`/change-mode?mode=${AccessLevel.MINIMAL}`}>
-                  Disable private repositories
+                  Revoke private repository access
                 </MenuItem> :
                 <MenuItem href={`/change-mode?mode=${AccessLevel.EXTENDED}`}>
-                  Enable private repositories
+                  Allow private repository access
                 </MenuItem>}
               <MenuItem href={html_url}>
                 Profile
