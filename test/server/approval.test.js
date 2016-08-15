@@ -2,6 +2,7 @@ import sinon from 'sinon'
 import { expect } from 'chai'
 import { formatDate } from '../../common/debug'
 import Approval from '../../server/checks/Approval'
+import AuditService from '../../server/service/audit/AuditService'
 
 const DEFAULT_REPO = {
   name: 'hello-world',
@@ -262,7 +263,7 @@ describe('Approval#getCommentStatsForConfig', () => {
 })
 
 describe('Approval#execute', () => {
-  let github, pullRequestHandler, approval
+  let github, pullRequestHandler, approval, auditService
 
 
   beforeEach(() => {
@@ -280,7 +281,8 @@ describe('Approval#execute', () => {
       getComments: sinon.spy(),
       fetchPullRequestCommits: sinon.spy()
     }
-    approval = new Approval(github, pullRequestHandler)
+    auditService = sinon.createStubInstance(AuditService)
+    approval = new Approval(github, pullRequestHandler, auditService)
   })
   
   const SKIP_ACTIONS = ['assigned', 'unassigned', 'labeled', 'unlabeled', 'closed']
@@ -320,6 +322,7 @@ describe('Approval#execute', () => {
       expect(github.getComments.callCount).to.equal(1)
       expect(github.getPullRequest.callCount).to.equal(1)
       expect(github.isMemberOfOrg.callCount).to.equal(0)
+      expect(auditService.log.callCount).to.equal(1)
 
       const failureStatusCallArgs = github.setCommitStatus.args[1]
       const commentCallArgs = github.getComments.args[0]
@@ -370,6 +373,7 @@ describe('Approval#execute', () => {
       expect(github.getComments.callCount).to.equal(1)
       expect(github.getPullRequest.callCount).to.equal(1)
       expect(github.isMemberOfOrg.callCount).to.equal(0)
+      expect(auditService.log.callCount).to.equal(1)
 
       const successStatusCallArgs = github.setCommitStatus.args[1]
       const commentCallArgs = github.getComments.args[0]
@@ -406,6 +410,7 @@ describe('Approval#execute', () => {
     await approval.execute(DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
     expect(github.setCommitStatus.callCount).to.equal(0)
     expect(github.getApprovals.callCount).to.equal(0)
+    expect(auditService.log.called).to.be.false
     done()
   })
 
@@ -415,6 +420,8 @@ describe('Approval#execute', () => {
       await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(0)
+      expect(auditService.log.callCount).to.equal(1)
+
       const pendingCallArgs = github.setCommitStatus.args[0]
       const missingApprovalsCallArgs = github.setCommitStatus.args[1]
 
@@ -447,6 +454,8 @@ describe('Approval#execute', () => {
       await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
+      expect(auditService.log.callCount).to.equal(1)
+
       const pendingCallArgs = github.setCommitStatus.args[0]
       const successCallArgs = github.setCommitStatus.args[1]
 
@@ -482,6 +491,22 @@ describe('Approval#execute', () => {
       ZERO_APPROVALS_STATUS,
       TOKEN
     ])
+    expect(auditService.log.callCount).to.equal(1)
     done()
+  })
+
+  it('should set status to error when auditService.log throws', async(done) => {
+    try {
+      PR_PAYLOAD.action = 'synchronize'
+      auditService.log = sinon.stub().throws(new Error('Audit API Error'))
+      await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.setCommitStatus.args[1][3].state).to.equal('error')
+      expect(github.setCommitStatus.args[1][3].description).to.equal('Audit API Error')
+      done()
+    } catch (e) {
+      done(e)
+    }
   })
 })

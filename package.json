@@ -82,7 +82,8 @@
     "temp": "0.8.3",
     "url-loader": "0.5.7",
     "webpack": "1.13.1",
-    "webpack-dev-server": "1.14.1"
+    "webpack-dev-server": "1.14.1",
+    "winston": "2.2.0"
   },
   "dependencies": {
     "aws-sdk": "2.4.8",
@@ -106,6 +107,7 @@
     "koa-static": "2.0.0",
     "lodash": "4.13.1",
     "nconf": "0.8.4",
+    "node-uuid": "1.4.7",
     "normalizr": "2.2.0",
     "passport": "0.3.2",
     "passport-github": "1.1.0",
@@ -125,7 +127,9 @@
   },
   "optionalDependencies": {
     "pg": "4.5.6",
-    "sqlite3": "3.1.x"
+    "sqlite3": "3.1.x",
+    "node-tokens": "0.0.9",
+    "winston": "2.2.0"
   },
   "babel": {
     "env": {

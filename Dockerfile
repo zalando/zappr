@@ -10,7 +10,7 @@ WORKDIR $ZAPPR_HOME
 COPY package.json $ZAPPR_HOME
 
 RUN npm install --production && \
-    npm install pg source-map
+    npm install pg source-map node-tokens
 
 COPY dist/ $ZAPPR_HOME/dist
 COPY config $ZAPPR_HOME/config
