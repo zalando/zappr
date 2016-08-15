@@ -1,5 +1,11 @@
 # Zappr application configuration: opensource
 
+AUDIT_RELEVANT_ORGS:
+  - zalando
+  - zalando-zmon
+  - zalando-stups
+  - zalando-incubator
+
 # path to zapprfile in repository
 VALID_ZAPPR_FILE_PATHS:
   - "/.zappr.yaml"

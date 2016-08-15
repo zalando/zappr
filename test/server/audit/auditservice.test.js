@@ -20,6 +20,7 @@ describe('The AuditService', () => {
   })
 
   it('#log() should call ship() and transform()', () => {
+    nconf.set('AUDIT_RELEVANT_ORGS', false)
     sinon.spy(service, "transform")
     sinon.spy(service, "ship")
     service.log({id: 1})
