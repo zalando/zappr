@@ -342,7 +342,7 @@ export default class Approval extends Check {
 
     try {
       // on an open pull request
-      if (event === 'pull_request' && pull_request.state === 'open') {
+      if (event === EVENTS.PULL_REQUEST && pull_request.state === 'open') {
         sha = pull_request.head.sha
         // if it was (re)opened
         if (action === 'opened' || action === 'reopened') {
@@ -379,7 +379,7 @@ export default class Approval extends Check {
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
         // on an issue comment
-      } else if (event === 'issue_comment') {
+      } else if (event === EVENTS.ISSUE_COMMENT) {
         // check it belongs to an open pr
         const pr = await this.github.getPullRequest(user, repoName, issue.number, token)
         if (!pr || pr.state !== 'open') {

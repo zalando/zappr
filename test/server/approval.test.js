@@ -2,6 +2,7 @@ import sinon from 'sinon'
 import { expect } from 'chai'
 import { formatDate } from '../../common/debug'
 import Approval from '../../server/checks/Approval'
+import * as EVENTS from '../../server/model/GithubEvents'
 
 const DEFAULT_REPO = {
   name: 'hello-world',
@@ -10,8 +11,6 @@ const DEFAULT_REPO = {
     login: 'mfellner'
   }
 }
-const PR_EVENT = 'pull_request'
-const ISSUE_EVENT = 'issue_comment'
 const TOKEN = 'abcd'
 const DB_REPO_ID = 341
 const ISSUE_PAYLOAD = {
@@ -331,7 +330,7 @@ describe('Approval#execute', () => {
   SKIP_ACTIONS.forEach(action=> {
     it(`should do nothing on "${action}"`, async(done) => {
       try {
-        await approval.execute(DEFAULT_CONFIG, PR_EVENT, Object.assign(PR_PAYLOAD, {action}), TOKEN, DB_REPO_ID)
+        await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, Object.assign(PR_PAYLOAD, {action}), TOKEN, DB_REPO_ID)
         expect(github.setCommitStatus.callCount).to.equal(0)
         expect(github.getApprovals.callCount).to.equal(0)
         done()
@@ -357,7 +356,7 @@ describe('Approval#execute', () => {
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
-      await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -407,7 +406,7 @@ describe('Approval#execute', () => {
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
-      await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -446,7 +445,7 @@ describe('Approval#execute', () => {
 
   it('should do nothing on comment on non-open pull_request', async(done) => {
     github.getPullRequest = sinon.stub().returns(CLOSED_PR)
-    await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+    await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
     expect(github.setCommitStatus.callCount).to.equal(0)
     expect(github.getApprovals.callCount).to.equal(0)
     done()
@@ -455,7 +454,7 @@ describe('Approval#execute', () => {
   it('should set status to pending on PR:opened', async(done) => {
     PR_PAYLOAD.action = 'opened'
     try {
-      await approval.execute(DEFAULT_CONFIG, PR_EVENT, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(0)
       const pendingCallArgs = github.setCommitStatus.args[0]
@@ -490,7 +489,7 @@ describe('Approval#execute', () => {
         approvals: {total: ['red', 'blue', 'green', 'yellow']},
         vetos: []
       })
-      await approval.execute(DEFAULT_CONFIG, PR_EVENT, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
       const pendingCallArgs = github.setCommitStatus.args[0]
@@ -519,7 +518,7 @@ describe('Approval#execute', () => {
 
   it('should set status to pending on PR:synchronize', async(done) => {
     PR_PAYLOAD.action = 'synchronize'
-    await approval.execute(DEFAULT_CONFIG, PR_EVENT, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+    await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
     expect(github.setCommitStatus.callCount).to.equal(1)
     expect(github.setCommitStatus.args[0]).to.deep.equal([
       'mfellner',
@@ -540,7 +539,7 @@ describe('Approval#execute', () => {
                                                          .withArgs(DB_REPO_ID, MALICIOUS_EDIT_PAYLOAD.issue.number)
                                                          .returns(DB_PR)
       github.getComments = sinon.stub().returns([MALICIOUS_EDIT_PAYLOAD.comment]) // does not matter for this test
-      await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, MALICIOUS_EDIT_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, MALICIOUS_EDIT_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(pullRequestHandler.onGetBlacklistedComments.calledOnce).to.be.true
       expect(pullRequestHandler.onGetBlacklistedComments.calledWith(DB_PR.id)).to.be.true
       expect(pullRequestHandler.onAddBlacklistedComment.calledOnce).to.be.true
@@ -551,9 +550,9 @@ describe('Approval#execute', () => {
     }
   })
 
-  const SKIP_ISSUE_EVENTS = ['created', 'deleted']
-  SKIP_ISSUE_EVENTS.forEach(event =>
-    it(`should not blacklist comment on ${event}`, async(done) => {
+  const SKIP_ISSUE_ACTIONS = ['created', 'deleted']
+  SKIP_ISSUE_ACTIONS.forEach(action =>
+    it(`should not blacklist comment on ${action}`, async(done) => {
       try {
         github.getPullRequest = sinon.stub()
                                      .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, MALICIOUS_EDIT_PAYLOAD.issue.number, TOKEN)
@@ -562,8 +561,7 @@ describe('Approval#execute', () => {
                                                            .withArgs(DB_REPO_ID, MALICIOUS_EDIT_PAYLOAD.issue.number)
                                                            .returns(DB_PR)
         github.getComments = sinon.stub().returns([MALICIOUS_EDIT_PAYLOAD.comment]) // does not matter for this test
-        await approval.execute(DEFAULT_CONFIG, event, MALICIOUS_EDIT_PAYLOAD, TOKEN, DB_REPO_ID)
-        expect(pullRequestHandler.onGetBlacklistedComments.called).to.be.false
+        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, Object.assign({}, MALICIOUS_EDIT_PAYLOAD, {action}), TOKEN, DB_REPO_ID)
         expect(pullRequestHandler.onAddBlacklistedComment.called).to.be.false
         done()
       } catch (e) {
@@ -593,7 +591,7 @@ describe('Approval#execute', () => {
                                     body: ':+1:'
                                   }
                                 ])
-      await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, MALICIOUS_EDIT_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, MALICIOUS_EDIT_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(pullRequestHandler.onGetBlacklistedComments.calledOnce).to.be.true
       expect(pullRequestHandler.onAddBlacklistedComment.called).to.be.false
       expect(github.setCommitStatus.callCount).to.equal(2)
