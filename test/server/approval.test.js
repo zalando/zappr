@@ -10,10 +10,12 @@ const DEFAULT_REPO = {
     login: 'mfellner'
   }
 }
+const PR_EVENT = 'pull_request'
+const ISSUE_EVENT = 'issue_comment'
 const TOKEN = 'abcd'
 const DB_REPO_ID = 341
 const ISSUE_PAYLOAD = {
-  action: 'create',
+  action: 'created',
   repository: DEFAULT_REPO,
   issue: {
     number: 2
@@ -38,6 +40,23 @@ const PR_PAYLOAD = {
     }
   }
 }
+const MALICIOUS_EDIT_PAYLOAD = {
+  action: 'edited',
+  repository: DEFAULT_REPO,
+  issue: {
+    number: 1
+  },
+  comment: {
+    id: 1,
+    body: ':+1:',
+    user: {
+      login: 'mfellner'
+    }
+  },
+  sender: {
+    login: 'prayerslayer'
+  }
+}
 const DEFAULT_CONFIG = {
   approvals: {
     minimum: 2,
@@ -48,8 +67,14 @@ const DEFAULT_CONFIG = {
     }
   }
 }
-const SUCCESS_STATUS = Approval.generateStatus({approvals: {total: ['foo', 'bar']}, vetos: []}, DEFAULT_CONFIG.approvals)
-const BLOCKED_BY_VETO_STATUS = Approval.generateStatus({approvals: {total: ['foo', 'bar']}, vetos: ['mr-foo']}, DEFAULT_CONFIG.approvals)
+const SUCCESS_STATUS = Approval.generateStatus({
+  approvals: {total: ['foo', 'bar']},
+  vetos: []
+}, DEFAULT_CONFIG.approvals)
+const BLOCKED_BY_VETO_STATUS = Approval.generateStatus({
+  approvals: {total: ['foo', 'bar']},
+  vetos: ['mr-foo']
+}, DEFAULT_CONFIG.approvals)
 const PENDING_STATUS = {
   state: 'pending',
   description: 'Approval validation in progress.',
@@ -58,7 +83,8 @@ const PENDING_STATUS = {
 const ZERO_APPROVALS_STATUS = Approval.generateStatus({approvals: {total: []}, vetos: []}, DEFAULT_CONFIG.approvals)
 const DB_PR = {
   last_push: new Date(),
-  number: 3
+  number: 3,
+  id: 1415
 }
 
 describe('Approval#fetchIgnoredUsers', () => {
@@ -133,31 +159,46 @@ describe('Approval#fetchIgnoredUsers', () => {
 
 describe('Approval#generateStatus', () => {
   it('should favor vetos over approvals', () => {
-    const result = Approval.generateStatus({approvals: { total: ['mr-foo']}, vetos: ['mr-bar']}, {minimum: 1})
+    const result = Approval.generateStatus({approvals: {total: ['mr-foo']}, vetos: ['mr-bar']}, {minimum: 1})
     expect(result.state).to.equal('failure')
   })
   it('should be successful without vetos', () => {
-    const result = Approval.generateStatus({approvals: { total: ['mr-foo']}, vetos: []}, {minimum: 1})
+    const result = Approval.generateStatus({approvals: {total: ['mr-foo']}, vetos: []}, {minimum: 1})
     expect(result.state).to.equal('success')
   })
 })
 
 describe('Approval#countApprovalsAndVetos', () => {
+  const comments = [{
+    user: {login: 'prayerslayer'},
+    id: 1,
+    body: 'awesome :+1:'
+  }, {
+    user: {login: 'mfellner'},
+    id: 2,
+    body: ':+1:'
+  }, {
+    user: {login: 'mfellner'},
+    id: 3,
+    body: ':+1:'
+  }]
+
   it('should honor the provided pattern', async(done) => {
-    const comments = [{
-      user: {login: 'prayerslayer'},
-      body: 'awesome :+1:' // does not count
-    }, {
-      user: {login: 'mfellner'},
-      body: ':+1:' // counts
-    }, {
-      user: {login: 'mfellner'},
-      body: ':+1:' // is ignored because mfellner already approved
-    }]
     try {
       const approval = new Approval(null, null)
-      const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, {}, comments, DEFAULT_CONFIG.approvals)
+      const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, {}, comments, [], DEFAULT_CONFIG.approvals)
       expect(approvals).to.deep.equal({total: ['mfellner']})
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should filter blacklisted comments', async(done) => {
+    try {
+      const approval = new Approval(null, null)
+      const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, {}, comments, [2, 3], DEFAULT_CONFIG.approvals)
+      expect(approvals).to.deep.equal({total: []})
       done()
     } catch (e) {
       done(e)
@@ -269,7 +310,9 @@ describe('Approval#execute', () => {
     pullRequestHandler = {
       onGet: sinon.stub().returns(DB_PR),
       onAddCommit: sinon.spy(),
-      onCreatePullRequest: sinon.spy()
+      onCreatePullRequest: sinon.spy(),
+      onGetBlacklistedComments: sinon.stub().returns([]),
+      onAddBlacklistedComment: sinon.stub()
     }
     github = {
       isMemberOfOrg: sinon.spy(),
@@ -282,13 +325,13 @@ describe('Approval#execute', () => {
     }
     approval = new Approval(github, pullRequestHandler)
   })
-  
+
   const SKIP_ACTIONS = ['assigned', 'unassigned', 'labeled', 'unlabeled', 'closed']
-  
+
   SKIP_ACTIONS.forEach(action=> {
     it(`should do nothing on "${action}"`, async(done) => {
       try {
-        await approval.execute(DEFAULT_CONFIG, Object.assign(PR_PAYLOAD, {action}), TOKEN, DB_REPO_ID)
+        await approval.execute(DEFAULT_CONFIG, PR_EVENT, Object.assign(PR_PAYLOAD, {action}), TOKEN, DB_REPO_ID)
         expect(github.setCommitStatus.callCount).to.equal(0)
         expect(github.getApprovals.callCount).to.equal(0)
         done()
@@ -314,7 +357,7 @@ describe('Approval#execute', () => {
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
-      await approval.execute(DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -364,7 +407,7 @@ describe('Approval#execute', () => {
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
-      await approval.execute(DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -403,7 +446,7 @@ describe('Approval#execute', () => {
 
   it('should do nothing on comment on non-open pull_request', async(done) => {
     github.getPullRequest = sinon.stub().returns(CLOSED_PR)
-    await approval.execute(DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+    await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
     expect(github.setCommitStatus.callCount).to.equal(0)
     expect(github.getApprovals.callCount).to.equal(0)
     done()
@@ -412,7 +455,7 @@ describe('Approval#execute', () => {
   it('should set status to pending on PR:opened', async(done) => {
     PR_PAYLOAD.action = 'opened'
     try {
-      await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, PR_EVENT, PR_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(0)
       const pendingCallArgs = github.setCommitStatus.args[0]
@@ -443,8 +486,11 @@ describe('Approval#execute', () => {
       PR_PAYLOAD.action = 'reopened'
       github.fetchPullRequestCommits = sinon.stub().returns([])
       github.getComments = sinon.stub().returns([])
-      approval.countApprovalsAndVetos = sinon.stub().returns({approvals: {total: ['red', 'blue', 'green', 'yellow']}, vetos: []})
-      await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      approval.countApprovalsAndVetos = sinon.stub().returns({
+        approvals: {total: ['red', 'blue', 'green', 'yellow']},
+        vetos: []
+      })
+      await approval.execute(DEFAULT_CONFIG, PR_EVENT, PR_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
       const pendingCallArgs = github.setCommitStatus.args[0]
@@ -473,7 +519,7 @@ describe('Approval#execute', () => {
 
   it('should set status to pending on PR:synchronize', async(done) => {
     PR_PAYLOAD.action = 'synchronize'
-    await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+    await approval.execute(DEFAULT_CONFIG, PR_EVENT, PR_PAYLOAD, TOKEN, DB_REPO_ID)
     expect(github.setCommitStatus.callCount).to.equal(1)
     expect(github.setCommitStatus.args[0]).to.deep.equal([
       'mfellner',
@@ -483,5 +529,79 @@ describe('Approval#execute', () => {
       TOKEN
     ])
     done()
+  })
+
+  it('should detect maliciously edited comments and add them to database', async(done) => {
+    try {
+      github.getPullRequest = sinon.stub()
+                                   .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, MALICIOUS_EDIT_PAYLOAD.issue.number, TOKEN)
+                                   .returns(PR_PAYLOAD.pull_request)
+      pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+                                                         .withArgs(DB_REPO_ID, MALICIOUS_EDIT_PAYLOAD.issue.number)
+                                                         .returns(DB_PR)
+      github.getComments = sinon.stub().returns([MALICIOUS_EDIT_PAYLOAD.comment]) // does not matter for this test
+      await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, MALICIOUS_EDIT_PAYLOAD, TOKEN, DB_REPO_ID)
+      expect(pullRequestHandler.onGetBlacklistedComments.calledOnce).to.be.true
+      expect(pullRequestHandler.onGetBlacklistedComments.calledWith(DB_PR.id)).to.be.true
+      expect(pullRequestHandler.onAddBlacklistedComment.calledOnce).to.be.true
+      expect(pullRequestHandler.onAddBlacklistedComment.calledWith(DB_PR.id, MALICIOUS_EDIT_PAYLOAD.comment.id)).to.be.true
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  const SKIP_ISSUE_EVENTS = ['created', 'deleted']
+  SKIP_ISSUE_EVENTS.forEach(event =>
+    it(`should not blacklist comment on ${event}`, async(done) => {
+      try {
+        github.getPullRequest = sinon.stub()
+                                     .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, MALICIOUS_EDIT_PAYLOAD.issue.number, TOKEN)
+                                     .returns(PR_PAYLOAD.pull_request)
+        pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+                                                           .withArgs(DB_REPO_ID, MALICIOUS_EDIT_PAYLOAD.issue.number)
+                                                           .returns(DB_PR)
+        github.getComments = sinon.stub().returns([MALICIOUS_EDIT_PAYLOAD.comment]) // does not matter for this test
+        await approval.execute(DEFAULT_CONFIG, event, MALICIOUS_EDIT_PAYLOAD, TOKEN, DB_REPO_ID)
+        expect(pullRequestHandler.onGetBlacklistedComments.called).to.be.false
+        expect(pullRequestHandler.onAddBlacklistedComment.called).to.be.false
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  )
+
+  it('should filter maliciously edited comments', async(done) => {
+    try {
+      github.getPullRequest = sinon.stub()
+                                   .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, MALICIOUS_EDIT_PAYLOAD.issue.number, TOKEN)
+                                   .returns(PR_PAYLOAD.pull_request)
+      pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+                                                         .withArgs(DB_REPO_ID, MALICIOUS_EDIT_PAYLOAD.issue.number)
+                                                         .returns(DB_PR)
+      pullRequestHandler.onGetBlacklistedComments = sinon.stub()
+                                                         .withArgs(DB_REPO_ID)
+                                                         .returns([MALICIOUS_EDIT_PAYLOAD.comment.id])
+      // would be two approvals, but one is blacklisted
+      github.getComments = sinon.stub()
+                                .returns([
+                                  MALICIOUS_EDIT_PAYLOAD.comment,
+                                  {
+                                    user: {login: 'prayerslayer'},
+                                    id: 2,
+                                    body: ':+1:'
+                                  }
+                                ])
+      await approval.execute(DEFAULT_CONFIG, ISSUE_EVENT, MALICIOUS_EDIT_PAYLOAD, TOKEN, DB_REPO_ID)
+      expect(pullRequestHandler.onGetBlacklistedComments.calledOnce).to.be.true
+      expect(pullRequestHandler.onAddBlacklistedComment.called).to.be.false
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      // second call, third param => status
+      expect(github.setCommitStatus.args[1][3].state).to.equal('pending')
+      done()
+    } catch (e) {
+      done(e)
+    }
   })
 })
