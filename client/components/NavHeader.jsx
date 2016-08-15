@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react'
 import { Link } from 'react-router'
-import * as Mode from '../../common/ZapprModes'
+import * as AccessLevel from '../../common/AccessLevels'
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Image } from 'react-bootstrap'
 import mascot from '../img/mascot_small.png'
 
@@ -8,7 +8,7 @@ export default class NavHeader extends Component {
   static propTypes = {
     path: PropTypes.string.isRequired,
     user: PropTypes.object.isRequired,
-    usingExtendedMode: PropTypes.bool.isRequired
+    usingExtendedAccess: PropTypes.bool
   };
 
   isActive(path) {
@@ -66,11 +66,11 @@ export default class NavHeader extends Component {
           </Nav>
           <Nav pullRight>
             <NavDropdown title={displayName || username} id="basic-nav-dropdown">
-              {this.props.usingExtendedMode ?
-                <MenuItem href={`/change-mode?mode=${Mode.MINIMAL}`}>
+              {this.props.usingExtendedAccess ?
+                <MenuItem href={`/change-mode?mode=${AccessLevel.MINIMAL}`}>
                   Disable private repositories
                 </MenuItem> :
-                <MenuItem href={`/change-mode?mode=${Mode.EXTENDED}`}>
+                <MenuItem href={`/change-mode?mode=${AccessLevel.EXTENDED}`}>
                   Enable private repositories
                 </MenuItem>}
               <MenuItem href={html_url}>

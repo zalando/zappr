@@ -40,10 +40,10 @@ describe('Model', () => {
                                             .and.contain.all.keys(
           'id',
           'json',
-          'zappr_mode'
+          'access_level'
         )
-        expect(savedUser.get('zappr_mode')).to.be.a('string')
-                                           .and.equal('minimal')
+        expect(savedUser.get('access_level')).to.be.a('string')
+                                             .and.equal('minimal')
         expect(savedUser.get('json')).to.be.an('object')
                                      .and.deep.equal(user)
 

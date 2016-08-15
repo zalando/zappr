@@ -53,7 +53,7 @@ describe('Server', () => {
     it('should respond with HTML and not redirect with cookie', async(done) => {
       try {
         await request.get('/change-mode?mode=minimal')
-                     .expect('Set-Cookie', /zappr_mode=minimal/)
+                     .expect('Set-Cookie', /zappr_access_level=minimal/)
                      .expect('Set-Cookie', /httponly/)
                      .expect('Set-Cookie', /expires/)
 

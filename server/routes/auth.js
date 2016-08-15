@@ -2,7 +2,7 @@ import nconf from '../nconf'
 import assert from 'assert'
 import passport from 'koa-passport'
 import UserHandler from '../handler/UserHandler'
-import * as Mode from '../../common/ZapprModes'
+import * as AccessLevel from '../../common/AccessLevels'
 
 /**
  * Login endpoint.
@@ -11,15 +11,16 @@ import * as Mode from '../../common/ZapprModes'
  */
 export function login(router) {
   return router.get('/auth/github', (ctx, next) => {
-    const inExtendedMode = ctx.cookies.get(Mode.COOKIE_NAME) === Mode.EXTENDED
-    const scope = nconf.get(inExtendedMode ? 'GITHUB_SCOPES_EXTENDED' : 'GITHUB_SCOPES')
+    const scopesPerMode = nconf.get('GITHUB_ACCESS_LEVELS')
+    const mode = ctx.cookies.get(AccessLevel.COOKIE_NAME)
+    const scope = scopesPerMode[mode]
     return passport.authenticate('github', {scope})(ctx, next)
   })
 }
 
 /**
  * Ensures that all of the following is true:
- *  - there is a cookie `zappr_mode`
+ *  - there is a cookie `zappr_access_level`
  *  - the cookie contains what's in the database for this user
  *  - the access token available in the request context has proper scopes for the selected zappr mode
  *
@@ -28,11 +29,11 @@ export function login(router) {
 export async function ensureModeMiddleware(ctx, next) {
   const user = ctx.req.user
   if (!!user) {
-    const {zappr_mode} = await UserHandler.onGet(user.id)
-    const zapprCookie = ctx.cookies.get(Mode.COOKIE_NAME)
-    if (zappr_mode !== zapprCookie) {
+    const {access_level} = await UserHandler.onGet(user.id)
+    const zapprCookie = ctx.cookies.get(AccessLevel.COOKIE_NAME)
+    if (access_level !== zapprCookie) {
       // database beats cookie
-      ctx.redirect(`/change-mode?mode=${zappr_mode}`)
+      ctx.redirect(`/change-mode?mode=${access_level}`)
     }
   }
   // not sure why we have to await here
@@ -45,13 +46,13 @@ export async function ensureModeMiddleware(ctx, next) {
 export function changeMode(router) {
   return router.get('/change-mode', requireAuth, async(ctx, next) => {
     const mode = ctx.query.mode
-    if (Mode.MODES.indexOf(mode) === -1) {
+    if (AccessLevel.MODES.indexOf(mode) === -1) {
       ctx.throw(400)
     }
     try {
-      await UserHandler.onChangeMode(ctx.req.user.id, mode)
+      await UserHandler.onChangeLevel(ctx.req.user.id, mode)
       const IN_PRODUCTION = nconf.get('NODE_ENV') === 'production'
-      ctx.cookies.set(Mode.COOKIE_NAME, mode, {
+      ctx.cookies.set(AccessLevel.COOKIE_NAME, mode, {
         httpOnly: true,
         signed: IN_PRODUCTION,
         secure: IN_PRODUCTION,

@@ -9,8 +9,8 @@ export class UserHandler {
     return User.findOne({id: userId})
   }
 
-  onChangeMode(userId, zappr_mode) {
-    return User.update({zappr_mode}, {where: {id: userId}})
+  onChangeLevel(userId, access_level) {
+    return User.update({access_level}, {where: {id: userId}})
   }
 }
 

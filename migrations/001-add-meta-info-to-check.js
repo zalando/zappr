@@ -11,7 +11,7 @@ module.exports.up = function up(queryInterface, Sequelize) {
      */
     queryInterface.sequelize.query(`
             ALTER TABLE zappr_data.users
-            ADD COLUMN zappr_mode ${dialect === 'postgres' ? 'zappr_data.enum_users_zappr_mode' : 'TEXT'} NOT NULL DEFAULT 'minimal';`),
+            ADD COLUMN access_level ${dialect === 'postgres' ? 'zappr_data.enum_users_access_level' : 'TEXT'} NOT NULL DEFAULT 'minimal';`),
     queryInterface.addColumn({
         tableName: 'checks',
         schema: 'zappr_data'
@@ -30,7 +30,7 @@ module.exports.down = function down(query) {
         tableName: 'users',
         schema: 'zappr_data'
       },
-      'zappr_mode'),
+      'access_level'),
     query.removeColumn({
         tableName: 'checks',
         schema: 'zappr_data'

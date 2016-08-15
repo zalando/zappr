@@ -10,14 +10,15 @@ SESSION_SECRET: secret
 GITHUB_CLIENT_ID: id
 GITHUB_CLIENT_SECRET: secret
 GITHUB_HOOK_SECRET: captainHook
-GITHUB_SCOPES:
-  - user:email
-  - admin:repo_hook
-  - public_repo
-GITHUB_SCOPES_EXTENDED:
-  - user:email
-  - admin:repo_hook
-  - repo
+GITHUB_ACCESS_LEVELS:
+  minimal:
+    - user:email
+    - admin:repo_hook
+    - public_repo
+  extended:
+    - user:email
+    - admin:repo_hook
+    - repo
 # See https://developer.github.com/v3/enterprise
 # for GitHub Enterprise configuration.
 GITHUB_UI_URL: https://github.com
@@ -25,7 +26,7 @@ GITHUB_API_URL: https://api.github.com
 
 # Address of the web application host
 # that ZAPPR is going to run on.
-HOST_ADDR: http://127.0.0.1:8080
+HOST_ADDR: http://localhost:8080
 APP_PORT: 3000
 METRICS_PORT: 3003
 METRICS_ENABLED: true
@@ -34,14 +35,14 @@ STATIC_DIR: ./dist/client
 
 # Database configuration
 # sqlite or postgres
-DB_DRIVER: sqlite
-#DB_NAME: postgres
-#DB_USER: postgres
-#DB_PASS: postgres
-#DB_HOST: 192.168.99.100
-#DB_PORT: 5432
-#DB_SCHEMA: zappr
-SQLITE_FILE: ./zappr.sqlite
+DB_DRIVER: postgres
+DB_NAME: zappr
+DB_USER: postgres
+DB_PASS: postgres
+DB_HOST: 192.168.99.100
+DB_PORT: 5432
+DB_SCHEMA: zappr_data
+#SQLITE_FILE: ./zappr.sqlite
 
 # Token encryption
 # Options: [~, kms]

@@ -8,7 +8,7 @@ import nconf from '../nconf'
 import configureStore from '../../client/store/configureStore'
 import routes from '../../client/components/Routes.jsx'
 import Index from './Index.jsx'
-import * as ZapprMode from '../../common/ZapprModes'
+import * as AccessLevel from '../../common/AccessLevels'
 import { logger } from '../../common/debug'
 
 const log = logger('react')
@@ -50,7 +50,7 @@ export default async function renderStatic(ctx, next) {
   const assets = await getStaticAssets()
   const user = ctx.req.user ? ctx.req.user.json : {}
   // at this point the cookie is guaranteed to exist due to previous middleware
-  const usingExtendedMode = ctx.cookies.get(ZapprMode.COOKIE_NAME) === ZapprMode.EXTENDED
+  const usingExtendedAccess = ctx.cookies.get(AccessLevel.COOKIE_NAME) === AccessLevel.EXTENDED
   const isAuthenticated = ctx.isAuthenticated()
 
   const store = configureStore({
@@ -59,7 +59,7 @@ export default async function renderStatic(ctx, next) {
     },
     env: {
       GITHUB_UI_URL: nconf.get('GITHUB_UI_URL'),
-      USING_EXTENDED_MODE: usingExtendedMode
+      USING_EXTENDED_ACCESS: usingExtendedAccess
     },
     user
   })

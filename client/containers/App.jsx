@@ -12,7 +12,7 @@ const log = logger('app')
 function mapStateToProps(state) {
   return {
     user: state.user,
-    usingExtendedMode: state.env.USING_EXTENDED_MODE,
+    usingExtendedAccess: state.env.USING_EXTENDED_ACCESS,
     isAuthenticated: state.auth.isAuthenticated
   }
 }
@@ -39,7 +39,7 @@ class App extends Component {
         <Optional if={!showLogin}>
           <AppNavHeader path={this.props.location.pathname}
                         user={this.props.user}
-                        usingExtendedMode={this.props.usingExtendedMode}/>
+                        usingExtendedAccess={this.props.usingExtendedAccess}/>
         </Optional>
         <Optional if={showLogin}>
           <LoginNavHeader />
