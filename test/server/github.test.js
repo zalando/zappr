@@ -1,12 +1,13 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { GithubService } from '../../server/service/GithubService'
+import {toGenericComment} from '../../common/util'
 
 describe('The Github service', () => {
   let github
   const MOCK_COMMENTS = [
-    {created_at: '2016-07-11T15:00:00Z'},
-    {created_at: '2016-07-11T17:00:00Z'}
+    {created_at: '2016-07-11T15:00:00Z', user: {login: 'foo'}},
+    {created_at: '2016-07-11T17:00:00Z', user: {login: 'bar'}}
   ]
 
   beforeEach(() => {
@@ -57,7 +58,7 @@ describe('The Github service', () => {
         github.fetchPath.returns(MOCK_COMMENTS)
         const comments = await github.getComments('zalando', 'zappr', 348, '2016-07-11T16:00:00Z', 'token')
         expect(comments.length).to.equal(1)
-        expect(comments[0]).to.equal(MOCK_COMMENTS[1])
+        expect(comments[0]).to.deep.equal(toGenericComment(MOCK_COMMENTS[1]))
         done()
       } catch (e) {
         done(e)
@@ -79,7 +80,7 @@ describe('The Github service', () => {
       try {
         github.fetchPath.returns(MOCK_COMMENTS)
         const comments = await github.getComments('zalando', 'zappr', 348, null, 'token')
-        expect(comments).to.equal(MOCK_COMMENTS)
+        expect(comments).to.deep.equal(MOCK_COMMENTS.map(toGenericComment))
         done()
       } catch (e) {
         done(e)

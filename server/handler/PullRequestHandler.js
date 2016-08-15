@@ -1,4 +1,4 @@
-import { PullRequest, BlacklistedComment } from '../model'
+import { PullRequest, FrozenComment } from '../model'
 
 import { logger } from '../../common/debug'
 const debug = logger('pr-handler')
@@ -19,21 +19,27 @@ class PullRequestHandler {
     })
   }
 
-  onGetBlacklistedComments(pullRequestId) {
-    return BlacklistedComment.pullRequestScope(pullRequestId)
-                             .findAll()
-                             .then(comments => comments ? comments.map(({id}) => id) : [])
+  onGetFrozenComments(pullRequestId, createdSince) {
+    return FrozenComment.pullRequestScope(pullRequestId)
+                        .findAll({
+                          where: {
+                            created_at: {
+                              $gte: createdSince
+                            }
+                          }
+                        })
+                        .then(comments => comments || [])
   }
 
-  onAddBlacklistedComment(pullRequestId, commentId) {
-    debug(`blacklist comment ${commentId} for pull request ${pullRequestId}`)
-    return BlacklistedComment.create({ pullRequestId, id: commentId })
+  onAddFrozenComment(pullRequestId, {id, body, created_at}) {
+    debug(`freeze comment ${id} for pull request ${pullRequestId}`)
+    return FrozenComment.create({pullRequestId, id, body, created_at})
   }
 
   // not sure if we need this
-  onRemoveBlacklistedComments(pullRequestId) {
-    debug(`remove blacklisted comments ffor pull request ${pullRequestId}`)
-    return BlacklistedComment.pullRequestScope(pullRequestId).delete()
+  onRemoveFrozenComments(pullRequestId) {
+    debug(`remove frozen comments for pull request ${pullRequestId}`)
+    return FrozenComment.pullRequestScope(pullRequestId).delete()
   }
 
   onAddCommit(id, number) {
