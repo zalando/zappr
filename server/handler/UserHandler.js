@@ -1,8 +1,4 @@
 import { User } from '../model'
-import { logger } from "../../common/debug"
-
-const info = logger('user-handler', 'info')
-const debug = logger('user-handler')
 
 export class UserHandler {
   constructor() {
