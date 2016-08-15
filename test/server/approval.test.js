@@ -62,6 +62,29 @@ const MALICIOUS_PAYLOAD = {
     login: 'prayerslayer'
   }
 }
+const REGULAR_ISSUE_PAYLOAD = {
+  action: 'edited', // or 'deleted'
+  repository: DEFAULT_REPO,
+  issue: {
+    number: 1
+  },
+  changes: {
+    body: {
+      from: ':-1:'
+    }
+  },
+  comment: {
+    id: 1,
+    body: ':+1:',
+    created_at: '2016-08-15T13:03:28Z',
+    user: {
+      login: 'prayerslayer'
+    }
+  },
+  sender: {
+    login: 'prayerslayer'
+  }
+}
 const DEFAULT_CONFIG = {
   approvals: {
     minimum: 2,
@@ -568,7 +591,7 @@ describe('Approval#execute', () => {
   })
 
   const TRIGGER_ISSUE_ACTIONS = ['edited', 'deleted']
-  TRIGGER_ISSUE_ACTIONS.forEach(action =>
+  TRIGGER_ISSUE_ACTIONS.forEach(action => {
     it(`should detect a maliciously ${action} comment and freeze it`, async(done) => {
       try {
         const payload = Object.assign({}, MALICIOUS_PAYLOAD, {action})
@@ -594,7 +617,28 @@ describe('Approval#execute', () => {
       } catch (e) {
         done(e)
       }
-    }))
+    })
+
+    it(`should not freeze comments that were ${action} by the author`, async(done) => {
+      try {
+        const payload = Object.assign({}, REGULAR_ISSUE_PAYLOAD, {action})
+        github.getPullRequest = sinon.stub()
+                                     .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, payload.issue.number, TOKEN)
+                                     .returns(PR_PAYLOAD.pull_request)
+        pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+                                                           .withArgs(DB_REPO_ID, payload.issue.number)
+                                                           .returns(DB_PR)
+        github.getComments = sinon.stub().returns([]) // does not matter for this test
+        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+        expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
+        expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
+        expect(pullRequestHandler.onAddFrozenComment.calledOnce).to.be.false
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
 
   it('should not freeze newly created comments', async(done) => {
     try {
