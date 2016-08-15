@@ -28,32 +28,32 @@ describe('Server', () => {
     })
   })
 
-  describe('GET /change-mode', () => {
+  describe('GET /change-access-level', () => {
     it('should return 400 when an invalid mode is provided', done => {
-      request.get('/change-mode?mode=foo')
+      request.get('/change-access-level?level=foo')
              .expect(400, done)
     })
     it('should return 400 when no mode is provided', done => {
-      request.get('/change-mode')
+      request.get('/change-access-level')
              .expect(400, done)
     })
   })
 
   describe('GET /', () => {
-    it('should respond with HTML and redirect to /change-mode without cookie', done => {
+    it('should respond with HTML and redirect to /change-access-level without cookie', done => {
       request
       .get('/')
       .set('Accept', 'text/html')
       .expect('Content-Type', /html/)
       .expect(/^.+<\/html>$/)
-      .expect('Location', /change-mode/)
+      .expect('Location', /change-access-level/)
       .expect(302, done)
     })
 
     it('should respond with HTML and not redirect with cookie', async(done) => {
       try {
-        await request.get('/change-mode?mode=minimal')
-                     .expect('Set-Cookie', /zappr_access_level=minimal/)
+        await request.get('/change-access-level?level=extended')
+                     .expect('Set-Cookie', /zappr_access_level=extended/)
                      .expect('Set-Cookie', /httponly/)
                      .expect('Set-Cookie', /expires/)
 

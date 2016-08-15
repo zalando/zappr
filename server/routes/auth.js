@@ -1,5 +1,4 @@
 import nconf from '../nconf'
-import assert from 'assert'
 import passport from 'koa-passport'
 import UserHandler from '../handler/UserHandler'
 import * as AccessLevel from '../../common/AccessLevels'
@@ -11,9 +10,9 @@ import * as AccessLevel from '../../common/AccessLevels'
  */
 export function login(router) {
   return router.get('/auth/github', (ctx, next) => {
-    const scopesPerMode = nconf.get('GITHUB_ACCESS_LEVELS')
-    const mode = ctx.cookies.get(AccessLevel.COOKIE_NAME)
-    const scope = scopesPerMode[mode]
+    const scopesPerAccessLevel = nconf.get('GITHUB_ACCESS_LEVELS')
+    const level = ctx.cookies.get(AccessLevel.COOKIE_NAME)
+    const scope = scopesPerAccessLevel[level]
     return passport.authenticate('github', {scope})(ctx, next)
   })
 }
@@ -24,19 +23,19 @@ export function login(router) {
  *  - the cookie contains what's in the database for this user
  *  - the access token available in the request context has proper scopes for the selected zappr mode
  *
- * This is done by redirecting to /change-mode if cookie is not there or not equal to database content.
+ * This is done by redirecting to /change-access-level if cookie is not there or not equal to database content.
  */
 export async function ensureModeMiddleware(ctx, next) {
   const user = ctx.req.user
   if (!!user) {
     const {access_level} = await UserHandler.onGet(user.id)
-    const zapprCookie = ctx.cookies.get(AccessLevel.COOKIE_NAME)
-    if (access_level !== zapprCookie) {
+    const accessLevelCookie = ctx.cookies.get(AccessLevel.COOKIE_NAME)
+    if (access_level !== accessLevelCookie) {
       // database beats cookie
-      ctx.redirect(`/change-mode?mode=${access_level}`)
+      ctx.redirect(`/change-access-level?level=${access_level}`)
     }
   }
-  // not sure why we have to await here
+  // for some reason only works with await
   await next()
 }
 
@@ -44,15 +43,15 @@ export async function ensureModeMiddleware(ctx, next) {
  * Change between Zappr modes. Updates database, sets cookie, then redirects to /auth/github.
  */
 export function changeMode(router) {
-  return router.get('/change-mode', requireAuth, async(ctx, next) => {
-    const mode = ctx.query.mode
-    if (AccessLevel.MODES.indexOf(mode) === -1) {
+  return router.get('/change-access-level', requireAuth, async(ctx, next) => {
+    const level = ctx.query.level
+    if (AccessLevel.MODES.indexOf(level) === -1) {
       ctx.throw(400)
     }
     try {
-      await UserHandler.onChangeLevel(ctx.req.user.id, mode)
+      await UserHandler.onChangeLevel(ctx.req.user.id, level)
       const IN_PRODUCTION = nconf.get('NODE_ENV') === 'production'
-      ctx.cookies.set(AccessLevel.COOKIE_NAME, mode, {
+      ctx.cookies.set(AccessLevel.COOKIE_NAME, level, {
         httpOnly: true,
         signed: IN_PRODUCTION,
         secure: IN_PRODUCTION,
