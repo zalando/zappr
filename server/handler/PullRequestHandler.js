@@ -39,7 +39,7 @@ class PullRequestHandler {
   // not sure if we need this
   onRemoveFrozenComments(pullRequestId) {
     debug(`remove frozen comments for pull request ${pullRequestId}`)
-    return FrozenComment.pullRequestScope(pullRequestId).delete()
+    return FrozenComment.destroy({ where: { pullRequestId }})
   }
 
   onAddCommit(id, number) {
