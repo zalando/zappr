@@ -340,6 +340,7 @@ export default class Approval extends Check {
     if (event === EVENTS.PULL_REQUEST && pull_request.state === 'closed') {
       // if it was merged
       if (pull_request.merged) {
+        await this.pullRequestHandler.onDeletePullRequest(dbRepoId, number)
         await this.audit.log(new AuditEvent(AUDIT_EVENTS.PULL_REQUEST_MERGED).fromGithubEvent(hookPayload)
                                                                              .onResource({
                                                                                repository,

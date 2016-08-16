@@ -365,6 +365,7 @@ describe('Approval#execute', () => {
       onGet: sinon.stub().returns(DB_PR),
       onAddCommit: sinon.spy(),
       onCreatePullRequest: sinon.spy(),
+      onDeletePullRequest: sinon.spy(),
       onGetFrozenComments: sinon.stub().returns([]),
       onRemoveFrozenComments: sinon.stub(),
       onAddFrozenComment: sinon.stub()
@@ -740,10 +741,11 @@ describe('Approval#execute', () => {
     }
   })
 
-  it('should log an audit event on pull request merge', async(done) => {
+  it('should log an audit event on pull request merge and delete the pull request from the db', async(done) => {
     try {
       await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, MERGED_PR_PAYLOAD, null, null)
       expect(auditService.log.calledOnce).to.be.true
+      expect(pullRequestHandler.onDeletePullRequest.calledOnce).to.be.true
       expect(github.setCommitStatus.called).to.be.false
       done()
     } catch (e) {
