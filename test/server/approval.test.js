@@ -3,6 +3,7 @@ import { expect } from 'chai'
 import { formatDate } from '../../common/debug'
 import Approval from '../../server/checks/Approval'
 import AuditService from '../../server/service/audit/AuditService'
+import * as EVENTS from '../../server/model/GithubEvents'
 
 const DEFAULT_REPO = {
   name: 'hello-world',
@@ -14,7 +15,7 @@ const DEFAULT_REPO = {
 const TOKEN = 'abcd'
 const DB_REPO_ID = 341
 const ISSUE_PAYLOAD = {
-  action: 'create',
+  action: 'created',
   repository: DEFAULT_REPO,
   issue: {
     number: 2
@@ -39,6 +40,52 @@ const PR_PAYLOAD = {
     }
   }
 }
+const MALICIOUS_PAYLOAD = {
+  action: 'edited', // or 'deleted'
+  repository: DEFAULT_REPO,
+  issue: {
+    number: 1
+  },
+  changes: {
+    body: {
+      from: ':-1:'
+    }
+  },
+  comment: {
+    id: 1,
+    body: ':+1:',
+    created_at: '2016-08-15T13:03:28Z',
+    user: {
+      login: 'mfellner'
+    }
+  },
+  sender: {
+    login: 'prayerslayer'
+  }
+}
+const REGULAR_ISSUE_PAYLOAD = {
+  action: 'edited', // or 'deleted'
+  repository: DEFAULT_REPO,
+  issue: {
+    number: 1
+  },
+  changes: {
+    body: {
+      from: ':-1:'
+    }
+  },
+  comment: {
+    id: 1,
+    body: ':+1:',
+    created_at: '2016-08-15T13:03:28Z',
+    user: {
+      login: 'prayerslayer'
+    }
+  },
+  sender: {
+    login: 'prayerslayer'
+  }
+}
 const DEFAULT_CONFIG = {
   approvals: {
     minimum: 2,
@@ -49,8 +96,14 @@ const DEFAULT_CONFIG = {
     }
   }
 }
-const SUCCESS_STATUS = Approval.generateStatus({approvals: {total: ['foo', 'bar']}, vetos: []}, DEFAULT_CONFIG.approvals)
-const BLOCKED_BY_VETO_STATUS = Approval.generateStatus({approvals: {total: ['foo', 'bar']}, vetos: ['mr-foo']}, DEFAULT_CONFIG.approvals)
+const SUCCESS_STATUS = Approval.generateStatus({
+  approvals: {total: ['foo', 'bar']},
+  vetos: []
+}, DEFAULT_CONFIG.approvals)
+const BLOCKED_BY_VETO_STATUS = Approval.generateStatus({
+  approvals: {total: ['foo', 'bar']},
+  vetos: ['mr-foo']
+}, DEFAULT_CONFIG.approvals)
 const PENDING_STATUS = {
   state: 'pending',
   description: 'Approval validation in progress.',
@@ -59,7 +112,8 @@ const PENDING_STATUS = {
 const ZERO_APPROVALS_STATUS = Approval.generateStatus({approvals: {total: []}, vetos: []}, DEFAULT_CONFIG.approvals)
 const DB_PR = {
   last_push: new Date(),
-  number: 3
+  number: 3,
+  id: 1415
 }
 
 describe('Approval#fetchIgnoredUsers', () => {
@@ -134,27 +188,66 @@ describe('Approval#fetchIgnoredUsers', () => {
 
 describe('Approval#generateStatus', () => {
   it('should favor vetos over approvals', () => {
-    const result = Approval.generateStatus({approvals: { total: ['mr-foo']}, vetos: ['mr-bar']}, {minimum: 1})
+    const result = Approval.generateStatus({approvals: {total: ['mr-foo']}, vetos: ['mr-bar']}, {minimum: 1})
     expect(result.state).to.equal('failure')
   })
   it('should be successful without vetos', () => {
-    const result = Approval.generateStatus({approvals: { total: ['mr-foo']}, vetos: []}, {minimum: 1})
+    const result = Approval.generateStatus({approvals: {total: ['mr-foo']}, vetos: []}, {minimum: 1})
     expect(result.state).to.equal('success')
   })
 })
 
+describe('Approval#fetchCountApprovalsAndVetos', () => {
+  const comments = [{
+    id: 2,
+    body: 'this loses'
+  }, {
+    id: 3,
+    body: 'foo'
+  }]
+  const frozenComments = [{
+    id: 1,
+    body: 'bar'
+  }, {
+    id: 2,
+    body: 'this wins'
+  }]
+
+  it('should properly merge frozen comments', async(done) => {
+    try {
+      const approval = new Approval({getComments: sinon.stub().returns(comments)}, null)
+      approval.countApprovalsAndVetos = sinon.stub()
+      // repository, pull_request, last_push, frozenComments, config, token
+      await approval.fetchAndCountApprovalsAndVetos(DEFAULT_REPO, PR_PAYLOAD.pull_request, DB_PR.last_push, frozenComments, DEFAULT_CONFIG, TOKEN)
+      expect(approval.countApprovalsAndVetos.called).to.be.true
+      expect(approval.countApprovalsAndVetos.args[0][2]).to.deep.equal([
+        frozenComments[0],
+        frozenComments[1],
+        comments[1]
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+})
+
 describe('Approval#countApprovalsAndVetos', () => {
+  const comments = [{
+    user: 'prayerslayer',
+    id: 1,
+    body: 'awesome :+1:'
+  }, {
+    user: 'mfellner',
+    id: 2,
+    body: ':+1:'
+  }, {
+    user: 'mfellner',
+    id: 3,
+    body: ':+1:'
+  }]
+
   it('should honor the provided pattern', async(done) => {
-    const comments = [{
-      user: {login: 'prayerslayer'},
-      body: 'awesome :+1:' // does not count
-    }, {
-      user: {login: 'mfellner'},
-      body: ':+1:' // counts
-    }, {
-      user: {login: 'mfellner'},
-      body: ':+1:' // is ignored because mfellner already approved
-    }]
     try {
       const approval = new Approval(null, null)
       const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, {}, comments, DEFAULT_CONFIG.approvals)
@@ -183,13 +276,13 @@ describe('Approval#getCommentStatsForConfig', () => {
     try {
       let comments = [{
         body: 'awesome',
-        user: {login: 'user1'}
+        user: 'user1'
       }, {
         body: 'awesome',
-        user: {login: 'user2'}
+        user: 'user2'
       }, {
         body: 'lolz',
-        user: {login: 'user3'}
+        user: 'user3'
       }]
       let approvals = await approval.getCommentStatsForConfig(DEFAULT_REPO, comments, DEFAULT_CONFIG.approvals, TOKEN)
       expect(approvals.total).to.deep.equal(['user1', 'user2', 'user3'])
@@ -206,13 +299,13 @@ describe('Approval#getCommentStatsForConfig', () => {
     try {
       const comments = [{
         body: 'awesome',
-        user: {login: 'user1'}
+        user: 'user1'
       }, {
         body: 'awesome',
-        user: {login: 'user2'}
+        user: 'user2'
       }, {
         body: 'lolz',
-        user: {login: 'user3'}
+        user: 'user3'
       }]
       sinon.stub(github, 'isMemberOfOrg', (org, user) => user === 'user3')
       const config = Object.assign({}, DEFAULT_CONFIG.approvals, {from: {orgs: ['zalando']}})
@@ -228,13 +321,13 @@ describe('Approval#getCommentStatsForConfig', () => {
     try {
       const comments = [{
         body: 'awesome',
-        user: {login: 'user1'}
+        user: 'user1'
       }, {
         body: 'awesome',
-        user: {login: 'user2'}
+        user: 'user2'
       }, {
         body: 'lolz',
-        user: {login: 'user3'}
+        user: 'user3'
       }]
       github.isMemberOfOrg = sinon.stub().returns(true)
       const config = Object.assign({}, DEFAULT_CONFIG.approvals, {
@@ -270,7 +363,10 @@ describe('Approval#execute', () => {
     pullRequestHandler = {
       onGet: sinon.stub().returns(DB_PR),
       onAddCommit: sinon.spy(),
-      onCreatePullRequest: sinon.spy()
+      onCreatePullRequest: sinon.spy(),
+      onGetFrozenComments: sinon.stub().returns([]),
+      onRemoveFrozenComments: sinon.stub(),
+      onAddFrozenComment: sinon.stub()
     }
     github = {
       isMemberOfOrg: sinon.spy(),
@@ -284,13 +380,13 @@ describe('Approval#execute', () => {
     auditService = sinon.createStubInstance(AuditService)
     approval = new Approval(github, pullRequestHandler, auditService)
   })
-  
+
   const SKIP_ACTIONS = ['assigned', 'unassigned', 'labeled', 'unlabeled', 'closed']
-  
+
   SKIP_ACTIONS.forEach(action=> {
     it(`should do nothing on "${action}"`, async(done) => {
       try {
-        await approval.execute(DEFAULT_CONFIG, Object.assign(PR_PAYLOAD, {action}), TOKEN, DB_REPO_ID)
+        await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, Object.assign(PR_PAYLOAD, {action}), TOKEN, DB_REPO_ID)
         expect(github.setCommitStatus.callCount).to.equal(0)
         expect(github.getApprovals.callCount).to.equal(0)
         done()
@@ -303,20 +399,24 @@ describe('Approval#execute', () => {
   it('should set status to failure on last issue comment when there is a veto comment', async(done) => {
     github.getComments = sinon.stub().returns([{
       body: ':+1:',
-      user: {login: 'foo'}
+      user: 'foo',
+      id: 1
     }, {
       body: ':+1:',
-      user: {login: 'bar'}
+      user: 'bar',
+      id: 2
     }, {
       body: ':+1:',
-      user: {login: 'bar'}
+      user: 'bar',
+      id: 3
     }, {
       body: ':-1:',
-      user: {login: 'mr-foo'}
+      user: 'mr-foo',
+      id: 4
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
-      await approval.execute(DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -357,17 +457,20 @@ describe('Approval#execute', () => {
   it('should set status to success on last issue comment', async(done) => {
     github.getComments = sinon.stub().returns([{
       body: ':+1:',
-      user: {login: 'foo'}
+      user: 'foo',
+      id: 1
     }, {
       body: ':+1:',
-      user: {login: 'bar'}
+      user: 'bar',
+      id: 2
     }, {
       body: ':+1:',
-      user: {login: 'bar'}
+      user: 'bar',
+      id: 3
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
-      await approval.execute(DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -407,7 +510,7 @@ describe('Approval#execute', () => {
 
   it('should do nothing on comment on non-open pull_request', async(done) => {
     github.getPullRequest = sinon.stub().returns(CLOSED_PR)
-    await approval.execute(DEFAULT_CONFIG, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+    await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
     expect(github.setCommitStatus.callCount).to.equal(0)
     expect(github.getApprovals.callCount).to.equal(0)
     expect(auditService.log.called).to.be.false
@@ -417,7 +520,7 @@ describe('Approval#execute', () => {
   it('should set status to pending on PR:opened', async(done) => {
     PR_PAYLOAD.action = 'opened'
     try {
-      await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(0)
       expect(auditService.log.callCount).to.equal(1)
@@ -450,8 +553,11 @@ describe('Approval#execute', () => {
       PR_PAYLOAD.action = 'reopened'
       github.fetchPullRequestCommits = sinon.stub().returns([])
       github.getComments = sinon.stub().returns([])
-      approval.countApprovalsAndVetos = sinon.stub().returns({approvals: {total: ['red', 'blue', 'green', 'yellow']}, vetos: []})
-      await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      approval.countApprovalsAndVetos = sinon.stub().returns({
+        approvals: {total: ['red', 'blue', 'green', 'yellow']},
+        vetos: []
+      })
+      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
       expect(auditService.log.callCount).to.equal(1)
@@ -481,29 +587,152 @@ describe('Approval#execute', () => {
   })
 
   it('should set status to pending on PR:synchronize', async(done) => {
-    PR_PAYLOAD.action = 'synchronize'
-    await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
-    expect(github.setCommitStatus.callCount).to.equal(1)
-    expect(github.setCommitStatus.args[0]).to.deep.equal([
-      'mfellner',
-      'hello-world',
-      PR_PAYLOAD.pull_request.head.sha,
-      ZERO_APPROVALS_STATUS,
-      TOKEN
-    ])
-    expect(auditService.log.callCount).to.equal(1)
-    done()
+    try {
+      const payload = Object.assign({}, PR_PAYLOAD, {action: 'synchronize'})
+      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, payload, TOKEN, DB_REPO_ID)
+      expect(pullRequestHandler.onRemoveFrozenComments.calledWith(DB_PR.id)).to.be.true
+      expect(pullRequestHandler.onAddCommit.calledWith(DB_REPO_ID, payload.number)).to.be.true
+      expect(github.setCommitStatus.callCount).to.equal(1)
+      expect(github.setCommitStatus.args[0]).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        PR_PAYLOAD.pull_request.head.sha,
+        ZERO_APPROVALS_STATUS,
+        TOKEN
+      ])
+      expect(auditService.log.callCount).to.equal(1)
+      done()
+    } catch (e) {
+      done(e)
+    }
   })
 
   it('should set status to error when auditService.log throws', async(done) => {
     try {
       PR_PAYLOAD.action = 'synchronize'
       auditService.log = sinon.stub().throws(new Error('Audit API Error'))
-      await approval.execute(DEFAULT_CONFIG, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.setCommitStatus.args[1][3].state).to.equal('error')
       expect(github.setCommitStatus.args[1][3].description).to.equal('Audit API Error')
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  const TRIGGER_ISSUE_ACTIONS = ['edited', 'deleted']
+  TRIGGER_ISSUE_ACTIONS.forEach(action => {
+    it(`should detect a maliciously ${action} comment and freeze it`, async(done) => {
+      try {
+        const payload = Object.assign({}, MALICIOUS_PAYLOAD, {action})
+        github.getPullRequest = sinon.stub()
+                                     .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, payload.issue.number, TOKEN)
+                                     .returns(PR_PAYLOAD.pull_request)
+        pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+                                                           .withArgs(DB_REPO_ID, payload.issue.number)
+                                                           .returns(DB_PR)
+        github.getComments = sinon.stub().returns([]) // does not matter for this test
+        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+        expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
+        expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
+        expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
+        expect(pullRequestHandler.onAddFrozenComment.calledOnce).to.be.true
+        const expectedFrozenComment = {
+          id: payload.comment.id,
+          body: action === 'edited' ? payload.changes.body.from : payload.comment.body,
+          created_at: payload.comment.created_at,
+          user: payload.comment.user.login
+        }
+        expect(pullRequestHandler.onAddFrozenComment.args[0]).to.deep.equal([DB_PR.id, expectedFrozenComment])
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it(`should not freeze comments that were ${action} by the author`, async(done) => {
+      try {
+        const payload = Object.assign({}, REGULAR_ISSUE_PAYLOAD, {action})
+        github.getPullRequest = sinon.stub()
+                                     .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, payload.issue.number, TOKEN)
+                                     .returns(PR_PAYLOAD.pull_request)
+        pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+                                                           .withArgs(DB_REPO_ID, payload.issue.number)
+                                                           .returns(DB_PR)
+        github.getComments = sinon.stub().returns([]) // does not matter for this test
+        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+        expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
+        expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
+        expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
+        expect(pullRequestHandler.onAddFrozenComment.calledOnce).to.be.false
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
+
+  it('should not freeze newly created comments', async(done) => {
+    try {
+      const payload = Object.assign({}, MALICIOUS_PAYLOAD, {action: 'created'})
+      github.getPullRequest = sinon.stub()
+                                   .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, payload.issue.number, TOKEN)
+                                   .returns(PR_PAYLOAD.pull_request)
+      pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+                                                         .withArgs(DB_REPO_ID, payload.issue.number)
+                                                         .returns(DB_PR)
+      github.getComments = sinon.stub().returns([]) // does not matter for this test
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+      expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
+      expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
+      expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
+      expect(pullRequestHandler.onAddFrozenComment.called).to.be.false
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should merge frozen comments back in upstream comments', async(done) => {
+    try {
+      github.getPullRequest = sinon.stub()
+                                   .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, MALICIOUS_PAYLOAD.issue.number, TOKEN)
+                                   .returns(PR_PAYLOAD.pull_request)
+      pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+                                                         .withArgs(DB_REPO_ID, MALICIOUS_PAYLOAD.issue.number)
+                                                         .returns(DB_PR)
+      const frozenComments = [{
+        id: 1,
+        body: ':-1:',
+        user: 'foo'
+      }, {
+        id: 2,
+        body: 'This does not look good.',
+        user: 'bar'
+      }]
+      const upstreamComments = [{
+        id: 2,
+        body: ':+1:',
+        user: 'bar'
+      }, {
+        id: 3,
+        body: ':+1:',
+        user: 'baz'
+      }]
+      pullRequestHandler.onGetFrozenComments = sinon.stub()
+                                                    .withArgs(DB_PR.id, DB_PR.last_push)
+                                                    .returns(frozenComments)
+      github.getComments = sinon.stub()
+                                .returns(upstreamComments)
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
+      expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
+      expect(pullRequestHandler.onAddFrozenComment.calledOnce).to.be.false
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.setCommitStatus.args[1][3].state).to.equal('failure')
+      expect(github.setCommitStatus.args[1][3].description).to.equal('Vetoes: @foo.')
       done()
     } catch (e) {
       done(e)

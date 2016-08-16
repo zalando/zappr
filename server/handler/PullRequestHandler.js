@@ -1,4 +1,4 @@
-import { PullRequest } from '../model'
+import { PullRequest, FrozenComment } from '../model'
 
 import { logger } from '../../common/debug'
 const debug = logger('pr-handler')
@@ -17,6 +17,29 @@ class PullRequestHandler {
     return PullRequest.findOne({
       where: {repositoryId, number}
     })
+  }
+
+  onGetFrozenComments(pullRequestId, createdSince) {
+    return FrozenComment.pullRequestScope(pullRequestId)
+                        .findAll({
+                          where: {
+                            created_at: {
+                              $gte: createdSince
+                            }
+                          }
+                        })
+                        .then(comments => comments || [])
+  }
+
+  onAddFrozenComment(pullRequestId, {id, body, created_at, user}) {
+    debug(`freeze comment ${id} for pull request ${pullRequestId}`)
+    return FrozenComment.create({pullRequestId, id, body, created_at, user})
+  }
+
+  // not sure if we need this
+  onRemoveFrozenComments(pullRequestId) {
+    debug(`remove frozen comments for pull request ${pullRequestId}`)
+    return FrozenComment.destroy({ where: { pullRequestId }})
   }
 
   onAddCommit(id, number) {

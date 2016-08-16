@@ -60,7 +60,7 @@ class HookHandler {
       }
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
-          this.approval.execute(config, payload, token, repo.id)
+          this.approval.execute(config, event, payload, token, repo.id)
         )
       }
       if (Autobranch.isTriggeredBy(event)) {
