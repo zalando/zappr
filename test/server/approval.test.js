@@ -365,6 +365,7 @@ describe('Approval#execute', () => {
       onAddCommit: sinon.spy(),
       onCreatePullRequest: sinon.spy(),
       onGetFrozenComments: sinon.stub().returns([]),
+      onRemoveFrozenComments: sinon.stub(),
       onAddFrozenComment: sinon.stub()
     }
     github = {
@@ -586,18 +587,24 @@ describe('Approval#execute', () => {
   })
 
   it('should set status to pending on PR:synchronize', async(done) => {
-    PR_PAYLOAD.action = 'synchronize'
-    await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
-    expect(github.setCommitStatus.callCount).to.equal(1)
-    expect(github.setCommitStatus.args[0]).to.deep.equal([
-      'mfellner',
-      'hello-world',
-      PR_PAYLOAD.pull_request.head.sha,
-      ZERO_APPROVALS_STATUS,
-      TOKEN
-    ])
-    expect(auditService.log.callCount).to.equal(1)
-    done()
+    try {
+      const payload = Object.assign({}, PR_PAYLOAD, {action: 'synchronize'})
+      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, payload, TOKEN, DB_REPO_ID)
+      expect(pullRequestHandler.onRemoveFrozenComments.calledWith(DB_PR.id)).to.be.true
+      expect(pullRequestHandler.onAddCommit.calledWith(DB_REPO_ID, payload.number)).to.be.true
+      expect(github.setCommitStatus.callCount).to.equal(1)
+      expect(github.setCommitStatus.args[0]).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        PR_PAYLOAD.pull_request.head.sha,
+        ZERO_APPROVALS_STATUS,
+        TOKEN
+      ])
+      expect(auditService.log.callCount).to.equal(1)
+      done()
+    } catch (e) {
+      done(e)
+    }
   })
 
   it('should set status to error when auditService.log throws', async(done) => {
@@ -628,6 +635,7 @@ describe('Approval#execute', () => {
                                                            .returns(DB_PR)
         github.getComments = sinon.stub().returns([]) // does not matter for this test
         await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+        expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
         expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
         expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
         expect(pullRequestHandler.onAddFrozenComment.calledOnce).to.be.true
@@ -655,6 +663,7 @@ describe('Approval#execute', () => {
                                                            .returns(DB_PR)
         github.getComments = sinon.stub().returns([]) // does not matter for this test
         await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+        expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
         expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
         expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
         expect(pullRequestHandler.onAddFrozenComment.calledOnce).to.be.false
@@ -676,6 +685,7 @@ describe('Approval#execute', () => {
                                                          .returns(DB_PR)
       github.getComments = sinon.stub().returns([]) // does not matter for this test
       await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+      expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
       expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
       expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
       expect(pullRequestHandler.onAddFrozenComment.called).to.be.false

@@ -340,12 +340,11 @@ export default class Approval extends Check {
       // on an open pull request
       if (event === EVENTS.PULL_REQUEST && pull_request.state === 'open') {
         sha = pull_request.head.sha
+        const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, number)
         // if it was (re)opened
         if (action === 'opened' || action === 'reopened') {
           // set status to pending first
           await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
-
-          const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, number)
 
           if (action === 'opened' && minimum > 0) {
             // if it was opened, set to pending
@@ -389,6 +388,8 @@ export default class Approval extends Check {
         } else if (action === 'synchronize') {
           // update last push in db
           await this.pullRequestHandler.onAddCommit(dbRepoId, number)
+          // remove frozen comments
+          await this.pullRequestHandler.onRemoveFrozenComments(dbPR.id)
           // set status to pending (has to be unlocked with further comments)
           const approvals = {total: []}
           const vetos = []
