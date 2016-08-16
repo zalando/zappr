@@ -1,11 +1,9 @@
 import manageTokens from 'node-tokens'
-import { request } from '../../../util'
+import { request, jsonHash } from '../../../util'
 
 function getLogger(opts, tokens) {
   return async function log(data) {
-    const {id} = data
-    delete data.id
-    delete data.identity
+    const id = jsonHash(data)
     const options = {
       method: 'PUT',
       json: true,

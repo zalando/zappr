@@ -20,7 +20,6 @@ function getPrInteractionEvent(auditEvent) {
   }
 
   return {
-    id: auditEvent.id,
     event_type,
     triggered_at: auditEvent.timestamp.toISOString(),
     payload
@@ -47,7 +46,6 @@ function getPrMergedEvent(auditEvent) {
     }
   }
   return {
-    id: auditEvent.id,
     event_type,
     triggered_at: auditEvent.timestamp.toISOString(),
     triggered_by: {
