@@ -40,6 +40,7 @@ const PR_PAYLOAD = {
     }
   }
 }
+const MERGED_PR_PAYLOAD = require('../fixtures/webhook.pull_request.merge.json')
 const MALICIOUS_PAYLOAD = {
   action: 'edited', // or 'deleted'
   repository: DEFAULT_REPO,
@@ -733,6 +734,17 @@ describe('Approval#execute', () => {
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.setCommitStatus.args[1][3].state).to.equal('failure')
       expect(github.setCommitStatus.args[1][3].description).to.equal('Vetoes: @foo.')
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should log an audit event on pull request merge', async(done) => {
+    try {
+      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, MERGED_PR_PAYLOAD, null, null)
+      expect(auditService.log.calledOnce).to.be.true
+      expect(github.setCommitStatus.called).to.be.false
       done()
     } catch (e) {
       done(e)
