@@ -348,9 +348,9 @@ export default class Approval extends Check {
                                                                                issue_number: number
                                                                              })
                                                                              .byUser(pull_request.merged_by.login))
-        // no further processing needed
-        return
       }
+      // no further processing needed
+      return
     }
 
 
