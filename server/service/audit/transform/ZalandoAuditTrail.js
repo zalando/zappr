@@ -36,7 +36,7 @@ function getPrMergedEvent(auditEvent) {
     repository: getRepo(auditEvent.resource.repository),
     pull_request: auditEvent.resource.issue,
     merged_at: new Date(auditEvent.resource.pull_request.merged_at).toISOString(), // github has no milliseconds
-    default_branch: auditEvent.resource.repository.default_branch,
+    default_branch: auditEvent._rawResource.repository.default_branch,
     result_commit_id: auditEvent.resource.pull_request.merge_commit_sha,
     base_ref: auditEvent.resource.pull_request.base.ref,
     head: {
