@@ -84,7 +84,7 @@ export function repo(router) {
     let repo
     try {
       repo = await repositoryHandler.onGetOne(id, user, true)
-    } catch(e) {
+    } catch (e) {
       ctx.throw(404, e)
     }
     const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, user.accessToken)
@@ -109,6 +109,22 @@ export function repo(router) {
       const id = parseInt(ctx.params.id)
       const type = ctx.params.type
       const repo = await repositoryHandler.onGetOne(id, user)
+      if (!repo.welcomed) {
+        const owner = repo.json.owner.login
+        const name = repo.json.name
+        const defaultBranch = repo.json.default_branch
+        const token = user.accessToken
+        const hasZapprFile = await githubService.hasZapprFile(owner, name, token)
+        if (!hasZapprFile) {
+          try {
+            await githubService.proposeZapprfile(owner, name, defaultBranch, token)
+            info(`${owner}/${name}: Welcome to Zappr.`)
+            //TODO update repo.welcomed
+          } catch (e) {
+            error(`${owner}/${name}: Could not welcome. ${e.message}`)
+          }
+        }
+      }
       const check = await checkHandler.onEnableCheck(user, repo, type)
       ctx.response.status = 201
       ctx.body = check.toJSON()

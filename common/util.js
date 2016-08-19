@@ -78,6 +78,13 @@ export function getIn(obj, path, returnDefault = null) {
   return returnDefault
 }
 
+export function encode(string, encoding = 'base64') {
+  if (encoding !== 'base64') {
+    throw new Error(`Encoding "${encoding}" not supported`)
+  }
+  return new Buffer(string, 'utf8').toString(encoding)
+}
+
 export function decode(string, encoding = 'base64') {
   if (encoding !== 'base64') {
     throw new Error(`Encoding "${encoding}" not supported`)

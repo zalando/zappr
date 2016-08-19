@@ -17,6 +17,63 @@ VALID_PR_TEMPLATE_PATHS:
   - "/PULL_REQUEST_TEMPLATE"
   - "/PULL_REQUEST_TEMPLATE.txt"
   - "/PULL_REQUEST_TEMPLATE.md"
+ZAPPR_AUTOCREATED_CONFIG: |
+  # this is how you configure zappr
+  # a more exhaustive description is at
+  # https://zappr.readthedocs.io/en/latest/setup
+
+  approvals:
+    # by default, an approval is the thumbs up emoji
+    # uncomment this line to change the approval pattern to "lgtm" at the beginning of the comment
+    # pattern: "^lgtm"
+
+    # by default, every pull request requires two approvals
+    # uncomment this line to change it to three
+    # minimum: 3
+
+    # by default, the pull request opener can approve its own pull request
+    # uncomment this line to ignore approvals from the pull request opener
+    # (there is also `last_committer` and `both`)
+    # ignore: pr_opener
+
+    # by default, zappr counts everyone as a valid approver
+    # uncomment these lines to change it to only collaborators
+    # (you can also specify `orgs` and `users` and define `groups`)
+    # from:
+    #   collaborators: true
+
+ZAPPR_WELCOME_TITLE: Welcome to Zappr
+ZAPPR_WELCOME_TEXT: |
+  Hi, thanks for using Zappr.
+
+  This is a reduced example of a [configuration file](https://zappr.readthedocs.io/en/latest/setup) for Zappr.
+  If you have questions you can reach us
+
+    * in our [Gitter channel](https://gitter.im/zalando/zappr)
+    * on [Twitter](https://twitter.com/zalando_zappr)
+
+  These are the features we currently support:
+
+  ## Approvals
+
+    * Approve pull requests with comments and configurable pattern
+    * "Veto" (ie. block) pull requests with comments and configurable pattern
+    * Configure how many approvals your pull request needs before merging
+    * Extensively configure who can approve or veto in your project
+
+  ## Specification guidelines
+
+    * Configure minimum length of pull request title and description
+    * Configure if pull request description can be the same as pull request template
+
+  ## Commit message guidelines
+
+    * Configure patterns that all commits in a pull request must match
+
+  ## Automatic branch creation
+
+    * Automatically create a branch in your repository for every issue
+
 ZAPPR_DEFAULT_CONFIG:
   autobranch:
     pattern: "{number}-{title}"
