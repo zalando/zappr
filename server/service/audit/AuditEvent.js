@@ -9,6 +9,11 @@ export default class AuditEvent {
     this.type = auditEventType
   }
 
+  byUser(login) {
+    this.user = login
+    return this
+  }
+
   fromGithubEvent(githubEvent) {
     this._rawGithubEvent = githubEvent
     this.githubEvent = {
@@ -25,40 +30,25 @@ export default class AuditEvent {
     const clone_url = getIn(resource, ['repository', 'clone_url'])
     const git_url = getIn(resource, ['repository', 'git_url'])
     const ssh_url = getIn(resource, ['repository', 'ssh_url'])
-    const issue = getIn(resource, 'number')
+    const issue = getIn(resource, 'issue_number')
     const commit = getIn(resource, 'commit')
+    const pull_request = getIn(resource, 'pull_request')
 
     this._rawResource = resource
     this.resource = {
       repository: {id, full_name, url, clone_url, git_url, ssh_url},
       issue,
-      commit
+      commit,
+      pull_request
     }
     return this
   }
 
   withResult(result) {
     this._rawResult = result
-    switch (this.type) {
-      case EVENTS.COMMIT_STATUS_UPDATE:
-        this.result = result
-        break;
-    }
+    // currently there is no processing depending on event type
+    this.result = result
     return this
-  }
-
-  toJSON() {
-    return {
-      id: this.id,
-      timestamp: this.timestamp.toISOString(),
-      github_event: this.githubEvent,
-      zappr_event: {
-        type: symbolToString(this.type),
-        sender: this.githubEvent.sender
-      },
-      resource: this.resource,
-      result: this.result
-    }
   }
 
 }

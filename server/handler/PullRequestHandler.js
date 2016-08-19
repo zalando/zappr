@@ -12,6 +12,11 @@ class PullRequestHandler {
     })
   }
 
+  onDeletePullRequest(repositoryId, number) {
+    debug(`delete pr ${number} for repo ${repositoryId}`)
+    return PullRequest.destroy({ where: { repositoryId, number }})
+  }
+
   onGet(repositoryId, number) {
     debug(`reading pr ${number} of repo ${repositoryId}`)
     return PullRequest.findOne({
