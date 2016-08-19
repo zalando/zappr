@@ -14,6 +14,7 @@ const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
 const VALID_ZAPPR_FILE_PATHS = nconf.get('VALID_ZAPPR_FILE_PATHS')
 const VALID_PR_TEMPLATES_PATHS = nconf.get('VALID_PR_TEMPLATE_PATHS')
 const COMMIT_STATUS_MAX_LENGTH = 140
+const BRANCH_PREVIEW_HEADER = 'application/vnd.github.loki-preview+json'
 
 const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
@@ -26,7 +27,8 @@ const API_URL_TEMPLATES = {
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
   CREATE_REF: '/repos/${owner}/${repo}/git/refs',
   PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits',
-  REPOS: '/user/repos?page=${page}&visibility=public'
+  REPOS: '/user/repos?page=${page}&visibility=public',
+  PROTECT_BRANCH: '/repos/${owner}/${repo}/branches/${branch}/protection'
 }
 
 function fromBase64(encoded) {
@@ -35,8 +37,7 @@ function fromBase64(encoded) {
 
 export class GithubService {
 
-  getOptions(method, path, body, accessToken) {
-    const headers = {}
+  getOptions(method, path, body, accessToken, headers = {}) {
     headers['User-Agent'] = `Zappr (+${nconf.get('HOST_ADDR')})`
     if (accessToken) {
       headers['Authorization'] = `token ${accessToken}`
@@ -50,8 +51,8 @@ export class GithubService {
     }
   }
 
-  async fetchPath(method, path, payload, accessToken) {
-    const options = this.getOptions(method, path, payload, accessToken)
+  async fetchPath(method, path, payload, accessToken, headers = {}) {
+    const options = this.getOptions(method, path, payload, accessToken, headers)
     const [response, body] = await request(options)
     const {statusCode} = response || {}
 
@@ -62,7 +63,7 @@ export class GithubService {
       if (statusCode >= 400 && statusCode <= 499) {
         CallCounter.inc({type: '4xx'}, 1)
       } else if (statusCode >= 500 && statusCode <= 599) {
-        CallCounter.inc({ type: '5xx'}, 1)
+        CallCounter.inc({type: '5xx'}, 1)
       }
       throw new GithubServiceError(response)
     }
@@ -165,10 +166,10 @@ export class GithubService {
 
   readZapprFile(user, repo, accessToken) {
     return this._readFile(VALID_ZAPPR_FILE_PATHS, user, repo, accessToken)
-    .catch(() => {
-      info('%s/%s: No Zapprfile found, falling back to default configuration.', user, repo)
-      return ''
-    })
+               .catch(() => {
+                 info('%s/%s: No Zapprfile found, falling back to default configuration.', user, repo)
+                 return ''
+               })
   }
 
   readPullRequestTemplate(user, repo, accessToken) {
@@ -299,15 +300,63 @@ export class GithubService {
    */
   _readFile(paths, user, repo, accessToken) {
     const repoUrl = API_URL_TEMPLATES.REPO_CONTENT
-      .replace('${owner}', user).replace('${repo}', repo)
+                                     .replace('${owner}', user)
+                                     .replace('${repo}', repo)
 
     return promiseFirst((Array.isArray(paths) ? paths : [paths])
-      .map(filename => path.join(repoUrl, filename))
-      .map(url => this.fetchPath('GET', url, null, accessToken))
+    .map(filename => path.join(repoUrl, filename))
+    .map(url => this.fetchPath('GET', url, null, accessToken))
     ).then(({content, encoding, name}) => {
       info(`${user}/${repo}: Found ${name}.`)
       return name ? decode(content, encoding) : ''
     })
+  }
+
+  getBranchProtection(user, repo, branch, accessToken) {
+    const url = API_URL_TEMPLATES.PROTECT_BRANCH
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    const body = await
+    return this.fetchPath('GET', url, null, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+  }
+
+  /**
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param accessToken
+   */
+  async isBranchProtected(user, repo, branch, accessToken) {
+    const settings = await this.getBranchProtection(user, repo, branch, accessToken)
+    const requiredChecks = getIn(settings, ['required_status_checks', 'contexts'], [])
+    return requiredChecks.indexOf('zappr') !== -1
+  }
+
+  /**
+   * @param user
+   * @param repo
+   * @param branch
+   * @param accessToken
+   */
+  async protectBranch(user, repo, branch, accessToken) {
+    const url = API_URL_TEMPLATES.PROTECT_BRANCH
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    const settings = this.getBranchProtection(user, repo, branch, accessToken)
+    const requiredChecks = getIn(settings, ['required_status_checks', 'contexts'], [])
+
+    const payload = {
+      "required_status_checks": {
+        "include_admins": true,
+        "strict": false,
+        "contexts": [...requiredChecks, 'zappr']
+      },
+      "restrictions": null
+    }
+    return this.fetchPath('PUT', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
   }
 }
 

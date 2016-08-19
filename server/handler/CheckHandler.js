@@ -55,6 +55,11 @@ class CheckHandler {
     return Promise.resolve()
   }
 
+  async onGetAll(repositoryId) {
+    return Check.find({where: {repositoryId}})
+                .then(checks => checks || [])
+  }
+
   /**
    * @param {Number} repoId - Repository ID
    * @param {String} type - Check type
@@ -72,7 +77,7 @@ class CheckHandler {
         }
       })
     } catch (e) {
-      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId })
+      throw new CheckHandlerError(DATABASE_ERROR, {type, repository: repoId})
     }
     if (!check) throw new CheckHandlerError(CHECK_NOT_FOUND, {type, repository: repoId})
     return check
@@ -95,7 +100,7 @@ class CheckHandler {
         }
       })
     } catch (e) {
-      throw new CheckHandlerError(DATABASE_ERROR, { type, repository: repoId})
+      throw new CheckHandlerError(DATABASE_ERROR, {type, repository: repoId})
     }
   }
 

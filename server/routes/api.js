@@ -109,6 +109,13 @@ export function repo(router) {
       const id = parseInt(ctx.params.id)
       const type = ctx.params.type
       const repo = await repositoryHandler.onGetOne(id, user)
+      const checks = await checkHandler.onGetAll()
+      if (!checks.length) {
+        const branchProtected = await githubService.isBranchProtected(repo.json.owner.login, repo.json.name, repo.json.default_branch, user.accessToken)
+        if (!branchProtected) {
+          await githubService.protectBranch(repo.json.owner.login, repo.json.name, repo.json.default_branch, user.accessToken)
+        }
+      }
       const check = await checkHandler.onEnableCheck(user, repo, type)
       ctx.response.status = 201
       ctx.body = check.toJSON()
