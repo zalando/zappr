@@ -331,7 +331,8 @@ export class GithubService {
   async isBranchProtected(user, repo, branch, accessToken) {
     const settings = await this.getBranchProtection(user, repo, branch, accessToken)
     const requiredChecks = getIn(settings, ['required_status_checks', 'contexts'], [])
-    return requiredChecks.indexOf('zappr') !== -1
+    const include_admins = getIn(settings, ['required_stauts_checks', 'include_admins'], false)
+    return requiredChecks.indexOf('zappr') !== -1 && include_admins
   }
 
   /**
