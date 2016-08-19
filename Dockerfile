@@ -1,4 +1,4 @@
-FROM registry.opensource.zalan.do/stups/node:5.10-3
+FROM registry.opensource.zalan.do/stups/node:5.10-9
 
 ENV ZAPPR_HOME /opt/zappr
 
@@ -10,7 +10,7 @@ WORKDIR $ZAPPR_HOME
 COPY package.json $ZAPPR_HOME
 
 RUN npm install --production && \
-    npm install pg source-map node-tokens
+    npm install pg source-map
 
 COPY dist/ $ZAPPR_HOME/dist
 COPY config $ZAPPR_HOME/config
