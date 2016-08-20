@@ -12,6 +12,11 @@ class RepositoryHandler {
     this.github = github
   }
 
+  onWelcome(id) {
+    debug(`welcome repository ${id}!`)
+    return Repository.findById(id).then(repo => repo.update({welcomed: true}))
+  }
+
   /**
    * Load one repository of a user if it exists in the local database.
    *

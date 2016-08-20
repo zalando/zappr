@@ -162,7 +162,7 @@ export class GithubService {
       sha
     }
 
-    this.fetchPath('POST', path, payload, accessToken)
+    return this.fetchPath('POST', path, payload, accessToken)
   }
 
   hasZapprFile(user, repo, accessToken) {
@@ -319,6 +319,7 @@ export class GithubService {
   }
 
   async createFile(user, repo, branch, path, content, accessToken) {
+    debug(`${user}/${repo}: Creating file ${path} on branch ${branch}`)
     const url = API_URL_TEMPLATES.REPO_CONTENT
                                  .replace('${owner}', user)
                                  .replace('${repo}', repo) + `${path}`
@@ -335,6 +336,7 @@ export class GithubService {
   }
 
   async createPullRequest(user, repo, head, base, title, body, accessToken) {
+    debug(`${user}/${repo}: Creating pull request "${title}"`)
     const url = API_URL_TEMPLATES.PULL_REQUESTS
                                  .replace('${owner}', user)
                                  .replace('${repo}', repo)

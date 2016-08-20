@@ -16,6 +16,11 @@ export default db.define('repository', {
     allowNull: false,
     autoIncrement: false
   },
+  welcomed: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
   json: {
     type: Sequelize.JSONB,
     allowNull: false,
