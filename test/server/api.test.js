@@ -12,6 +12,10 @@ import { logger } from '../../common/debug'
 
 const debug = logger('test:api')
 
+function call(mountebankCall) {
+  return `${mountebankCall.method} ${mountebankCall.path}`
+}
+
 describe('API', () => {
   const testUser = require('../fixtures/github.user.a.json')
   setUserId(testUser.id)
@@ -34,7 +38,7 @@ describe('API', () => {
     nconf.set('GITHUB_UI_URL', `http://localhost:${imposter.port}`)
     nconf.set('GITHUB_API_URL', `http://localhost:${imposter.port}`)
     nconf.set('HOST_ADDR', 'http://127.0.0.1:8080')
-    
+
     app = initApp({PassportStrategy: MockStrategy})
     request = supertest.agent(app.listen())
 
@@ -391,11 +395,22 @@ describe('API', () => {
         const repo = await Repository.findById(id, {include: [Check]})
         expect(repo.checks.length).to.equal(0)
 
+        const fullName = `${fixtures.repoOwner}/${fixtures.repoName}`
         const calls = await mountebank.calls(imposter.port)
-        expect(calls.length).to.equal(5)
-        expect(calls[4].method).to.equal('DELETE')
-        expect(calls[4].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`)
-
+        /**
+         * 1. get repos
+         * 2.+3. zapprfiles
+         * 4.+5. get hooks, add hook
+         * 6.+7. get hooks, remove hook
+         */
+        expect(calls.length).to.equal(7)
+        expect(call(calls[0])).to.equal('GET /user/repos')
+        expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        expect(call(calls[3])).to.equal(`GET /repos/${fullName}/hooks`)
+        expect(call(calls[4])).to.equal(`PATCH /repos/${fullName}/hooks/123`)
+        expect(call(calls[5])).to.equal(`GET /repos/${fullName}/hooks`)
+        expect(call(calls[6])).to.equal(`DELETE /repos/${fullName}/hooks/123`)
         done()
       } catch (e) {
         done(e)
@@ -417,16 +432,22 @@ describe('API', () => {
         const repo = await Repository.findById(id, {include: [Check]})
         expect(repo.checks.length).to.equal(1)
         expect(repo.checks[0].type).to.equal('approval')
+        const fullName = `${fixtures.repoOwner}/${fixtures.repoName}`
         const calls = await mountebank.calls(imposter.port)
-        expect(calls.length).to.equal(3)
-        expect(calls[0].method).to.equal('GET')
-        expect(calls[0].path).to.equal('/user/repos')
-        expect(calls[1].method).to.equal('GET')
-        expect(calls[1].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks`)
-        expect(calls[2].method).to.equal('PATCH')
-        expect(calls[2].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`)
+        /**
+         * 1. get repos
+         * 2.+3. get zapprfile
+         * 4.+5. get hooks, add hook
+         */
+        expect(calls.length).to.equal(5)
+        expect(call(calls[0])).to.equal('GET /user/repos')
+        // 2+3 are much async and interchangeable
+        expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        expect(call(calls[3])).to.equal(`GET /repos/${fullName}/hooks`)
+        expect(call(calls[4])).to.equal(`PATCH /repos/${fullName}/hooks/123`)
         // patch call should contain hook secret
-        const body = JSON.parse(calls[2].body)
+        const body = JSON.parse(calls[4].body)
         expect(body).to.have.deep.property('config.secret')
         expect(body.config.secret).to.equal('captainHook')
         done()

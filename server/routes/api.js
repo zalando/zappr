@@ -109,7 +109,6 @@ export function repo(router) {
       const id = parseInt(ctx.params.id)
       const type = ctx.params.type
       const repo = await repositoryHandler.onGetOne(id, user)
-      info(`Already welcomed: ${repo.welcomed}`)
       if (!repo.welcomed) {
         const owner = repo.json.owner.login
         const name = repo.json.name
