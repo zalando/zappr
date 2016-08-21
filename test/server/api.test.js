@@ -570,10 +570,6 @@ describe('API', () => {
           body: nconf.get('ZAPPR_WELCOME_TEXT')
         })
 
-        // should be updated in db now
-        const updatedRepo = Repository.findById(id)
-        expect(updatedRepo.welcomed).to.be.true
-
         done()
       } catch (e) {
         done(e)
