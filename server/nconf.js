@@ -40,14 +40,10 @@ function readYamlFile(file) {
  * However only this module ensures that nconf is properly
  * configured when it is imported for the first time.
  */
-const vars = nconf.use('memory')
-                  .argv()
-                  .env()
-                  .add('config', {
-                    type: 'literal',
-                    store: readYamlFile('./config/config.yaml')
-                  })
-
-console.log(vars.get())
-
-export default vars
+export default nconf.use('memory')
+                    .argv()
+                    .env()
+                    .add('config', {
+                      type: 'literal',
+                      store: readYamlFile('./config/config.yaml')
+                    })
