@@ -1,6 +1,7 @@
 FROM registry.opensource.zalan.do/stups/node:5.10-9
 
 ENV ZAPPR_HOME /opt/zappr
+ENV ZAPPR_CONFIG $ZAPPR_HOME/config
 
 RUN mkdir -p $ZAPPR_HOME
 
@@ -12,7 +13,7 @@ RUN npm install --production && \
     npm install pg source-map
 
 COPY dist/ $ZAPPR_HOME/dist
-COPY config $ZAPPR_HOME/config
+COPY config/config.yaml $ZAPPR_CONFIG/config.yaml
 COPY migrations/ $ZAPPR_HOME/migrations
 COPY scm-source.json /scm-source.json
 
