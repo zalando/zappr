@@ -131,6 +131,7 @@ export function repo(router) {
       ctx.response.status = 201
       ctx.body = check.toJSON()
     } catch (e) {
+      console.log(e.message)
       ctx.throw(503, e)
     }
   })
