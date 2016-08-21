@@ -117,6 +117,7 @@
     "prom-client": "3.4.6",
     "react": "15.2.1",
     "react-bootstrap": "0.29.5",
+    "react-document-title": "2.0.2",
     "react-dom": "15.2.1",
     "react-redux": "4.4.5",
     "react-router": "2.6.0",
