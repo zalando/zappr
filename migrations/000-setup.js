@@ -85,14 +85,16 @@ module.exports.up = function up(queryInterface, Sequelize) {
           references: {
             model: {tableName: 'users', schema},
             key: 'id'
-          }
+          },
+          onDelete: 'cascade'
         },
         repositoryId: {
           type: Sequelize.BIGINT,
           references: {
             model: {tableName: 'repositories', schema},
             key: 'id'
-          }
+          },
+          onDelete: 'cascade'
         },
         createdAt: {
           type: Sequelize.DATE,
