@@ -221,7 +221,7 @@ module.exports.up = function up(queryInterface, Sequelize) {
           allowNull: false,
           defaultValue: Sequelize.NOW()
         }
-      })
+      }, {schema})
     })
   })
 }

@@ -8,6 +8,8 @@ import { User, Repository, UserRepository, Check, PullRequest, Session, FrozenCo
 const log = logger('model')
 const error = logger('model', 'error')
 const encryptionService = EncryptionServiceCreator.create()
+const DATA_SCHEMA = 'zappr_data'
+const META_SCHEMA = 'zappr_meta'
 
 async function decryptToken(check) {
   const plain = await encryptionService.decrypt(check.token)
@@ -69,7 +71,7 @@ class Database extends Sequelize {
    * @returns {String}
    */
   get schema() {
-    return nconf.get('DB_SCHEMA')
+    return DATA_SCHEMA
   }
 
   /**
@@ -101,9 +103,9 @@ class Database extends Sequelize {
     const schemas = await db.showAllSchemas()
 
     if (schemas.indexOf(this.schema) === -1) {
-      await db.createSchema('zappr_meta')
+      await db.createSchema(META_SCHEMA)
       log('created schema zappr_meta')
-      const result = await db.createSchema(this.schema)
+      const result = await db.createSchema(DATA_SCHEMA)
       log('created schema' + result)
     }
   }
