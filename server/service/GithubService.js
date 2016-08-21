@@ -153,24 +153,6 @@ export class GithubService {
     return ref.object
   }
 
-  createBranch(owner, repo, branch, sha, accessToken) {
-    const path = API_URL_TEMPLATES.CREATE_REF
-                                  .replace('${owner}', owner)
-                                  .replace('${repo}', repo)
-    const payload = {
-      ref: `refs/heads/${branch}`,
-      sha
-    }
-
-    return this.fetchPath('POST', path, payload, accessToken)
-  }
-
-  hasZapprFile(user, repo, accessToken) {
-    return this._readFile(VALID_ZAPPR_FILE_PATHS, user, repo, accessToken)
-               .then(() => true)
-               .catch(() => false)
-  }
-
   readZapprFile(user, repo, accessToken) {
     return this._readFile(VALID_ZAPPR_FILE_PATHS, user, repo, accessToken)
                .catch(() => {
@@ -318,6 +300,54 @@ export class GithubService {
     })
   }
 
+  /**
+   * Creates <branch> in user/repo from <sha> in default branch.
+   *
+   * https://developer.github.com/v3/git/refs/#create-a-reference
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param sha
+   * @param accessToken
+   */
+  createBranch(user, repo, branch, sha, accessToken) {
+    const path = API_URL_TEMPLATES.CREATE_REF
+                                  .replace('${owner}', user)
+                                  .replace('${repo}', repo)
+    const payload = {
+      ref: `refs/heads/${branch}`,
+      sha
+    }
+
+    return this.fetchPath('POST', path, payload, accessToken)
+  }
+
+  /**
+   * Returns true if user/repo contains a Zapprfile, false otherwise.
+   * @param user
+   * @param repo
+   * @param accessToken
+   * @returns {Promise.<boolean>}
+   */
+  hasZapprFile(user, repo, accessToken) {
+    return this._readFile(VALID_ZAPPR_FILE_PATHS, user, repo, accessToken)
+               .then(() => true)
+               .catch(() => false)
+  }
+
+  /**
+   * Creates a file with the given content in the given branch of user/repo.
+   *
+   * https://developer.github.com/v3/repos/contents/#create-a-file
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param path
+   * @param content
+   * @param accessToken
+   */
   async createFile(user, repo, branch, path, content, accessToken) {
     debug(`${user}/${repo}: Creating file ${path} on branch ${branch}`)
     const url = API_URL_TEMPLATES.REPO_CONTENT
@@ -328,13 +358,19 @@ export class GithubService {
     return this.fetchPath('PUT', url, {message, branch, content: encodedContent}, accessToken)
   }
 
-  async createFiles(user, repo, branch, files, accessToken) {
-    return Promise.all(Object.keys(files).map(path => {
-      const content = files[path]
-      return this.createFile(user, repo, branch, path, content, accessToken)
-    }))
-  }
-
+  /**
+   * Creates a pull request in user/repo with the given data.
+   *
+   * https://developer.github.com/v3/pulls/#create-a-pull-request
+   *
+   * @param user
+   * @param repo
+   * @param head
+   * @param base
+   * @param title
+   * @param body
+   * @param accessToken
+   */
   async createPullRequest(user, repo, head, base, title, body, accessToken) {
     debug(`${user}/${repo}: Creating pull request "${title}"`)
     const url = API_URL_TEMPLATES.PULL_REQUESTS
@@ -349,13 +385,37 @@ export class GithubService {
     return this.fetchPath('POST', url, payload, accessToken)
   }
 
-  async proposeZapprfile(user, repo, defaultBranch, accessToken) {
+  /**
+   * Returns information about <branch> in user/repo.
+   *
+   * https://developer.github.com/v3/repos/branches/#get-branch
+   * @param user
+   * @param repo
+   * @param branch
+   * @param accessToken
+   */
+  getBranch(user, repo, branch, accessToken) {
+    debug(`${user}/${repo}: Fetching branch ${branch}`)
+    const url = API_URL_TEMPLATES.BRANCH
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    return this.fetchPath('GET', url, null, accessToken)
+  }
+
+  /**
+   * Creates a pull request in user/repo to be merged in base, that
+   * contains an example Zappr configuration and a brief explanation
+   * of Zappr.
+   *
+   * @param user
+   * @param repo
+   * @param base
+   * @param accessToken
+   */
+  async proposeZapprfile(user, repo, base, accessToken) {
     // find latest commit on default branch
-    const branchInfoUrl = API_URL_TEMPLATES.BRANCH
-                                           .replace('${owner}', user)
-                                           .replace('${repo}', repo)
-                                           .replace('${branch}', defaultBranch)
-    const branchInfo = await this.fetchPath('GET', branchInfoUrl, null, accessToken)
+    const branchInfo = await this.getBranch(user, repo, base, accessToken)
     const headSHA = branchInfo.commit.sha
     // create branch
     const branchName = `welcome-to-zappr`
@@ -365,7 +425,7 @@ export class GithubService {
     // open pull request
     const title = ZAPPR_WELCOME_TITLE
     const body = ZAPPR_WELCOME_TEXT
-    return this.createPullRequest(user, repo, branchName, defaultBranch, title, body, accessToken)
+    return this.createPullRequest(user, repo, branchName, base, title, body, accessToken)
   }
 }
 
