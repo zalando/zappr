@@ -27,11 +27,6 @@ export default db.define('check', {
   type: {
     type: Sequelize.ENUM(...CHECK_TYPES),
     allowNull: false
-  },
-  arguments: {
-    type: Sequelize.JSONB,
-    allowNull: false,
-    get: deserializeJson('arguments')
   }
 }, {
   schema: db.schema,

@@ -73,18 +73,11 @@ class Database extends Sequelize {
   }
 
   /**
-   * Create the database schema and sync all models.
-   *
-   * @returns {Promise}
+   * Creates tables. Use only in tests!
+   * @private
    */
-  async sync() {
-    const schemas = await db.showAllSchemas()
-
-    if (schemas.indexOf(this.schema) === -1) {
-      const result = await db.createSchema(this.schema)
-      log('created schema' + result)
-    }
-
+  async _sync() {
+    log(`syncing models...`)
     try {
       await User.sync()
       await Repository.sync()
@@ -96,6 +89,22 @@ class Database extends Sequelize {
       log('synced models')
     } catch (e) {
       error(e)
+    }
+  }
+
+  /**
+   * Create the database schemas
+   *
+   * @returns {Promise}
+   */
+  async createSchemas() {
+    const schemas = await db.showAllSchemas()
+
+    if (schemas.indexOf(this.schema) === -1) {
+      await db.createSchema('zappr_meta')
+      log('created schema zappr_meta')
+      const result = await db.createSchema(this.schema)
+      log('created schema' + result)
     }
   }
 }
