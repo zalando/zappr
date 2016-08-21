@@ -157,6 +157,10 @@ module.exports.up = function up(queryInterface, Sequelize) {
           type: Sequelize.TEXT,
           allowNull: false
         },
+        arguments: {
+          type: Sequelize.JSONB,
+          allowNull: false
+        },
         type: {
           type: Sequelize.ENUM([
             'approval',
