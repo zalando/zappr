@@ -27,9 +27,22 @@ export default db.define('check', {
   type: {
     type: Sequelize.ENUM(...CHECK_TYPES),
     allowNull: false
+  },
+  createdAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW()
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW()
   }
 }, {
   schema: db.schema,
+  timestamps: true,
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   instanceMethods: {
     /**
      * Never return the token in JSON.
