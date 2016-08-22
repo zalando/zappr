@@ -3,7 +3,7 @@ import nconf from '../nconf'
 import * as EncryptionServiceCreator from '../service/EncryptionServiceCreator'
 import { logger } from '../../common/debug'
 
-import { User, Repository, UserRepository, Check, PullRequest, Session } from './'
+import { User, Repository, UserRepository, Check, PullRequest, Session, FrozenComment } from './'
 
 const log = logger('model')
 const error = logger('model', 'error')
@@ -91,6 +91,7 @@ class Database extends Sequelize {
       await UserRepository.sync()
       await Check.sync()
       await PullRequest.sync()
+      await FrozenComment.sync()
       await Session.sync()
       log('synced models')
     } catch (e) {

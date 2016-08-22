@@ -2,7 +2,7 @@ import path from 'path'
 import nconf from '../nconf'
 import { Counter } from 'prom-client'
 import GithubServiceError from './GithubServiceError'
-import { joinURL, promiseFirst, decode, getIn } from '../../common/util'
+import { joinURL, promiseFirst, decode, getIn, toGenericComment } from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
 
@@ -121,9 +121,10 @@ export class GithubService {
     if (since) {
       // return only comments created since
       const sinceDate = new Date(since)
-      return comments.filter(c => new Date(c.created_at) >= sinceDate)
+      return comments.filter(c => new Date(c.created_at) >= sinceDate).map(toGenericComment)
     }
-    return comments
+    // return generic comments
+    return comments.map(toGenericComment)
   }
 
   async getPullRequest(user, repo, number, accessToken) {

@@ -127,3 +127,11 @@ export function symbolToString(sym) {
     return sym.toString().match(SYMBOL_STRING)[1]
   return sym
 }
+
+export function toGenericComment(githubComment) {
+  const {user, ...rest} = githubComment
+  return {
+    ...rest,
+    user: user.login
+  }
+}
