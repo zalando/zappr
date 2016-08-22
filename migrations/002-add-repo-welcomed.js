@@ -1,22 +1,19 @@
-const tableName = 'repositories'
 const schema = 'zappr_data'
+const tableName = 'repositories'
 const columnName = 'welcomed'
 
 module.exports.up = function (queryInterface, Sequelize) {
-  const dialect = queryInterface.sequelize.options.dialect
-  const table = dialect === 'postgres' ? {tableName, schema} : tableName
   return queryInterface.addColumn(
-    table,
+    tableName,
     columnName,
     {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false
-    })
+    },
+    {schema})
 }
 
 module.exports.down = function (queryInterface) {
-  const dialect = queryInterface.sequelize.options.dialect
-  const table = dialect === 'postgres' ? {tableName, schema} : tableName
-  return queryInterface.removeColumn(table, columnName)
+  return queryInterface.removeColumn(table, columnName, {schema})
 }
