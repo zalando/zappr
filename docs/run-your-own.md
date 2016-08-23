@@ -77,7 +77,6 @@ Zappr provides a whole lot of configuration options for flexibility.
 * `DB_USER`: Database user, might be `postgres` or you create a different user (recommended)
 * `DB_PASS`: Password for database user
 * `DB_NAME`: Which database to use
-* `DB_SCHEMA`: Which schema to use in the database
 
 ### Encryption
 
