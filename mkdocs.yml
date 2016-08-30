@@ -8,6 +8,7 @@ pages:
   - Comparison to other tools: competitors.md
   - FAQ: faq.md
   - Terms of Service: tos.md
+  - Cookies: cookies.md
   - Imprint and Data protection declaration: imprint.md
 extra_css:
   - images.css

@@ -19,7 +19,7 @@ Zalando SE processes and stores only the user information, including account dat
 
 #### 3. Cookies
 
-We use cookies only to make the use of our pages easier for you. In principle, you can also access all the information on our web pages if you have disabled cookies. Should you not accept cookies, this can lead to a limitation of functionality.
+We use cookies only where this is required to enable certain technical functionalities and features of the website (such as login and user authentication) and to make the use of our pages easier for you. In principle, you can also access all the information on our web pages if you have disabled cookies. However, should you not accept cookies, this can lead to a limitation of functionality. For example, access to our website relying on user login might not work properly or as expected. For further information see our [Cookies FAQ](https://zappr.readthedocs.io/en/latest/cookies/).
 
 #### 4. Safe data transmission:
 
