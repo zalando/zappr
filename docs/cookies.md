@@ -4,17 +4,17 @@
 
 A cookie is a small text file that is stored on your computer when visiting a website. This text file stores information that can be read by the website when visiting it again at a later date. Some of these cookies are necessary because otherwise the site is unable to function properly. Other cookies are convenient for the visitor: they remember your username in a secure way as well as your language preferences, for example. Cookies mean that you do not need to fill out the same information each time you visit a website.
 
-## Why does Zalando use cookies?
+## Why does Zappr use cookies?
 
-Zalando uses cookies to help us provide you with a better user experience tailored to your personal preferences. By using cookies Zalando makes sure that you do not receive or need to enter the same information every single time you visit the Zalando website. Cookies are also used to optimise the performance of the website. For example, cookies make the checkout process easier or help you to find a specific item of clothing faster.
+Zappr uses cookies to help us provide you with a better user experience tailored to your personal preferences. By using cookies Zappr makes sure that you do not receive or need to enter the same information every single time you visit the Zappr website. Cookies are also necessary for Zappr to work correctly with GitHub.com.
 
-To protect your personal details as well as against any possible loss of information or any form of unlawful processing, Zalando has taken appropriate organisational and technical measures.
+To protect your personal details as well as against any possible loss of information or any form of unlawful processing, Zappr has taken appropriate organisational and technical measures.
 
 For further information see our Privacy Policy.
 
 ## How can I disable cookies?
 
-You can modify your browser to turn off cookies. This is very easy to do. Please note: if you disable cookies, your user name and password will no longer be stored on any website
+You can modify your browser to turn off cookies. This is very easy to do. Please note: if you disable cookies, some features of Zappr, for example the GitHub sign-on, may not work correctly anymore.
 
 Firefox:
 
