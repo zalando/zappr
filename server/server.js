@@ -110,10 +110,9 @@ async function start(port = nconf.get('APP_PORT'), opts = {
       columnType: new Sequelize.TEXT
     }
   })
-  // sync models
-  await db.sync()
+  await db.createSchemas()
   // apply migrations
-  await umzug.up()
+  await umzug.up({ from: nconf.get('DB_UMZUG_FROM') || null})
   init().listen(port)
   log(`listening on port ${port}`)
   if (opts.metricsEnabled) {
