@@ -16,7 +16,7 @@ const users = {
 
 describe('Model', () => {
 
-  before(done => db.sync().then(done).catch(done))
+  before(done => db.createSchemas().then(db._sync).then(() => done()).catch(done))
 
   beforeEach(done => Promise.all([
     User.truncate(),
@@ -201,7 +201,7 @@ describe('Model', () => {
           id: checkId,
           token,
           repositoryId: repoId,
-          type: Approval.TYPE, arguments: {},
+          type: Approval.TYPE,
           created_by: userLogin
         })
         const savedCheck = await Check.findById(checkId)

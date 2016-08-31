@@ -41,8 +41,7 @@ class CheckHandler {
         repositoryId: repoId,
         type,
         token,
-        created_by: user,
-        arguments: {}
+        created_by: user
       }, {
         attributes: {exclude: ['token']}
       })

@@ -111,25 +111,9 @@ async function start(port = nconf.get('APP_PORT'), opts = {
       columnType: new Sequelize.TEXT
     }
   })
-  /**
-   * Syncing models (db.sync()) is basically CREATE TABLE for every model.
-   *
-   * Now, the thing about sequelize + umzug is:
-   *   - if you have a completely new, mostly independent model (say n:1 with an existing model),
-   *     you don't have to write a migration for it, as CREATE TABLE will be covered by newModel.sync()
-   *   - if you have a model that requires changes to another model (1:n with existing model),
-   *     you have to write a migration for it, because the table already exists
-   *   - if you start the app now on a clean database, I suppose either of the two happens:
-   *     - migrations fail because tables do not exist yet (when running umzug prior to db.sync())
-   *     - migrations fail because columns already exist (when running umzug after db.sync())
-   *
-   * The solution, I guess, is to write every database change as an umzug migration,
-   * thus losing the comfort of model.sync(). However since Zappr is already running since
-   * half a year, this cannot be achieved without fiddling directly on the migrations table.
-   */
-  await db.sync()
+  await db.createSchemas()
   // apply migrations
-  await umzug.up()
+  await umzug.up({ from: nconf.get('DB_UMZUG_FROM') || null})
   init().listen(port)
   log(`listening on port ${port}`)
   if (opts.metricsEnabled) {

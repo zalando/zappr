@@ -8,6 +8,8 @@ import { User, Repository, UserRepository, Check, PullRequest, Session, FrozenCo
 const log = logger('model')
 const error = logger('model', 'error')
 const encryptionService = EncryptionServiceCreator.create()
+const DATA_SCHEMA = 'zappr_data'
+const META_SCHEMA = 'zappr_meta'
 
 async function decryptToken(check) {
   const plain = await encryptionService.decrypt(check.token)
@@ -69,22 +71,15 @@ class Database extends Sequelize {
    * @returns {String}
    */
   get schema() {
-    return nconf.get('DB_SCHEMA')
+    return DATA_SCHEMA
   }
 
   /**
-   * Create the database schema and sync all models.
-   *
-   * @returns {Promise}
+   * Creates tables. Use only in tests!
+   * @private
    */
-  async sync() {
-    const schemas = await db.showAllSchemas()
-
-    if (schemas.indexOf(this.schema) === -1) {
-      const result = await db.createSchema(this.schema)
-      log('created schema' + result)
-    }
-
+  async _sync() {
+    log(`syncing models...`)
     try {
       await User.sync()
       await Repository.sync()
@@ -96,6 +91,22 @@ class Database extends Sequelize {
       log('synced models')
     } catch (e) {
       error(e)
+    }
+  }
+
+  /**
+   * Create the database schemas
+   *
+   * @returns {Promise}
+   */
+  async createSchemas() {
+    const schemas = await db.showAllSchemas()
+
+    if (schemas.indexOf(this.schema) === -1) {
+      await db.createSchema(META_SCHEMA)
+      log('created schema zappr_meta')
+      const result = await db.createSchema(DATA_SCHEMA)
+      log('created schema' + result)
     }
   }
 }

@@ -32,13 +32,21 @@ export default db.define('check', {
     type: Sequelize.TEXT,
     allowNull: true
   },
-  arguments: {
-    type: Sequelize.JSONB,
+  createdAt: {
+    type: Sequelize.DATE,
     allowNull: false,
-    get: deserializeJson('arguments')
+    defaultValue: Sequelize.NOW()
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW()
   }
 }, {
   schema: db.schema,
+  timestamps: true,
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   instanceMethods: {
     /**
      * Never return the token in JSON.
