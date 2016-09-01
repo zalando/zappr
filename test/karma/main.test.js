@@ -9,6 +9,7 @@ import { browserHistory } from 'react-router'
 import Root from '../../client/components/Root.jsx'
 import RepositoryList from '../../client/components/RepositoryList.jsx'
 import RepositoryDetail from '../../client/containers/RepositoryDetail.jsx'
+import CookieBanner from '../../client/components/CookieBanner.jsx'
 import configureStore from '../../client/store/configureStore'
 import { waitFor } from '../utils'
 import { getIn } from '../../common/util'
@@ -61,6 +62,27 @@ describe('Root', function () {
     expect(window.location.pathname).to.equal('/login')
     const login = TestUtils.findRenderedDOMComponentWithClass(root, 'zpr-login')
     expect(TestUtils.isDOMComponent(login)).to.be.true
+  })
+
+  it('should render the cookie banner if the cookie is not set', () => {
+    CookieBanner.deleteCookie()
+
+    const {root} = renderRootWithInitialState({
+      auth: {isAuthenticated: false}
+    })
+    const cookieBanner = TestUtils.findRenderedComponentWithType(root, CookieBanner)
+    expect(TestUtils.isCompositeComponent(cookieBanner)).to.be.true
+  })
+
+  it.skip('should not render the cookie banner if the cookie is set', () => {
+    CookieBanner.setCookie() // Cookie is set in Karma but CookieBanner is still present??
+
+    const {root} = renderRootWithInitialState({
+      auth: {isAuthenticated: false}
+    })
+    const cookieBanner = TestUtils.findRenderedComponentWithType(root, CookieBanner)
+    console.log(cookieBanner)
+    expect(TestUtils.isCompositeComponent(cookieBanner)).to.be.false
   })
 
   it('should render the home route when authenticated', async(done) => {

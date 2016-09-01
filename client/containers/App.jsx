@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import Optional from '../components/Optional.jsx'
 import AppNavHeader from '../components/NavHeader.jsx'
 import LoginNavHeader from '../components/LoginNavHeader.jsx'
+import CookieBanner from '../components/CookieBanner.jsx'
 import { requestReposIfNeeded } from '../actions/repos'
 import { logger } from '../../common/debug'
 
@@ -35,6 +36,7 @@ class App extends Component {
     const showLogin = this.props.location.pathname.search(/^\/login/) !== -1
     return (
       <div className='zpr-app'>
+        <CookieBanner/>
         <Optional if={!showLogin}>
           <AppNavHeader path={this.props.location.pathname}
                         user={this.props.user}/>
