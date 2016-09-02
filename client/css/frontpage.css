@@ -73,12 +73,9 @@
     }
 
     footer {
-      flex: 0 0 auto;
-      width: 100%;
-      height: 80px;
       margin-top: 30px;
+      margin-bottom: 30px;
       border-top: 1px solid #eee;
-      text-align: center;
       font-size: 1.5rem;
       padding-top: 15px;
     }
