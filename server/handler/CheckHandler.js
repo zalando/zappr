@@ -39,8 +39,7 @@ class CheckHandler {
       return await Check.create({
         repositoryId: repoId,
         type,
-        token,
-        arguments: {}
+        token
       }, {
         attributes: {exclude: ['token']}
       })

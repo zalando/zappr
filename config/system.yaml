@@ -36,7 +36,6 @@ DB_DRIVER: sqlite
 #DB_PASS: postgres
 #DB_HOST: 192.168.99.100
 #DB_PORT: 5432
-#DB_SCHEMA: zappr
 SQLITE_FILE: ./zappr.sqlite
 
 # Token encryption

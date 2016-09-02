@@ -1,6 +1,9 @@
 language: node_js
 node_js:
   - "5.7"
+cache:
+  directories:
+    - node_modules
 install:
   - npm install
   - npm install sqlite3

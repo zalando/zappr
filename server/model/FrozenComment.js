@@ -1,26 +1,25 @@
 import Sequelize from 'sequelize'
-
 import { db } from './Database'
 
-/**
- * Pull Request. Belongs to a {@link Repository}.
- */
-export default db.define('pull_request', {
+export default db.define('frozen_comment', {
   id: {
     type: Sequelize.BIGINT,
     primaryKey: true,
     unique: true,
     allowNull: false,
-    autoIncrement: true
+    autoIncrement: false
   },
-  number: {
-    type: Sequelize.INTEGER,
+  user: {
+    type: Sequelize.TEXT,
     allowNull: false
   },
-  last_push: {
+  created_at: {
     type: Sequelize.DATE,
-    allowNull: false,
-    defaultValue: Sequelize.NOW
+    allowNull: false
+  },
+  body: {
+    type: Sequelize.TEXT,
+    allowNull: false
   },
   createdAt: {
     type: Sequelize.DATE,
@@ -36,5 +35,17 @@ export default db.define('pull_request', {
   schema: db.schema,
   timestamps: true,
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  scopes: {
+    pullRequest: prId => ({
+      where: {
+        pullRequestId: prId
+      }
+    })
+  },
+  classMethods: {
+    pullRequestScope: function (prId) {
+      return this.scope({method: ['pullRequest', prId]})
+    }
+  }
 })

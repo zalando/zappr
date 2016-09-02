@@ -16,7 +16,7 @@ const users = {
 
 describe('Model', () => {
 
-  before(done => db.sync().then(done).catch(done))
+  before(done => db.createSchemas().then(db._sync).then(() => done()).catch(done))
 
   beforeEach(done => Promise.all([
     User.truncate(),
@@ -188,8 +188,10 @@ describe('Model', () => {
         await User.create({id: userId, json: user})
         await Repository.create({id: repoId, userId, json: repo})
         await Check.create({
-          id: checkId, token, repositoryId: repoId,
-          type: Approval.TYPE, arguments: {}
+          id: checkId,
+          token,
+          repositoryId: repoId,
+          type: Approval.TYPE
         })
         const savedCheck = await Check.findById(checkId)
         expect(savedCheck.get('token')).to.equal(token)
