@@ -2,7 +2,6 @@ import Sequelize from 'sequelize'
 
 import * as EncryptionServiceCreator from '../service/EncryptionServiceCreator'
 import { db } from './Database'
-import { deserializeJson } from './properties'
 import { CHECK_TYPES } from '../checks'
 import { logger } from '../../common/debug'
 

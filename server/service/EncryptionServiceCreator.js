@@ -1,6 +1,7 @@
 import nconf from '../nconf'
 import NullEncryptionService from './encryption/NullEncryptionService'
 import KMSEncryptionService from './encryption/KMSEncryptionService'
+import FakeEncryptionService from './encryption/FakeEncryptionService'
 import { logger } from '../../common/debug'
 
 const warn = logger('encryption', 'warn')
@@ -17,6 +18,9 @@ export function create(){
       const REGION = nconf.get('KMS_REGION')
       return new KMSEncryptionService(KEY_ID, REGION)
       break
+    case 'fake':
+      warn('token encryption disabled')
+      return new FakeEncryptionService()
     default:
       warn('token encryption disabled')
       return new NullEncryptionService()

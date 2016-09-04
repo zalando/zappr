@@ -78,6 +78,24 @@ export function getIn(obj, path, returnDefault = null) {
   return returnDefault
 }
 
+export function setIn(obj, path, value) {
+  if (!Array.isArray(path)) {
+    path = [path]
+  }
+  const [head, ...tail] = path
+  if (tail.length > 0) {
+    // traverse deeper
+    if (!obj.hasOwnProperty(head)) {
+      obj[head] = {}
+    }
+    setIn(obj[head], tail, value)
+  } else {
+    // last element
+    obj[head] = value
+  }
+  return obj
+}
+
 export function decode(string, encoding = 'base64') {
   if (encoding !== 'base64') {
     throw new Error(`Encoding "${encoding}" not supported`)
