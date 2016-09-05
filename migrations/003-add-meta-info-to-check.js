@@ -1,41 +1,41 @@
 const schema = 'zappr_data'
-const checksTable = 'checks'
-const usersTable = 'users'
-const accessLevelColumn = 'access_level'
-const createdByColumn = 'created_by'
 
 module.exports.up = function up(queryInterface, Sequelize) {
   return Promise.all([
     queryInterface.addColumn(
-      usersTable,
-      accessLevelColumn,
+      {
+        tableName: 'users',
+        schema
+      },
+      'access_level',
       {
         type: Sequelize.ENUM(['minimal', 'extended']),
         allowNull: false,
         defaultValue: 'minimal'
-      },
-      {schema}),
+      }),
     queryInterface.addColumn(
-      checksTable,
-      createdByColumn,
+      {
+        tableName: 'checks',
+        schema
+      },
+      'created_by',
       {
         type: Sequelize.TEXT,
         allowNull: true
-      },
-      {schema})
+      })
   ])
 }
 
 module.exports.down = function down(query) {
   return Promise.all([
     query.removeColumn(
-      usersTable,
-      accessLevelColumn,
+      'users',
+      'access_level',
       {schema}),
 
     query.removeColumn(
-      checksTable,
-      createdByColumn,
+      'checks',
+      'created_by',
       {schema})
   ])
 }
