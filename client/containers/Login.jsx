@@ -42,9 +42,17 @@ class Login extends Component {
 
   componentDidMount() {
     log('componentDidMount', this.props)
-    setTimeout(() => this.setState({
-      animate: true
+    const id = setTimeout(() => this.setState({
+      animate: true,
+      timeoutId: null
     }), 1000)
+    this.setState({timeoutId: id})
+  }
+
+  componentWillUnmount() {
+    if (this.state.timeoutId) {
+      clearTimeout(this.state.timeoutId)
+    }
   }
 
   render() {

@@ -45,11 +45,9 @@ describe('Root', function () {
     return {root, state: store.getState(), store}
   }
 
-  async function waitForMockDataToLoad(store, done) {
+  async function waitForStoreUpdate(store, checkFn, done) {
     try {
-      await waitFor(() => {
-        return Object.keys(getIn(store.getState(), ['repos', 'items'], {})).length > 0
-      }, 1000)
+      await waitFor(() => checkFn(store), 1000)
     } catch (e) {
       return done('mock data did not load for 1 second')
     }
@@ -93,7 +91,7 @@ describe('Root', function () {
       expect(window.location.pathname).to.equal('/')
       const home = TestUtils.findRenderedDOMComponentWithClass(root, 'zpr-home')
       expect(TestUtils.isDOMComponent(home)).to.be.true
-      await waitForMockDataToLoad(store, done)
+      await waitForStoreUpdate(store, store => Object.keys(getIn(store.getState(), ['repos', 'items'], {})).length > 0, done)
       expect(store.getState())
       .to.have.deep.property('repos.items')
       .and.to.have.all.keys(['mfellner/angular-react', 'mfellner/atomic-directive-demo'])
@@ -110,7 +108,7 @@ describe('Root', function () {
       })
       const repositoryList = TestUtils.findRenderedComponentWithType(root, RepositoryList)
       expect(TestUtils.isCompositeComponent(repositoryList)).to.be.true
-      await waitForMockDataToLoad(store, done)
+      await waitForStoreUpdate(store, store => Object.keys(getIn(store.getState(), ['repos', 'items'], {})).length > 0, done)
       expect(repositoryList.props)
       .to.have.deep.property('repositories.mfellner/angular-react.name', 'angular-react')
       expect(repositoryList.props)
@@ -121,13 +119,45 @@ describe('Root', function () {
     }
   })
 
+  it('should enable a check', async function (done) {
+    try {
+      const {root, store} = renderRootWithInitialState({
+        auth: {isAuthenticated: true}
+      })
+      await waitForStoreUpdate(store, store => Object.keys(getIn(store.getState(), ['repos', 'items'], {})).length > 0, done)
+      const items = TestUtils.scryRenderedDOMComponentsWithClass(root, 'zpr-repository-list-item')
+      TestUtils.Simulate.click(items[0], {button: 0})
+
+      function findToggle(type) {
+        return TestUtils.findAllInRenderedTree(root, function (element) {
+          try {
+            return element.props.check.type === type
+          } catch (e) {
+            return false
+          }
+        })[0]
+      }
+
+      let repoCheck = findToggle('approval')
+      const toggle = TestUtils.findRenderedDOMComponentWithClass(repoCheck, 'toggle')
+      TestUtils.Simulate.click(toggle, {button: 0})
+      expect(repoCheck.props.check.isUpdating).to.be.true
+      await waitForStoreUpdate(store, store => getIn(store.getState(), ['repos', 'items', 'mfellner/angular-react', 'checks'], []).length > 0, done)
+      expect(repoCheck.props.check.isEnabled).to.be.true
+      done()
+    } catch (e) {
+      console.log(e.stack)
+      done(e)
+    }
+  })
+
   it('should render the selected repository', async(done) => {
     try {
       const {root, store} = renderRootWithInitialState({
         auth: {isAuthenticated: true}
       })
 
-      await waitForMockDataToLoad(store, done)
+      await waitForStoreUpdate(store, store => Object.keys(getIn(store.getState(), ['repos', 'items'], {})).length > 0, done)
 
       function clickOnDetail(i) {
         const items = TestUtils.scryRenderedDOMComponentsWithClass(root, 'zpr-repository-list-item')

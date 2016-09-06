@@ -33,11 +33,11 @@ app.keys = [nconf.get('SESSION_SECRET')]
 
 // Routing
 import { health } from './routes/health'
-import { authorize, login, logout } from './routes/auth.js'
+import { authorize, login, logout, changeMode, ensureModeMiddleware } from './routes/auth.js'
 import { env, repos, repo } from './routes/api'
 import renderStatic from './react/render-static.jsx'
 
-const router = [health, authorize, login, logout, env, repos, repo].
+const router = [health, authorize, login, logout, changeMode, env, repos, repo].
 reduce((router, route) => route(router), Router())
 
 // Session store
@@ -74,6 +74,7 @@ export function init(options = {}) {
             .use(router.routes())
             .use(router.allowedMethods())
             .use(convert(serve(nconf.get('STATIC_DIR'), {index: 'none'})))
+            .use(ensureModeMiddleware)
             .use(renderStatic)
 }
 

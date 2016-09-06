@@ -6,7 +6,17 @@ Using your GitHub account, sign in to Zappr [here](https://zappr.opensource.zala
 
 Authorize Zappr. We outline why we need certain scopes in our [FAQ](https://zappr.readthedocs.org/en/latest/faq).
 
-Once you're back at Zappr you will see all repositories that we know listed on the left. Initially we only fetch the first couple of repositories, so if you don't find the one you're looking for please click the blue "Sync with Github" button. It will then load all the repositories, which might take a couple of seconds. Also use this button if you want to enable Zappr for repositories that are new in your account.
+Once you're back at Zappr you will see all _public_ repositories that we know listed on the left. If you also want to trust us with your _private_ repositories, you can do that:
+
+![IMAGE](img/setup/enable-private.png)
+
+<p class="admonition note">
+Be aware that once you gave Zappr permission to read your private repositories, the only way to <strong>really</strong> revoke it is by revoking access for Zappr <a href="https://github.com/settings/applications">here</a>. (When you accepted a scope once, Github will never ask you again about it.) We promise not to do sneaky things, but you should act according to your paranoia level.
+
+However be also aware that once you revoked access for Zappr, you effectively broke all checks that you enabled, because the stored access tokens were invalidated.
+</p>
+
+Initially we only fetch the first couple of repositories, so if you don't find the one you're looking for please click the blue "Sync with Github" button. It will then load all the repositories, which might take a couple of seconds. Also use this button every time you want to udpate your repository list, e.g. after renamings, deletions or when you created new repositories.
 
 ![IMAGE](img/setup/repo-list.png)
 

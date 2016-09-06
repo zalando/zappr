@@ -26,7 +26,7 @@ const API_URL_TEMPLATES = {
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
   CREATE_REF: '/repos/${owner}/${repo}/git/refs',
   PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits',
-  REPOS: '/user/repos?page=${page}&visibility=public'
+  REPOS: '/user/repos?page=${page}&visibility=all'
 }
 
 function fromBase64(encoded) {

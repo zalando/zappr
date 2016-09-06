@@ -13,6 +13,7 @@ const log = logger('app')
 function mapStateToProps(state) {
   return {
     user: state.user,
+    usingExtendedAccess: state.env.USING_EXTENDED_ACCESS,
     isAuthenticated: state.auth.isAuthenticated
   }
 }
@@ -39,7 +40,8 @@ class App extends Component {
         <CookieBanner/>
         <Optional if={!showLogin}>
           <AppNavHeader path={this.props.location.pathname}
-                        user={this.props.user}/>
+                        user={this.props.user}
+                        usingExtendedAccess={this.props.usingExtendedAccess}/>
         </Optional>
         <Optional if={showLogin}>
           <LoginNavHeader />

@@ -1,12 +1,14 @@
 import React, { Component, PropTypes } from 'react'
 import { Link } from 'react-router'
+import * as AccessLevel from '../../common/AccessLevels'
 import { Navbar, Nav, NavItem, NavDropdown, MenuItem, Image } from 'react-bootstrap'
 import mascot from '../img/mascot_small.png'
 
 export default class NavHeader extends Component {
   static propTypes = {
     path: PropTypes.string.isRequired,
-    user: PropTypes.object.isRequired
+    user: PropTypes.object.isRequired,
+    usingExtendedAccess: PropTypes.bool
   };
 
   isActive(path) {
@@ -18,8 +20,7 @@ export default class NavHeader extends Component {
   }
 
   render() {
-    const { displayName, username, html_url, avatar_url } = this.props.user
-
+    const {displayName, username, html_url, avatar_url} = this.props.user
     const style = {
       logo: {
         marginTop: '-1px',
@@ -65,6 +66,13 @@ export default class NavHeader extends Component {
           </Nav>
           <Nav pullRight>
             <NavDropdown title={displayName || username} id="basic-nav-dropdown">
+              {this.props.usingExtendedAccess ?
+                <MenuItem href={`/change-access-level?level=${AccessLevel.MINIMAL}`}>
+                  Revoke private repository access
+                </MenuItem> :
+                <MenuItem href={`/change-access-level?level=${AccessLevel.EXTENDED}`}>
+                  Allow private repository access
+                </MenuItem>}
               <MenuItem href={html_url}>
                 Profile
               </MenuItem>
