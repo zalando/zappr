@@ -84,13 +84,13 @@ export function init(options = {}) {
             .use(compress())
             .use(router.routes())
             .use(router.allowedMethods())
-            .use(convert(conditional()))
+            .use(conditional())
             .use(etag())
-            .use(convert(serve(
+            .use(serve(
               nconf.get('STATIC_DIR'), {
                 index: 'none',
                 maxage: 1.7 * 10 ** 8 // ~ 2 days
-              })))
+              }))
             .use(ensureModeMiddleware)
             .use(renderStatic)
 }
