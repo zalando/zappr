@@ -1,4 +1,4 @@
-FROM registry.opensource.zalan.do/stups/node:5.10-9
+FROM registry.opensource.zalan.do/stups/node:5.10-11
 
 ENV ZAPPR_HOME /opt/zappr
 

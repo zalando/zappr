@@ -4,7 +4,7 @@ readonly DOCKER_REGISTRY=${DOCKER_REGISTRY-"registry-write.opensource.zalan.do"}
 readonly DOCKER_USER=${DOCKER_USER-"opensource"}
 readonly DOCKER_REPO=${DOCKER_REPO-"zappr"}
 readonly DOCKER_IMG=${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_REPO}
-readonly DOCKER_BASE_IMAGE="registry.opensource.zalan.do/stups/node:5.10-23"
+readonly DOCKER_BASE_IMAGE="registry.opensource.zalan.do/stups/node:5.10-11"
 # If set, run the Node.js build inside a Docker container and mount this directory.
 readonly DOCKER_RUN_WORKING_DIRECTORY=${DOCKER_RUN_WORKING_DIRECTORY-""}
 # Which app configuration to use (opensource, enterprise).
