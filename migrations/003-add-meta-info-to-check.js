@@ -29,13 +29,17 @@ module.exports.up = function up(queryInterface, Sequelize) {
 module.exports.down = function down(query) {
   return Promise.all([
     query.removeColumn(
-      'users',
-      'access_level',
-      {schema}),
+      {
+        tableName: 'users',
+        schema
+      },
+      'access_level'),
 
     query.removeColumn(
-      'checks',
-      'created_by',
-      {schema})
+      {
+        tableName: 'checks',
+        schema
+      },
+      'created_by',)
   ])
 }

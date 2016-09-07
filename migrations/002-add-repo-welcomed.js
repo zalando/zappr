@@ -4,16 +4,18 @@ const columnName = 'welcomed'
 
 module.exports.up = function (queryInterface, Sequelize) {
   return queryInterface.addColumn(
-    tableName,
+    {
+      tableName,
+      schema
+    },
     columnName,
     {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false
-    },
-    {schema})
+    })
 }
 
 module.exports.down = function (queryInterface) {
-  return queryInterface.removeColumn(table, columnName, {schema})
+  return queryInterface.removeColumn({tableName, schema}, columnName)
 }
