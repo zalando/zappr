@@ -2,6 +2,7 @@ import Sequelize from 'sequelize'
 
 import { db } from './Database'
 import { deserializeJson } from './properties'
+import * as AccessLevel from '../../common/AccessLevels'
 
 /**
  * Zappr/Github user. Has many {@link Repository}.
@@ -13,6 +14,11 @@ export default db.define('user', {
     unique: true,
     allowNull: false,
     autoIncrement: false
+  },
+  access_level: {
+    type: Sequelize.ENUM(...AccessLevel.MODES),
+    allowNull: false,
+    defaultValue: AccessLevel.MINIMAL
   },
   json: {
     type: Sequelize.JSONB,

@@ -28,6 +28,10 @@ export default db.define('check', {
     type: Sequelize.ENUM(...CHECK_TYPES),
     allowNull: false
   },
+  created_by: {
+    type: Sequelize.TEXT,
+    allowNull: true
+  },
   createdAt: {
     type: Sequelize.DATE,
     allowNull: false,

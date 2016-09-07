@@ -32,7 +32,7 @@ const API_URL_TEMPLATES = {
   PULL_REQUESTS: '/repos/${owner}/${repo}/pulls',
   BRANCH: '/repos/${owner}/${repo}/branches/${branch}',
   COMMITS: '/repos/${owner}/${repo}/git/commits',
-  REPOS: '/user/repos?page=${page}&visibility=public'
+  REPOS: '/user/repos?page=${page}&visibility=all'
 }
 
 export class GithubService {
@@ -151,6 +151,18 @@ export class GithubService {
                                   .replace('${branch}', branch)
     const ref = await this.fetchPath('GET', path, null, accessToken)
     return ref.object
+  }
+
+  createBranch(owner, repo, branch, sha, accessToken) {
+    const path = API_URL_TEMPLATES.CREATE_REF
+                                  .replace('${owner}', owner)
+                                  .replace('${repo}', repo)
+    const payload = {
+      ref: `refs/heads/${branch}`,
+      sha
+    }
+
+    this.fetchPath('POST', path, payload, accessToken)
   }
 
   readZapprFile(user, repo, accessToken) {

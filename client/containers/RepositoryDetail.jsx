@@ -11,11 +11,18 @@ import { requestConfigValidation } from '../actions/validate'
 import { checkId } from '../model/schema'
 import { CHECK_TYPES, CHECK_NAMES } from '../../server/checks'
 
+function mapStateToProps(state) {
+  return {
+    githubUrl: state.env.GITHUB_UI_URL
+  }
+}
+
 class RepositoryDetail extends Component {
   static propTypes = {
     repository: PropTypes.object.isRequired,
     checks: PropTypes.object.isRequired,
     validations: PropTypes.object.isRequired,
+    githubUrl: PropTypes.string,
     toggleCheck: PropTypes.func.isRequired,
     requestConfigValidation: PropTypes.func.isRequired
   };
@@ -66,7 +73,9 @@ class RepositoryDetail extends Component {
               ...checks[checkId(repository.id, type)]
             }))
             .map(check => (
-              <RepositoryCheck key={check.type} check={check}
+              <RepositoryCheck key={check.type}
+                               check={check}
+                               githubUrl={this.props.githubUrl}
                                onToggle={this.onToggleCheck.bind(this, check)}/>
             ))}
           </Col>
@@ -76,4 +85,4 @@ class RepositoryDetail extends Component {
   }
 }
 
-export default connect(null, {toggleCheck, requestConfigValidation})(RepositoryDetail)
+export default connect(mapStateToProps, {toggleCheck, requestConfigValidation})(RepositoryDetail)

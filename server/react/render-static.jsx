@@ -8,6 +8,7 @@ import nconf from '../nconf'
 import configureStore from '../../client/store/configureStore'
 import routes from '../../client/components/Routes.jsx'
 import Index from './Index.jsx'
+import * as AccessLevel from '../../common/AccessLevels'
 import { logger } from '../../common/debug'
 
 const log = logger('react')
@@ -35,28 +36,33 @@ export function getStaticAssets() {
   const dir = nconf.get('STATIC_DIR')
 
   return Promise.all([
-    find(path.join(dir, '*.js')),
-    find(path.join(dir, '*.css'))
-  ])
-  .then(([js, css]) => ({
-    js,
-    css
-  }))
+                  find(path.join(dir, '*.js')),
+                  find(path.join(dir, '*.css'))
+                ])
+                .then(([js, css]) => ({
+                  js,
+                  css
+                }))
 }
 
 export default async function renderStatic(ctx, next) {
 
   const assets = await getStaticAssets()
   const user = ctx.req.user ? ctx.req.user.json : {}
+  // at this point the cookie is guaranteed to exist due to previous middleware
+  const usingExtendedAccess = ctx.cookies.get(AccessLevel.COOKIE_NAME) === AccessLevel.EXTENDED
   const isAuthenticated = ctx.isAuthenticated()
 
   const store = configureStore({
     auth: {
       isAuthenticated
     },
+    env: {
+      GITHUB_UI_URL: nconf.get('GITHUB_UI_URL'),
+      USING_EXTENDED_ACCESS: usingExtendedAccess
+    },
     user
   })
-
   match({routes, location: ctx.url}, (err, redirectLocation, renderProps) => {
     if (err) {
       log('error', error.message)
