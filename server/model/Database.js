@@ -28,13 +28,11 @@ async function decryptTokenHook(thing) {
     /**
      * Repository with list of checks (that have tokens)
      */
-    if (Array.isArray(thing.checks)) {
+    if (Array.isArray(thing.checks) && typeof thing.set === 'function') {
       log('decrypt token hook')
       await Promise.all(thing.checks.map(async(c) => {
         const plain = await encryptionService.decrypt(c.token)
-        if (typeof thing.set === 'function') {
-          c.set('token', plain)
-        }
+        c.set('token', plain)
         return c
       }))
     }
@@ -50,13 +48,11 @@ async function decryptTokenHook(thing) {
      */
     else {
       const token = getIn(thing.json, ['passport', 'user', 'accessToken'], false)
-      if (token) {
+      if (token && typeof thing.set === 'function') {
         log('decrypt token hook')
         try {
           const plain = await encryptionService.decrypt(token)
-          if (typeof thing.set === 'function') {
-            thing.set('json', setIn(thing.json, ['passport', 'user', 'accessToken'], plain))
-          }
+          thing.set('json', setIn(thing.json, ['passport', 'user', 'accessToken'], plain))
         } catch (e) {
           log(`no decryption of token ${token.substring(0, 4)} necessary`)
         }
