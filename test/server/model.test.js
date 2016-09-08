@@ -1,7 +1,6 @@
 import { expect } from 'chai'
-
 import Approval from '../../server/checks/Approval'
-import { db, User, Repository, UserRepository, Check } from '../../server/model'
+import { db, User, Repository, UserRepository, Check, Session } from '../../server/model'
 
 const users = {
   a: {
@@ -184,8 +183,33 @@ describe('Model', () => {
     })
   })
 
+  describe('Session', () => {
+    it('should store the encrypted token and return the decrypted token', async(done) => {
+      const json = {
+        passport: {
+          user: {
+            accessToken: 'abcd'
+          }
+        }
+      }
+      const id = 'foo'
+      try {
+        await Session.create({id, json})
+        const dbSession = await Session.findById(id, {raw: true})
+        expect(JSON.parse(dbSession.json).passport.user.accessToken).to.be.a('string')
+                                                                    .and.equal('::dcba')
+        const appSession = await Session.findById(id)
+        expect(appSession.json.passport.user.accessToken).to.be.a('string')
+                                                         .and.equal('abcd')
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
+
   describe('Check', () => {
-    it('should return the decrypted token', async(done) => {
+    it('should store the encrypted token and return the decrypted token', async(done) => {
       const repo = users.a.repos[0]
       const repoId = repo.id
       const user = users.a.data
@@ -218,7 +242,9 @@ describe('Model', () => {
           'updatedAt')
         expect(savedCheck.get('created_by')).to.equal(userLogin)
         expect(savedCheck.get('token')).to.equal(token)
-
+        const dbCheck = await Check.findById(checkId, {raw: true})
+        expect(dbCheck.token).to.be.a('string')
+                             .and.equal('::dcba')
         done()
       } catch (e) {
         done(e)
