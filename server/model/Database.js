@@ -2,6 +2,7 @@ import Sequelize from 'sequelize'
 import nconf from '../nconf'
 import * as EncryptionServiceCreator from '../service/EncryptionServiceCreator'
 import { logger } from '../../common/debug'
+import { getIn, setIn } from '../../common/util'
 
 import { User, Repository, UserRepository, Check, PullRequest, Session, FrozenComment } from './'
 
@@ -11,16 +12,52 @@ const encryptionService = EncryptionServiceCreator.create()
 const DATA_SCHEMA = 'zappr_data'
 const META_SCHEMA = 'zappr_meta'
 
-async function decryptToken(check) {
-  const plain = await encryptionService.decrypt(check.token)
-  check.set('token', plain)
-  return check
-}
-
+/**
+ * Global token decryption hook.
+ *
+ * @param thing
+ * @returns {*}
+ */
 async function decryptTokenHook(thing) {
-  if (thing && Array.isArray(thing.checks)) {
-    log('decrypt token hook')
-    await Promise.all(thing.checks.map(async(c) => await decryptToken(c)))
+  /**
+   * We check for the existence of a function `set` because if there is none,
+   * it means that we selected with raw=true and thus don't want to change
+   * the raw database content.
+   */
+  if (thing) {
+    /**
+     * Repository with list of checks (that have tokens)
+     */
+    if (Array.isArray(thing.checks) && typeof thing.set === 'function') {
+      log('decrypt token hook')
+      await Promise.all(thing.checks.map(async(c) => {
+        const plain = await encryptionService.decrypt(c.token)
+        c.set('token', plain)
+        return c
+      }))
+    }
+    /**
+     * Single check with token
+     */
+    else if (thing.token && typeof thing.set === 'function') {
+      const plain = await encryptionService.decrypt(thing.token)
+      thing.set('token', plain)
+    }
+    /**
+     * Session
+     */
+    else {
+      const token = getIn(thing.json, ['passport', 'user', 'accessToken'], false)
+      if (token && typeof thing.set === 'function') {
+        log('decrypt token hook')
+        try {
+          const plain = await encryptionService.decrypt(token)
+          thing.set('json', setIn(thing.json, ['passport', 'user', 'accessToken'], plain))
+        } catch (e) {
+          log(`no decryption of token ${token.substring(0, 4)} necessary`)
+        }
+      }
+    }
   }
   return thing
 }

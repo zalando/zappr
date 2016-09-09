@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 import {
   getIn,
+  setIn,
   encode,
   decode,
   setDifference,
@@ -101,6 +102,34 @@ describe('common/util', () => {
     })
     it('should throw if other algo than base64 is provided', () => {
       expect(() => encode('foo', 'sha256')).to.throw()
+    })
+  })
+
+  describe('setIn', () => {
+    let obj
+    beforeEach(() => {
+      obj = {
+        commit: {
+          committer: 'hans',
+          repository: {
+            id: 1
+          }
+        }
+      }
+    })
+    it('should mutate the object', () => {
+      const result = setIn(obj, ['commit', 'repository', 'id'], 15)
+      expect(result === obj).to.be.true
+    })
+    it('should set existing nested property', () => {
+      setIn(obj, ['commit', 'repository', 'id'], 15)
+      expect(obj.commit.repository.id).to.equal(15)
+      expect(obj.commit.committer).to.equal('hans')
+    })
+    it('should set not existing nested property', () => {
+      setIn(obj, ['commit', 'repository', 'url'], 'https://github.com/zalando/zappr')
+      expect(obj.commit.repository.url).to.equal('https://github.com/zalando/zappr')
+      expect(obj.commit.committer).to.equal('hans')
     })
   })
 
