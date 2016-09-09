@@ -360,7 +360,7 @@ export class GithubService {
    * @param content
    * @param accessToken
    */
-  async createFile(user, repo, branch, path, content, accessToken) {
+  createFile(user, repo, branch, path, content, accessToken) {
     debug(`${user}/${repo}: Creating file ${path} on branch ${branch}`)
     const url = API_URL_TEMPLATES.REPO_CONTENT
                                  .replace('${owner}', user)
@@ -383,7 +383,7 @@ export class GithubService {
    * @param body
    * @param accessToken
    */
-  async createPullRequest(user, repo, head, base, title, body, accessToken) {
+  createPullRequest(user, repo, head, base, title, body, accessToken) {
     debug(`${user}/${repo}: Creating pull request "${title}"`)
     const url = API_URL_TEMPLATES.PULL_REQUESTS
                                  .replace('${owner}', user)
