@@ -40,6 +40,6 @@ module.exports.down = function down(query) {
         tableName: 'checks',
         schema
       },
-      'created_by',)
+      'created_by')
   ])
 }
