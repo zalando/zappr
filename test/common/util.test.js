@@ -1,5 +1,14 @@
 import { expect } from 'chai'
-import { getIn, setIn, setDifference, promiseReduce, promiseFirst, symbolToString } from '../../common/util'
+import {
+  getIn,
+  setIn,
+  encode,
+  decode,
+  setDifference,
+  promiseReduce,
+  promiseFirst,
+  symbolToString
+} from '../../common/util'
 
 describe('common/util', () => {
   describe('symbolToString', () => {
@@ -75,6 +84,24 @@ describe('common/util', () => {
         done()
       })
       .catch(done)
+    })
+  })
+
+  describe('decode', () => {
+    it('should decode a base64 string', () => {
+      expect(decode('WkFQUFIgUk9DS1Mh')).to.equal('ZAPPR ROCKS!')
+    })
+    it('should throw if other algo than base64 is provided', () => {
+      expect(() => decode('foo', 'sha256')).to.throw()
+    })
+  })
+
+  describe('encode', () => {
+    it('should encode a string to base64', () => {
+      expect(encode('ZAPPR ROCKS!')).to.equal('WkFQUFIgUk9DS1Mh')
+    })
+    it('should throw if other algo than base64 is provided', () => {
+      expect(() => encode('foo', 'sha256')).to.throw()
     })
   })
 

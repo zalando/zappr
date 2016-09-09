@@ -20,7 +20,7 @@ Initially we only fetch the first couple of repositories, so if you don't find t
 
 ![IMAGE](img/setup/repo-list.png)
 
-To enable Zappr features on a specific repository, select a it from the list and switch the toggle to "On".
+To enable Zappr features on a specific repository, select a it from the list and switch the toggle to "On". If this repository does not contain a `.zappr.yaml` yet, we will create a pull request with some possible configuration options (not exhaustive).
 
 ![IMAGE](img/setup/repo.png)
 
@@ -40,9 +40,9 @@ It is customized by everything under `approvals`. The following options are supp
 * `ignore`: Whether Zappr should ignore approvals by the `last_committer` on the pull request, the `pr_opener`, `both` or `none`. Defaults to `none`.
 * `pattern`: Since approvals are essentially comments that match a pattern, you can configure the pattern! It's a string that will be passed to Javascript's `RegExp` constructor and defaults to `^(:+1:|👍)$`. (Tip: If you're not sure about your regex, [regex101.com](https://regex101.com/) is great to test it.)
 * `from`: By default any comment that matches the pattern is considered an approval, regardless of the author. You can change this by
- * `organization`: list organizations under `orgs` that the author has to be a public member of
- * `usernames`: list usernames under `users`
- * `collaborators`: set the `collaborators` flag to `true`
+  * `organization`: list organizations under `orgs` that the author has to be a public member of
+  * `usernames`: list usernames under `users`
+  * `collaborators`: set the `collaborators` flag to `true`
 * `groups`: If there are sets of people you absolutely want to approve every pull request in your project, you can define groups and set a `minimum` amount of approvals required by its members. Use a `from` clause (see above) to specify who's a member and who isn't.
 
 ~~~ yaml

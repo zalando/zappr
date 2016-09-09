@@ -96,6 +96,13 @@ export function setIn(obj, path, value) {
   return obj
 }
 
+export function encode(string, encoding = 'base64') {
+  if (encoding !== 'base64') {
+    throw new Error(`Encoding "${encoding}" not supported`)
+  }
+  return new Buffer(string, 'utf8').toString(encoding)
+}
+
 export function decode(string, encoding = 'base64') {
   if (encoding !== 'base64') {
     throw new Error(`Encoding "${encoding}" not supported`)

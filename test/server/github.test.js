@@ -1,7 +1,8 @@
 import sinon from 'sinon'
+import nconf from '../../server/nconf'
 import { expect } from 'chai'
 import { GithubService } from '../../server/service/GithubService'
-import {toGenericComment} from '../../common/util'
+import { toGenericComment } from '../../common/util'
 
 describe('The Github service', () => {
   let github
@@ -111,6 +112,60 @@ describe('The Github service', () => {
       try {
         github.fetchPath.returns(Promise.reject())
         await github.readPullRequestTemplate('user', 'repo', 'token')
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
+
+  describe('#proposeZapprFile', () => {
+    it('should call the correct functions', async(done) => {
+      try {
+        github.getBranch = sinon.stub().returns({commit: {sha: 'sha'}})
+        github.createBranch = sinon.spy()
+        github.createFile = sinon.spy()
+        github.createPullRequest = sinon.spy()
+
+        const USER = 'user'
+        const REPO = 'repo'
+        const BASE = 'base'
+        const TOKEN = 'token'
+
+        await github.proposeZapprfile(USER, REPO, BASE, TOKEN)
+        expect(github.getBranch.calledOnce).to.be.true
+        expect(github.createBranch.calledOnce).to.be.true
+        expect(github.createFile.calledOnce).to.be.true
+        expect(github.createPullRequest.calledOnce).to.be.true
+
+        expect(github.createPullRequest.calledWith(
+          USER,
+          REPO,
+          nconf.get('ZAPPR_WELCOME_BRANCH_NAME'),
+          BASE,
+          nconf.get('ZAPPR_WELCOME_TITLE'),
+          nconf.get('ZAPPR_WELCOME_TEXT'),
+          TOKEN
+        )).to.be.true
+
+        expect(github.createFile.calledWith(
+          USER,
+          REPO,
+          nconf.get('ZAPPR_WELCOME_BRANCH_NAME'),
+          nconf.get('VALID_ZAPPR_FILE_PATHS')[0],
+          nconf.get('ZAPPR_AUTOCREATED_CONFIG'),
+          TOKEN)).to.be.true
+
+        expect(github.createBranch.calledWith(
+          USER,
+          REPO,
+          nconf.get('ZAPPR_WELCOME_BRANCH_NAME'),
+          'sha',
+          TOKEN
+        )).to.be.true
+
+        expect(github.getBranch.calledWith(USER, REPO, BASE, TOKEN)).to.be.true
+
+        done()
       } catch (e) {
         done(e)
       }
