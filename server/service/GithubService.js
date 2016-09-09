@@ -14,6 +14,7 @@ const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
 const VALID_ZAPPR_FILE_PATHS = nconf.get('VALID_ZAPPR_FILE_PATHS')
 const VALID_PR_TEMPLATES_PATHS = nconf.get('VALID_PR_TEMPLATE_PATHS')
 const ZAPPR_AUTOCREATED_CONFIG = nconf.get('ZAPPR_AUTOCREATED_CONFIG')
+const ZAPPR_WELCOME_BRANCH_NAME = nconf.get('ZAPPR_WELCOME_BRANCH_NAME')
 const ZAPPR_WELCOME_TITLE = nconf.get('ZAPPR_WELCOME_TITLE')
 const ZAPPR_WELCOME_TEXT = nconf.get('ZAPPR_WELCOME_TEXT')
 const COMMIT_STATUS_MAX_LENGTH = 140
@@ -430,14 +431,13 @@ export class GithubService {
     const branchInfo = await this.getBranch(user, repo, base, accessToken)
     const headSHA = branchInfo.commit.sha
     // create branch
-    const branchName = `welcome-to-zappr`
-    await this.createBranch(user, repo, branchName, headSHA, accessToken)
+    await this.createBranch(user, repo, ZAPPR_WELCOME_BRANCH_NAME, headSHA, accessToken)
     // create zapprfile
-    await this.createFile(user, repo, branchName, VALID_ZAPPR_FILE_PATHS[0], ZAPPR_AUTOCREATED_CONFIG, accessToken)
+    await this.createFile(user, repo, ZAPPR_WELCOME_BRANCH_NAME, VALID_ZAPPR_FILE_PATHS[0], ZAPPR_AUTOCREATED_CONFIG, accessToken)
     // open pull request
     const title = ZAPPR_WELCOME_TITLE
     const body = ZAPPR_WELCOME_TEXT
-    return this.createPullRequest(user, repo, branchName, base, title, body, accessToken)
+    return this.createPullRequest(user, repo, ZAPPR_WELCOME_BRANCH_NAME, base, title, body, accessToken)
   }
 }
 

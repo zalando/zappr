@@ -551,7 +551,7 @@ describe('API', () => {
         const createZapprBody = JSON.parse(rest[2].body)
         const createPrBody = JSON.parse(rest[3].body)
 
-        const expectedBranchName = 'welcome-to-zappr'
+        const expectedBranchName = nconf.get('ZAPPR_WELCOME_BRANCH_NAME')
         expect(createBranchBody).to.deep.equal({
           ref: `refs/heads/${expectedBranchName}`,
           sha: fixtures.branch.commit.sha

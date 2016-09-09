@@ -130,7 +130,6 @@ describe('The Github service', () => {
         const REPO = 'repo'
         const BASE = 'base'
         const TOKEN = 'token'
-        const WELCOME_BRANCH = 'welcome-to-zappr'
 
         await github.proposeZapprfile(USER, REPO, BASE, TOKEN)
         expect(github.getBranch.calledOnce).to.be.true
@@ -141,7 +140,7 @@ describe('The Github service', () => {
         expect(github.createPullRequest.calledWith(
           USER,
           REPO,
-          WELCOME_BRANCH,
+          nconf.get('ZAPPR_WELCOME_BRANCH_NAME'),
           BASE,
           nconf.get('ZAPPR_WELCOME_TITLE'),
           nconf.get('ZAPPR_WELCOME_TEXT'),
@@ -151,7 +150,7 @@ describe('The Github service', () => {
         expect(github.createFile.calledWith(
           USER,
           REPO,
-          WELCOME_BRANCH,
+          nconf.get('ZAPPR_WELCOME_BRANCH_NAME'),
           nconf.get('VALID_ZAPPR_FILE_PATHS')[0],
           nconf.get('ZAPPR_AUTOCREATED_CONFIG'),
           TOKEN)).to.be.true
@@ -159,7 +158,7 @@ describe('The Github service', () => {
         expect(github.createBranch.calledWith(
           USER,
           REPO,
-          WELCOME_BRANCH,
+          nconf.get('ZAPPR_WELCOME_BRANCH_NAME'),
           'sha',
           TOKEN
         )).to.be.true

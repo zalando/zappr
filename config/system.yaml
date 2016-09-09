@@ -82,10 +82,9 @@ ZAPPR_AUTOCREATED_CONFIG: |
   #   from:
   #     collaborators: true
 
-ZAPPR_WELCOME_TITLE: Welcome to Zappr
+ZAPPR_WELCOME_BRANCH_NAME: configure-zappr
+ZAPPR_WELCOME_TITLE: Configure Zappr
 ZAPPR_WELCOME_TEXT: |
-  Hi, thanks for using Zappr.
-
   This is a reduced example of a [configuration file](https://zappr.readthedocs.io/en/latest/setup) for Zappr.
   If you have questions you can reach us
 
