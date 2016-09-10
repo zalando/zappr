@@ -6,11 +6,21 @@ Using your GitHub account, sign in to Zappr [here](https://zappr.opensource.zala
 
 Authorize Zappr. We outline why we need certain scopes in our [FAQ](https://zappr.readthedocs.org/en/latest/faq).
 
-Once you're back at Zappr you will see all repositories that we know listed on the left. Initially we only fetch the first couple of repositories, so if you don't find the one you're looking for please click the blue "Sync with Github" button. It will then load all the repositories, which might take a couple of seconds. Also use this button if you want to enable Zappr for repositories that are new in your account.
+Once you're back at Zappr you will see all _public_ repositories that we know listed on the left. If you also want to trust us with your _private_ repositories, you can do that:
+
+![IMAGE](img/setup/enable-private.png)
+
+<p class="admonition note">
+Be aware that once you gave Zappr permission to read your private repositories, the only way to <strong>really</strong> revoke it is by revoking access for Zappr <a href="https://github.com/settings/applications">here</a>. (When you accepted a scope once, Github will never ask you again about it.) We promise not to do sneaky things, but you should act according to your paranoia level.
+
+However be also aware that once you revoked access for Zappr, you effectively broke all checks that you enabled, because the stored access tokens were invalidated.
+</p>
+
+Initially we only fetch the first couple of repositories, so if you don't find the one you're looking for please click the blue "Sync with Github" button. It will then load all the repositories, which might take a couple of seconds. Also use this button every time you want to udpate your repository list, e.g. after renamings, deletions or when you created new repositories.
 
 ![IMAGE](img/setup/repo-list.png)
 
-To enable Zappr features on a specific repository, select a it from the list and switch the toggle to "On".
+To enable Zappr features on a specific repository, select a it from the list and switch the toggle to "On". If this repository does not contain a `.zappr.yaml` yet, we will create a pull request with some possible configuration options (not exhaustive).
 
 ![IMAGE](img/setup/repo.png)
 
@@ -30,9 +40,9 @@ It is customized by everything under `approvals`. The following options are supp
 * `ignore`: Whether Zappr should ignore approvals by the `last_committer` on the pull request, the `pr_opener`, `both` or `none`. Defaults to `none`.
 * `pattern`: Since approvals are essentially comments that match a pattern, you can configure the pattern! It's a string that will be passed to Javascript's `RegExp` constructor and defaults to `^(:+1:|👍)$`. (Tip: If you're not sure about your regex, [regex101.com](https://regex101.com/) is great to test it.)
 * `from`: By default any comment that matches the pattern is considered an approval, regardless of the author. You can change this by
- * `organization`: list organizations under `orgs` that the author has to be a public member of
- * `usernames`: list usernames under `users`
- * `collaborators`: set the `collaborators` flag to `true`
+  * `organization`: list organizations under `orgs` that the author has to be a public member of
+  * `usernames`: list usernames under `users`
+  * `collaborators`: set the `collaborators` flag to `true`
 * `groups`: If there are sets of people you absolutely want to approve every pull request in your project, you can define groups and set a `minimum` amount of approvals required by its members. Use a `from` clause (see above) to specify who's a member and who isn't.
 
 ~~~ yaml

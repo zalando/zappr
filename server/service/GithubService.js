@@ -2,7 +2,7 @@ import path from 'path'
 import nconf from '../nconf'
 import { Counter } from 'prom-client'
 import GithubServiceError from './GithubServiceError'
-import { joinURL, promiseFirst, decode, getIn, toGenericComment } from '../../common/util'
+import { joinURL, promiseFirst, decode, encode, getIn, toGenericComment } from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
 
@@ -13,6 +13,10 @@ const error = logger('github', 'error')
 const HOOK_SECRET = nconf.get('GITHUB_HOOK_SECRET')
 const VALID_ZAPPR_FILE_PATHS = nconf.get('VALID_ZAPPR_FILE_PATHS')
 const VALID_PR_TEMPLATES_PATHS = nconf.get('VALID_PR_TEMPLATE_PATHS')
+const ZAPPR_AUTOCREATED_CONFIG = nconf.get('ZAPPR_AUTOCREATED_CONFIG')
+const ZAPPR_WELCOME_BRANCH_NAME = nconf.get('ZAPPR_WELCOME_BRANCH_NAME')
+const ZAPPR_WELCOME_TITLE = nconf.get('ZAPPR_WELCOME_TITLE')
+const ZAPPR_WELCOME_TEXT = nconf.get('ZAPPR_WELCOME_TEXT')
 const COMMIT_STATUS_MAX_LENGTH = 140
 
 const API_URL_TEMPLATES = {
@@ -26,11 +30,10 @@ const API_URL_TEMPLATES = {
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
   CREATE_REF: '/repos/${owner}/${repo}/git/refs',
   PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits',
-  REPOS: '/user/repos?page=${page}&visibility=public'
-}
-
-function fromBase64(encoded) {
-  return new Buffer(encoded, 'base64').toString('utf8')
+  PULL_REQUESTS: '/repos/${owner}/${repo}/pulls',
+  BRANCH: '/repos/${owner}/${repo}/branches/${branch}',
+  COMMITS: '/repos/${owner}/${repo}/git/commits',
+  REPOS: '/user/repos?page=${page}&visibility=all'
 }
 
 export class GithubService {
@@ -62,7 +65,7 @@ export class GithubService {
       if (statusCode >= 400 && statusCode <= 499) {
         CallCounter.inc({type: '4xx'}, 1)
       } else if (statusCode >= 500 && statusCode <= 599) {
-        CallCounter.inc({ type: '5xx'}, 1)
+        CallCounter.inc({type: '5xx'}, 1)
       }
       throw new GithubServiceError(response)
     }
@@ -165,10 +168,10 @@ export class GithubService {
 
   readZapprFile(user, repo, accessToken) {
     return this._readFile(VALID_ZAPPR_FILE_PATHS, user, repo, accessToken)
-    .catch(() => {
-      info('%s/%s: No Zapprfile found, falling back to default configuration.', user, repo)
-      return ''
-    })
+               .catch(() => {
+                 info('%s/%s: No Zapprfile found, falling back to default configuration.', user, repo)
+                 return ''
+               })
   }
 
   readPullRequestTemplate(user, repo, accessToken) {
@@ -299,15 +302,142 @@ export class GithubService {
    */
   _readFile(paths, user, repo, accessToken) {
     const repoUrl = API_URL_TEMPLATES.REPO_CONTENT
-      .replace('${owner}', user).replace('${repo}', repo)
+                                     .replace('${owner}', user).replace('${repo}', repo)
 
     return promiseFirst((Array.isArray(paths) ? paths : [paths])
-      .map(filename => path.join(repoUrl, filename))
-      .map(url => this.fetchPath('GET', url, null, accessToken))
+    .map(filename => path.join(repoUrl, filename))
+    .map(url => this.fetchPath('GET', url, null, accessToken))
     ).then(({content, encoding, name}) => {
       info(`${user}/${repo}: Found ${name}.`)
       return name ? decode(content, encoding) : ''
     })
+  }
+
+  /**
+   * Creates <branch> in user/repo from <sha> in default branch.
+   *
+   * https://developer.github.com/v3/git/refs/#create-a-reference
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param sha
+   * @param accessToken
+   */
+  createBranch(user, repo, branch, sha, accessToken) {
+    const path = API_URL_TEMPLATES.CREATE_REF
+                                  .replace('${owner}', user)
+                                  .replace('${repo}', repo)
+    const payload = {
+      ref: `refs/heads/${branch}`,
+      sha
+    }
+
+    return this.fetchPath('POST', path, payload, accessToken)
+  }
+
+  /**
+   * Returns true if user/repo contains a Zapprfile, false otherwise.
+   * @param user
+   * @param repo
+   * @param accessToken
+   * @returns {Promise.<boolean>}
+   */
+  hasZapprFile(user, repo, accessToken) {
+    return this._readFile(VALID_ZAPPR_FILE_PATHS, user, repo, accessToken)
+               .then(() => true)
+               .catch(() => false)
+  }
+
+  /**
+   * Creates a file with the given content in the given branch of user/repo.
+   *
+   * https://developer.github.com/v3/repos/contents/#create-a-file
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param path
+   * @param content
+   * @param accessToken
+   */
+  createFile(user, repo, branch, path, content, accessToken) {
+    debug(`${user}/${repo}: Creating file ${path} on branch ${branch}`)
+    const url = API_URL_TEMPLATES.REPO_CONTENT
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo) + `${path}`
+    const message = `Create ${path}`
+    const encodedContent = encode(content)
+    return this.fetchPath('PUT', url, {message, branch, content: encodedContent}, accessToken)
+  }
+
+  /**
+   * Creates a pull request in user/repo with the given data.
+   *
+   * https://developer.github.com/v3/pulls/#create-a-pull-request
+   *
+   * @param user
+   * @param repo
+   * @param head
+   * @param base
+   * @param title
+   * @param body
+   * @param accessToken
+   */
+  createPullRequest(user, repo, head, base, title, body, accessToken) {
+    debug(`${user}/${repo}: Creating pull request "${title}"`)
+    const url = API_URL_TEMPLATES.PULL_REQUESTS
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+    const payload = {
+      title,
+      head,
+      base,
+      body
+    }
+    return this.fetchPath('POST', url, payload, accessToken)
+  }
+
+  /**
+   * Returns information about <branch> in user/repo.
+   *
+   * https://developer.github.com/v3/repos/branches/#get-branch
+   * @param user
+   * @param repo
+   * @param branch
+   * @param accessToken
+   */
+  getBranch(user, repo, branch, accessToken) {
+    debug(`${user}/${repo}: Fetching branch ${branch}`)
+    const url = API_URL_TEMPLATES.BRANCH
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    return this.fetchPath('GET', url, null, accessToken)
+  }
+
+  /**
+   * Creates a pull request in user/repo to be merged in base, that
+   * contains an example Zappr configuration and a brief explanation
+   * of Zappr.
+   *
+   * @param user
+   * @param repo
+   * @param base
+   * @param accessToken
+   */
+  async proposeZapprfile(user, repo, base, accessToken) {
+    // find latest commit on default branch
+    const branchInfo = await this.getBranch(user, repo, base, accessToken)
+    const headSHA = branchInfo.commit.sha
+    // create branch
+    await this.createBranch(user, repo, ZAPPR_WELCOME_BRANCH_NAME, headSHA, accessToken)
+    // create zapprfile
+    await this.createFile(user, repo, ZAPPR_WELCOME_BRANCH_NAME, VALID_ZAPPR_FILE_PATHS[0], ZAPPR_AUTOCREATED_CONFIG, accessToken)
+    // open pull request
+    const title = ZAPPR_WELCOME_TITLE
+    const body = ZAPPR_WELCOME_TEXT
+    return this.createPullRequest(user, repo, ZAPPR_WELCOME_BRANCH_NAME, base, title, body, accessToken)
   }
 }
 

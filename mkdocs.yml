@@ -8,5 +8,8 @@ pages:
   - Comparison to other tools: competitors.md
   - Run your own: run-your-own.md
   - FAQ: faq.md
+  - Terms of Service: tos.md
+  - Cookies: cookies.md
+  - Imprint and Data protection declaration: imprint.md
 extra_css:
   - images.css

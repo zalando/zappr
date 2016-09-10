@@ -1,0 +1,77 @@
+{
+  "name": "master",
+  "commit": {
+    "sha": "3c948365144a8141b8ab37d3e8613659f09ad7f5",
+    "commit": {
+      "author": {
+        "name": "Nikolaus Piccolotto",
+        "email": "prayerslayer@gmail.com",
+        "date": "2016-08-19T15:38:31Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2016-08-19T15:38:31Z"
+      },
+      "message": "fix not so optional dependencies, upgrade docker base image (#415)",
+      "tree": {
+        "sha": "bb485707eeecdab413f1413b8d5d3a86770e75ba",
+        "url": "https://api.github.com/repos/zalando/zappr/git/trees/bb485707eeecdab413f1413b8d5d3a86770e75ba"
+      },
+      "url": "https://api.github.com/repos/zalando/zappr/git/commits/3c948365144a8141b8ab37d3e8613659f09ad7f5",
+      "comment_count": 0
+    },
+    "url": "https://api.github.com/repos/zalando/zappr/commits/3c948365144a8141b8ab37d3e8613659f09ad7f5",
+    "html_url": "https://github.com/zalando/zappr/commit/3c948365144a8141b8ab37d3e8613659f09ad7f5",
+    "comments_url": "https://api.github.com/repos/zalando/zappr/commits/3c948365144a8141b8ab37d3e8613659f09ad7f5/comments",
+    "author": {
+      "login": "prayerslayer",
+      "id": 878512,
+      "avatar_url": "https://avatars.githubusercontent.com/u/878512?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/prayerslayer",
+      "html_url": "https://github.com/prayerslayer",
+      "followers_url": "https://api.github.com/users/prayerslayer/followers",
+      "following_url": "https://api.github.com/users/prayerslayer/following{/other_user}",
+      "gists_url": "https://api.github.com/users/prayerslayer/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/prayerslayer/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/prayerslayer/subscriptions",
+      "organizations_url": "https://api.github.com/users/prayerslayer/orgs",
+      "repos_url": "https://api.github.com/users/prayerslayer/repos",
+      "events_url": "https://api.github.com/users/prayerslayer/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/prayerslayer/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "8d20d14b986fd44797277c85f0581672e5fe963e",
+        "url": "https://api.github.com/repos/zalando/zappr/commits/8d20d14b986fd44797277c85f0581672e5fe963e",
+        "html_url": "https://github.com/zalando/zappr/commit/8d20d14b986fd44797277c85f0581672e5fe963e"
+      }
+    ]
+  },
+  "_links": {
+    "self": "https://api.github.com/repos/zalando/zappr/branches/master",
+    "html": "https://github.com/zalando/zappr/tree/master"
+  }
+}

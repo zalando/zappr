@@ -1,6 +1,7 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { Row, Col, Alert } from 'react-bootstrap'
+import DocumentTitle from 'react-document-title'
 
 import RepositoryBrowser from '../components/RepositoryBrowser.jsx'
 import { requestReposIfNeeded, filterRepos } from '../actions/repos';
@@ -27,18 +28,20 @@ class Home extends Component {
       : null
 
     return (
-      <Row className="zpr-home">
-        <Col md={12}>
-          {error ?
-            <Alert bsStyle='danger'>Could not fetch repositories: {error.status} {error.title} {error.detail}</Alert>
-            :
-            <RepositoryBrowser repos={repos}
-                               fetchAll={requestReposIfNeeded}
-                               filterRepos={filterRepos}
-                               selected={selectedRepo}/>
-          }
-        </Col>
-      </Row>
+      <DocumentTitle title="Zappr">
+        <Row className="zpr-home">
+          <Col md={12}>
+            {error ?
+              <Alert bsStyle='danger'>Could not fetch repositories: {error.status} {error.title} {error.detail}</Alert>
+              :
+              <RepositoryBrowser repos={repos}
+                                 fetchAll={requestReposIfNeeded}
+                                 filterRepos={filterRepos}
+                                 selected={selectedRepo}/>
+            }
+          </Col>
+        </Row>
+      </DocumentTitle>
     )
   }
 }

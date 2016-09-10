@@ -7,13 +7,18 @@ SESSION_SECRET: secret
 
 # Override Github client id and secret with your
 # own values as defined in your Github account.
-GITHUB_CLIENT_ID: id
-GITHUB_CLIENT_SECRET: secret
+GITHUB_CLIENT_ID: clientId
+GITHUB_CLIENT_SECRET: clientSecret
 GITHUB_HOOK_SECRET: captainHook
-GITHUB_SCOPES:
-  - user:email
-  - public_repo
-  - admin:repo_hook
+GITHUB_ACCESS_LEVELS:
+  minimal:
+    - user:email
+    - admin:repo_hook
+    - public_repo
+  extended:
+    - user:email
+    - admin:repo_hook
+    - repo
 # See https://developer.github.com/v3/enterprise
 # for GitHub Enterprise configuration.
 GITHUB_UI_URL: https://github.com
@@ -21,7 +26,7 @@ GITHUB_API_URL: https://api.github.com
 
 # Address of the web application host
 # that ZAPPR is going to run on.
-HOST_ADDR: http://127.0.0.1:8080
+HOST_ADDR: http://localhost:8080
 APP_PORT: 3000
 METRICS_PORT: 3003
 METRICS_ENABLED: true
@@ -36,12 +41,11 @@ DB_DRIVER: sqlite
 #DB_PASS: postgres
 #DB_HOST: 192.168.99.100
 #DB_PORT: 5432
-#DB_SCHEMA: zappr
 SQLITE_FILE: ./zappr.sqlite
 
 # Token encryption
-# Options: [~, kms]
-ENCRYPTION_ENGINE: ~
+# Options: [~, fake, kms]
+ENCRYPTION_ENGINE: fake
 # ENCRYPTION_KEY: [aws kms arn]
 # KMS_REGION: eu-west-1
 
@@ -99,3 +103,60 @@ ZAPPR_DEFAULT_CONFIG:
       contains-issue-number: true
     template:
       differs-from-body: true
+
+ZAPPR_AUTOCREATED_CONFIG: |
+  # this is how you configure zappr
+  # a more exhaustive description is at
+  # https://zappr.readthedocs.io/en/latest/setup
+
+  # uncomment this if you want to change anything
+  # approvals:
+  #   by default, an approval is the thumbs up emoji only: ^:\\+1:$
+  #   uncomment this line to change the approval pattern to "lgtm" at the beginning of the comment
+  #   pattern: "^lgtm"
+
+  #   by default, every pull request requires two approvals
+  #   uncomment this line to change it to three
+  #   minimum: 3
+
+  #   by default, the pull request opener can approve its own pull request
+  #   uncomment this line to ignore approvals from the pull request opener
+  #   (there is also `last_committer` and `both`)
+  #   ignore: pr_opener
+
+  #   by default, zappr counts everyone as a valid approver
+  #   uncomment these lines to change it to only collaborators
+  #   (you can also specify `orgs` and `users` and define `groups`)
+  #   from:
+  #     collaborators: true
+
+ZAPPR_WELCOME_BRANCH_NAME: configure-zappr
+ZAPPR_WELCOME_TITLE: Configure Zappr
+ZAPPR_WELCOME_TEXT: |
+  This is a reduced example of a [configuration file](https://zappr.readthedocs.io/en/latest/setup) for Zappr.
+  If you have questions you can reach us
+
+    * in our [Gitter channel](https://gitter.im/zalando/zappr)
+    * on [Twitter](https://twitter.com/zalando_zappr)
+
+  These are the features we currently support:
+
+  ## Approvals
+
+    * Approve pull requests with comments and configurable pattern
+    * "Veto" (ie. block) pull requests with comments and configurable pattern
+    * Configure how many approvals your pull request needs before merging
+    * Extensively configure who can approve or veto in your project
+
+  ## Specification guidelines
+
+    * Configure minimum length of pull request title and description
+    * Configure if pull request description can be the same as pull request template
+
+  ## Commit message guidelines
+
+    * Configure patterns that all commits in a pull request must match
+
+  ## Automatic branch creation
+
+    * Automatically create a branch in your repository for every issue

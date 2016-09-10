@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import Optional from '../components/Optional.jsx'
 import AppNavHeader from '../components/NavHeader.jsx'
 import LoginNavHeader from '../components/LoginNavHeader.jsx'
+import CookieBanner from '../components/CookieBanner.jsx'
 import { requestReposIfNeeded } from '../actions/repos'
 import { logger } from '../../common/debug'
 
@@ -12,6 +13,7 @@ const log = logger('app')
 function mapStateToProps(state) {
   return {
     user: state.user,
+    usingExtendedAccess: state.env.USING_EXTENDED_ACCESS,
     isAuthenticated: state.auth.isAuthenticated
   }
 }
@@ -35,9 +37,11 @@ class App extends Component {
     const showLogin = this.props.location.pathname.search(/^\/login/) !== -1
     return (
       <div className='zpr-app'>
+        <CookieBanner/>
         <Optional if={!showLogin}>
           <AppNavHeader path={this.props.location.pathname}
-                        user={this.props.user}/>
+                        user={this.props.user}
+                        usingExtendedAccess={this.props.usingExtendedAccess}/>
         </Optional>
         <Optional if={showLogin}>
           <LoginNavHeader />
