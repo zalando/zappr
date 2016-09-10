@@ -1,4 +1,10 @@
-import { Approval, Autobranch, CommitMessage, Specification } from '../checks'
+import {
+  Approval,
+  Autobranch,
+  CommitMessage,
+  Specification,
+  PullRequestLabels
+} from '../checks'
 import createAuditService from '../service/AuditServiceCreator'
 import { logger } from '../../common/debug'
 import { githubService as defaultGithubService } from '../service/GithubService'
@@ -27,6 +33,7 @@ class HookHandler {
     this.autobranch = new Autobranch(this.githubService)
     this.commitMessage = new CommitMessage(this.githubService)
     this.specification = new Specification(this.githubService)
+    this.pullrequestlabels = new PullRequestLabels(this.githubService)
   }
 
   /**
@@ -71,6 +78,11 @@ class HookHandler {
       if (CommitMessage.isTriggeredBy(event)) {
         getToken(repo, CommitMessage.TYPE).then(token =>
           this.commitMessage.execute(config, payload, token)
+        )
+      }
+      if (PullRequestLabels.isTriggeredBy(event)) {
+        getToken(repo, PullRequestLabels.TYPE).then(token =>
+          this.pullrequestlabels.execute(config, payload, token)
         )
       }
     }

@@ -5,6 +5,9 @@ import {
   encode,
   decode,
   setDifference,
+  setEquals,
+  setUnion,
+  setIntersection,
   promiseReduce,
   promiseFirst,
   symbolToString
@@ -20,6 +23,55 @@ describe('common/util', () => {
       expect(symbolToString(1)).to.equal(1)
       const noSymbol = {}
       expect(symbolToString(noSymbol)).to.equal(noSymbol)
+    })
+  })
+
+  describe('setUnion', () => {
+    it('returns a union of sets', () => {
+      const set1 = new Set([1, 2, 3])
+      const set2 = new Set([1, 2])
+      const union = setUnion(set1, set2)
+      expect(union.size).to.equal(3)
+      expect([...union]).to.deep.equal([1, 2, 3])
+    })
+
+    it('works on arrays', () => {
+      const array1 = [1, 2, 3]
+      const array2 = [1, 2]
+      const union = setUnion(array1, array2)
+      expect(union.size).to.equal(3)
+      expect([...union]).to.deep.equal([1, 2, 3])
+    })
+  })
+
+  describe('setEquals', () => {
+    it('should return true if sets are equal', () => {
+      const set1 = new Set([1, 2, 3])
+      const set2 = new Set([3, 2, 1])
+      expect(setEquals(set1, set2)).to.be.true
+    })
+
+    it('should return false if sets are not equal', () => {
+      const set1 = new Set([1, 2, 3])
+      const set2 = new Set([1, 2])
+      expect(setEquals(set1, set2)).to.be.false
+    })
+  })
+
+  describe('setIntersection', () => {
+    it('should return the intersection of two sets', () => {
+      const set1 = new Set([1, 2, 3, 4])
+      const set2 = new Set([2, 3])
+      const intersect = setIntersection(set1, set2)
+      expect(intersect.size).to.equal(2)
+      expect([...intersect]).to.deep.equal([2, 3])
+    })
+
+    it('should return empty set if sets are disjoint', () => {
+      const set1 = new Set([1, 2, 3, 4])
+      const set2 = new Set([5, 6, 7, 8])
+      const intersect = setIntersection(set1, set2)
+      expect(intersect.size).to.equal(0)
     })
   })
 
