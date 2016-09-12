@@ -1,6 +1,6 @@
 import Check, { getPayloadFn } from './Check'
 import { PULL_REQUEST } from '../model/GithubEvents'
-import { getIn, setIntersection, setDifference } from '../../common/util';
+import { getIn, setDifference } from '../../common/util';
 import { logger } from '../../common/debug'
 
 const CHECK_TYPE = 'pullrequestlabels'
@@ -11,20 +11,23 @@ const context = 'zappr/pr/labels'
 const createStatePayload = getPayloadFn(context)
 
 export function generateStatus(labels, checkConfig) {
-  const {required, verboten} = checkConfig
+  const {required, additional} = checkConfig
   const requiredSet = new Set(required)
-  const verbotenSet = new Set(verboten)
   const labelSet = new Set(labels)
 
-  const verbotenLabels = setIntersection(labelSet, verbotenSet)
-  if (verbotenLabels.size > 0) {
-    return createStatePayload(`PR has verboten labels: ${[...verbotenLabels].join(', ')}.`, 'failure')
-  }
   const missingLabels = setDifference(requiredSet, labelSet)
   if (missingLabels.size > 0) {
     return createStatePayload(`PR misses required labels: ${[...missingLabels].join(', ')}.`, 'failure')
   }
-  return createStatePayload(`PR has all required labels.`)
+  if (additional) {
+    // if additional labels are allowed, we don't care about them
+    return createStatePayload(`PR has all required labels.`)
+  } else {
+    const redundantLabels = setDifference(labelSet, requiredSet)
+    return redundantLabels.size === 0 ?
+      createStatePayload(`PR has all required labels.`) :
+      createStatePayload(`PR has redundant labels: ${[...redundantLabels].join(', ')}.`, 'failure')
+  }
 }
 
 export default class PullRequestLabels extends Check {
@@ -43,20 +46,20 @@ export default class PullRequestLabels extends Check {
     const repoName = repository.name
     const fullName = repository.full_name
     try {
-      const {required, verboten} = getIn(config, ['pull-request', 'labels'], {required: [], verboten: []})
-      if (required.length === 0 && verboten.length === 0) {
+      const {required, additional} = getIn(config, ['pull-request', 'labels'], {required: [], additional: false})
+      if (required.length === 0) {
         // there is nothing to check against
         info(`${fullName}#${number}: Configuration is empty, nothing to do.`)
         return
       }
       if (['labeled', 'unlabeled', 'opened', 'reopened'].indexOf(action) !== -1 && pull_request.state === 'open') {
         const labels = await this.github.getIssueLabels(repoOwner, repoName, number, token)
-        const status = generateStatus(labels, {required, verboten})
-        debug(`${fullName}#${number}: ${labels} (required: ${required}, verboten: ${verboten})`)
+        const status = generateStatus(labels, {required, additional})
+        debug(`${fullName}#${number}: ${labels} (required: ${required}, additional: ${additional})`)
         info(`${fullName}#${number}: Set status to ${status.state}.`)
         await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
       }
-    } catch(e) {
+    } catch (e) {
       error(`${fullName}#${number}: Could not execute Pull Request Labels check`, e)
       const status = createStatePayload(`Error: ${e.message}`, 'error')
       await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)

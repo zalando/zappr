@@ -1,42 +1,44 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
-import {GithubService} from '../../server/service/GithubService'
+import { GithubService } from '../../server/service/GithubService'
 import PullRequestLabels, { generateStatus } from '../../server/checks/PullRequestLabels'
 
 
 describe('Pull Request Labels', () => {
   describe('#generateStatus', () => {
-    it('generates failure when verboten labels are present', () => {
+    it('generates failure when there are redundant labels and additional = false', () => {
       const labels = ['work-in-progress', 'approved']
-      const verboten = ['work-in-progress']
-      const status = generateStatus(labels, {verboten, required: []})
-      expect(status.description).to.equal(`PR has verboten labels: work-in-progress.`)
-      expect(status.state).to.equal('failure')
-    })
-
-    it('generates failure when required labels are missing', () => {
-      const labels = ['approved']
-      const required = ['ux-approved', 'approved']
-      const status = generateStatus(labels, {required, verboten: []})
-      expect(status.description).to.equal(`PR misses required labels: ux-approved.`)
-      expect(status.state).to.equal('failure')
-    })
-
-    it('checks verboten first', () => {
-      const labels = ['approved', 'ux-approved', 'work-in-progress']
-      const required = ['ux-approved', 'approved']
-      const verboten = ['work-in-progress']
-      const status = generateStatus(labels, {required, verboten})
-      expect(status.description).to.equal(`PR has verboten labels: work-in-progress.`)
-      expect(status.state).to.equal('failure')
-    })
-
-    it('generates success otherwise', () => {
-      const labels = ['approved']
       const required = ['approved']
-      const status = generateStatus(labels, {required, verboten: []})
-      expect(status.description).to.equal('PR has all required labels.')
+      const status = generateStatus(labels, {additional: false, required})
+      expect(status.description).to.equal(`PR has redundant labels: work-in-progress.`)
+      expect(status.state).to.equal('failure')
+    })
+
+    it('generates success when there are redundant labels and additional = true', () => {
+      const labels = ['work-in-progress', 'approved']
+      const required = ['approved']
+      const status = generateStatus(labels, {additional: true, required})
+      expect(status.description).to.equal(`PR has all required labels.`)
       expect(status.state).to.equal('success')
+    })
+
+    const ADDITIONAL = [true, false]
+    ADDITIONAL.forEach(additional => {
+      it(`[additional: ${additional}] generates failure when required labels are missing`, () => {
+        const labels = ['approved']
+        const required = ['ux-approved', 'approved']
+        const status = generateStatus(labels, {required, additional})
+        expect(status.description).to.equal(`PR misses required labels: ux-approved.`)
+        expect(status.state).to.equal('failure')
+      })
+
+      it(`[additional: ${additional}] generates success otherwise`, () => {
+        const labels = ['approved']
+        const required = ['approved']
+        const status = generateStatus(labels, {required, additional})
+        expect(status.description).to.equal('PR has all required labels.')
+        expect(status.state).to.equal('success')
+      })
     })
   })
 
@@ -68,7 +70,7 @@ describe('Pull Request Labels', () => {
       'pull-request': {
         labels: {
           required: ['approved'],
-          verboten: ['wip']
+          additional: false
         }
       }
     }
@@ -120,7 +122,7 @@ describe('Pull Request Labels', () => {
 
     it('calls githubService with correct arguments', async(done) => {
       try {
-        github.getIssueLabels = sinon.stub().returns(['wip'])
+        github.getIssueLabels = sinon.stub().returns(['approved', 'wip'])
         await prLabels.execute(CONFIG, PAYLOAD, TOKEN)
         expect(github.getIssueLabels.args).to.deep.equal([
           ['prayerslayer', 'hello-world', 1, TOKEN]
@@ -128,7 +130,7 @@ describe('Pull Request Labels', () => {
         const expectedStatus = {
           state: 'failure',
           context: 'zappr/pr/labels',
-          description: `PR has verboten labels: wip.`
+          description: `PR has redundant labels: wip.`
         }
         expect(github.setCommitStatus.args).to.deep.equal([
           ['prayerslayer', 'hello-world', 'commit-id', expectedStatus, TOKEN]
