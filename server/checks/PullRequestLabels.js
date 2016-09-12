@@ -46,7 +46,7 @@ export default class PullRequestLabels extends Check {
     const repoName = repository.name
     const fullName = repository.full_name
     try {
-      const {required, additional} = getIn(config, ['pull-request', 'labels'], {required: [], additional: false})
+      const {required, additional} = getIn(config, ['pull-request', 'labels'], {required: [], additional: true})
       if (required.length === 0) {
         // there is nothing to check against
         info(`${fullName}#${number}: Configuration is empty, nothing to do.`)

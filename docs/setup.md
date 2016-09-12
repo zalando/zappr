@@ -169,7 +169,6 @@ pull-request:
     # pull request cannot be merged without these labels
     required:
       - reviewed
-    # pull request cannot be merged with these labels
-    verboten:
-      - WIP
+    # allow additional labels to be present. true is the default..
+    additional: true
 ~~~
