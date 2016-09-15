@@ -65,6 +65,7 @@ async function decryptTokenHook(thing) {
 function getParameters(driver = nconf.get('DB_DRIVER')) {
   const options = {
     logging: log,
+    benchmark: true,
     hooks: {
       afterFind: decryptTokenHook
     },
