@@ -45,7 +45,8 @@ describe('API', () => {
 
     try {
       // Initialize database
-      await db.sync()
+      await db.createSchemas()
+      await db._sync()
 
       // Load fixtures
       fixtures.user = testUser
