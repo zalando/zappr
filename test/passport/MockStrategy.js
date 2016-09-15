@@ -10,15 +10,16 @@ const props = {
     id: 1,
     accessToken: 'abcd',
     username: 'test',
-    _json: {
-      id: 1
+    json: {
+      id: 1,
+      login: 'test',
     }
   }
 }
 
 export function setUserId(id) {
   props.user.id = id
-  props.user._json.id = id
+  props.user.json.id = id
 }
 
 export function setUserName(name) {

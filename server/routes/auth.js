@@ -2,7 +2,7 @@ import nconf from '../nconf'
 import passport from 'koa-passport'
 import UserHandler from '../handler/UserHandler'
 import * as AccessLevel from '../../common/AccessLevels'
-import {logger} from '../../common/debug'
+import { logger } from '../../common/debug'
 
 const info = logger('api-auth', 'info')
 
@@ -31,7 +31,7 @@ export function login(router) {
 export async function ensureModeMiddleware(ctx, next) {
   const user = ctx.req.user
   info(`ensureMode start`)
-  if (!!user) {
+  if (!!user && !!user.json) {
     info(`ensureMode:${user.json.login}`)
     const {access_level} = await UserHandler.onGet(user.id)
     info(`ensureMode:${user.json.login}: level = "${access_level}" (DB)`)
