@@ -45,3 +45,6 @@ ZAPPR_DEFAULT_CONFIG:
       contains-issue-number: true
     template:
       differs-from-body: true
+  pull-request:
+    labels:
+      additional: true

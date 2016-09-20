@@ -1,4 +1,4 @@
-import Check from './Check'
+import Check, {getPayloadFn} from './Check'
 import { logger } from '../../common/debug'
 import { getIn } from '../../common/util'
 import * as EVENTS from '../model/GithubEvents'
@@ -8,6 +8,7 @@ const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
 const context = 'zappr/commit/message'
 const SHORT_SHA_LENGTH = 7
+const createStatePayload = getPayloadFn(context)
 
 /**
  * Takes RegExps and returns a function that takes a string
@@ -32,14 +33,6 @@ export function getAnyMatcherFn(regexes) {
  */
 function isMergeCommit({parents}) {
   return Array.isArray(parents) && parents.length > 1
-}
-
-function createStatePayload(description, state = 'success') {
-  return {
-    state,
-    context,
-    description
-  }
 }
 
 export default class CommitMessage extends Check {

@@ -20,7 +20,10 @@ const INFO_TEXT = {
   </p>,
   specification: <p>The specification check (<a
     href='https://zappr.readthedocs.io/en/latest/setup/#specification'>docs</a>) will verify that a pull request's title
-    and body conform to the length and content requirements.</p>
+    and body conform to the length and content requirements.</p>,
+  pullrequestlabels: <p>The pull request labels check will verify that an open pull request has (or does not have)
+    labels you defined before it can be merged. (Examples could be <code>Work in progress</code> or <code>Review needed</code>.)
+  </p>
 }
 
 export default class RepositoryCheck extends Component {

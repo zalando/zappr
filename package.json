@@ -6,6 +6,7 @@
   "scripts": {
     "test": "npm run test-common && npm run test-client && npm run test-server",
     "test-common": "DEBUG='zappr:test' NODE_ENV=test BABEL_ENV=test BABEL_DISABLE_CACHE=1 mocha --recursive --compilers js:babel-register test/common/",
+    "test-common:watch": "DEBUG='zappr:test' NODE_ENV=test BABEL_ENV=test BABEL_DISABLE_CACHE=1 mocha --recursive --compilers js:babel-register test/common/ --reporter min --watch",
     "test-client": "DEBUG='zappr:test' BABEL_ENV=test BABEL_DISABLE_CACHE=1 mocha --recursive --compilers js:babel-register test/client/",
     "test-server": "DEBUG='zappr:test' MORGAN_THRESH=999 NODE_ENV=test BABEL_ENV=test BABEL_DISABLE_CACHE=1 SQLITE_FILE=':memory:' mocha --recursive --compilers js:babel-register test/server/",
     "test-server:watch": "DEBUG='zappr:test' MORGAN_THRESH=999 NODE_ENV=test BABEL_ENV=test BABEL_DISABLE_CACHE=1 SQLITE_FILE=':memory:' mocha --recursive --compilers js:babel-register test/server/ --reporter min --watch",

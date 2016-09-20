@@ -1,3 +1,14 @@
+export function getPayloadFn(context) {
+  return function createStatePayload(description, state = 'success') {
+    return {
+      state,
+      context,
+      description
+    }
+  }
+}
+
+
 export default class Check {
   /**
    * @param {string} event

@@ -30,6 +30,7 @@ const API_URL_TEMPLATES = {
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
   CREATE_REF: '/repos/${owner}/${repo}/git/refs',
   PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits',
+  ISSUE: '/repos/${owner}/${repo}/issues/${number}',
   PULL_REQUESTS: '/repos/${owner}/${repo}/pulls',
   BRANCH: '/repos/${owner}/${repo}/branches/${branch}',
   COMMITS: '/repos/${owner}/${repo}/git/commits',
@@ -438,6 +439,24 @@ export class GithubService {
     const title = ZAPPR_WELCOME_TITLE
     const body = ZAPPR_WELCOME_TEXT
     return this.createPullRequest(user, repo, ZAPPR_WELCOME_BRANCH_NAME, base, title, body, accessToken)
+  }
+
+  /**
+   * Returns all labels present on an issue/pull request.
+   *
+   * @param user
+   * @param repo
+   * @param number
+   * @param token
+   * @returns {Array<string>}
+   */
+  async getIssueLabels(user, repo, number, token) {
+    const url = API_URL_TEMPLATES.ISSUE
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${number}', number)
+    const issue = await this.fetchPath('GET', url, null, token)
+    return issue.labels.map(l => l.name)
   }
 }
 

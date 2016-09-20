@@ -156,3 +156,19 @@ specification:
      # is different from pull request body
      differs-from-body: true
 ~~~
+
+### Pull Request Labels
+
+With the Pull Request Labels check you can block a pull request until it has the required set of labels. For instance you could use a label `WIP` to mark work in progress (and block merges) together with a label `reviewed` indicate that review is finished (and the pull request can be merged).
+
+It is configured under `pull-request.labels` and supports two options:
+
+~~~ yaml
+pull-request:
+  labels:
+    # pull request cannot be merged without these labels
+    required:
+      - reviewed
+    # allow additional labels to be present. true is the default..
+    additional: true
+~~~
