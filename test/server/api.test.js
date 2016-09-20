@@ -9,8 +9,13 @@ import MockStrategy, { setUserId, setUserName } from '../passport/MockStrategy'
 import { init as initApp } from '../../server/server'
 import { db, Repository, Check, UserRepository } from '../../server/model'
 import { logger } from '../../common/debug'
+import { encode } from '../../common/util'
 
 const debug = logger('test:api')
+
+function call(mountebankCall) {
+  return `${mountebankCall.method} ${mountebankCall.path}`
+}
 
 describe('API', () => {
   const testUser = require('../fixtures/github.user.a.json')
@@ -29,108 +34,202 @@ describe('API', () => {
     repoName: null
   }
 
-  before(async (done) => {
+  before(async(done) => {
     // Override config values
     nconf.set('GITHUB_UI_URL', `http://localhost:${imposter.port}`)
     nconf.set('GITHUB_API_URL', `http://localhost:${imposter.port}`)
     nconf.set('HOST_ADDR', 'http://127.0.0.1:8080')
-    
+
     app = initApp({PassportStrategy: MockStrategy})
     request = supertest.agent(app.listen())
 
     try {
       // Initialize database
-      await db.sync()
+      await db.createSchemas()
+      await db._sync()
 
       // Load fixtures
       fixtures.user = testUser
       fixtures.repos = require('../fixtures/github.user.a.repos.json')
-      fixtures.repo = fixtures.repos[0]
+      fixtures.repo = fixtures.repos[0] // zappr
       fixtures.repoOwner = fixtures.repo.owner.login
       fixtures.repoName = fixtures.repo.name
+
+      fixtures.repo2 = fixtures.repos[2] // hello-world
+      fixtures.repo2FullName = fixtures.repo2.full_name
+      fixtures.branch = require('../fixtures/github.repo.branches.json')
+      fixtures.refCreated = require('../fixtures/github.repo.ref.created.json')
       fixtures.validZappr = require('../fixtures/github.zapprfile.valid.json')
       fixtures.invalidZappr = require('../fixtures/github.zapprfile.invalid.json')
       fixtures.noZappr = require('../fixtures/github.zapprfile.notfound.json')
 
       // Configure mountebank
       const mb = await mountebank.start()
-      await mb.imposter().
-      setPort(imposter.port).
-      setName(imposter.name).
-      stub().
-        response().
-          setStatusCode(200).
-          setHeader('Content-Type', 'application/json').
-          setBody(fixtures.validZappr).
-        add().
-        predicate().
-          setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/contents/.zappr.yaml`).
-          setMethod('GET').
-        add().
-      add().
-      stub().
-        response().
-          setStatusCode(200).
-          setHeader('Content-Type', 'application/json').
-          setBody(fixtures.invalidZappr).
-        add().
-        predicate().
-          setPath(`/repos/${fixtures.repos[1].full_name}/contents/.zappr.yaml`).
-          setMethod('GET').
-        add().
-      add().
-      stub().
-        response().
-          setStatusCode(200).
-          setHeader('Content-Type', 'application/json').
-          setBody(require('../fixtures/github.repo.hooks.json')).
-        add().
-        predicate().
-          setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks`).
-          setMethod('GET').
-        add().
-      add().
-      stub().
-        response().
-          setStatusCode(200).
-        add().
-        predicate().
-          setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`).
-          setMethod('PATCH').
-        add().
-      add().
-      stub().
-        response().
-          setStatusCode(200).
-        add().
-        predicate().
-          setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`).
-          setMethod('DELETE').
-        add().
-      add().
-      stub().
-        response().
-          setStatusCode(200).
-          setHeader('Content-Type', 'application/json').
-          setBody(fixtures.repos).
-        add().
-        predicate().
-          setPath('/user/repos').
-          setMethod('GET').
-        add().
-      add().
-      stub().
-        response().
-          setStatusCode(200).
-          setHeader('Content-Type', 'application/json').
-          setBody(fixtures.user).
-        add().
-        predicate().
-          setPath('/user').
-          setMethod('GET').
-        add().
-      add().
-      create()
+      // @formatter:off
+      await mb.imposter()
+              .setPort(imposter.port)
+              .setName(imposter.name)
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.validZappr)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/contents/.zappr.yaml`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.invalidZappr)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repos[1].full_name}/contents/.zappr.yaml`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(require('../fixtures/github.repo.hooks.json'))
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`)
+                  .setMethod('PATCH')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`)
+                  .setMethod('DELETE')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.repos)
+                .add()
+                .predicate()
+                  .setPath('/user/repos')
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.user)
+                .add()
+                .predicate()
+                  .setPath('/user')
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(404)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.noZappr)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/contents/.zappr.yaml`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(404)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.noZappr)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/contents/.zappr.yml`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.branch)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/branches/master`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.refCreated)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/git/refs`)
+                  .setMethod('POST')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody({}) // irrelevant
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/contents/.zappr.yaml`)
+                  .setMethod('PUT')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody({}) // also irrelevant
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/pulls`)
+                  .setMethod('POST')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(require('../fixtures/github.repo.hooks.json'))
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/hooks`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/hooks/123`)
+                  .setMethod('PATCH')
+                .add()
+              .add()
+              .create()
+      // @formatter:on
 
       done()
     } catch (err) {
@@ -147,7 +246,7 @@ describe('API', () => {
   after(done => mountebank.stop().then(done).catch(done))
 
   describe('GET /api/repos', () => {
-    it('should work with token and no session', async (done) => {
+    it('should work with token and no session', async(done) => {
       try {
         await request.get('/logout')
         await request.get('/api/repos')
@@ -160,7 +259,7 @@ describe('API', () => {
       }
     })
 
-    it('should not work without session and token', async (done) => {
+    it('should not work without session and token', async(done) => {
       try {
         await request.get('/logout')
         await request.get('/api/repos')
@@ -172,7 +271,7 @@ describe('API', () => {
       }
     })
 
-    it('should not work with wrong token type', async (done) => {
+    it('should not work with wrong token type', async(done) => {
       try {
         await request.get('/logout')
         await request.get('/api/repos')
@@ -185,7 +284,7 @@ describe('API', () => {
       }
     })
 
-    it('should not work with wrong header format', async (done) => {
+    it('should not work with wrong header format', async(done) => {
       try {
         await request.get('/logout')
         await request.get('/api/repos')
@@ -200,17 +299,17 @@ describe('API', () => {
 
     it('should respond with github repos', done => {
       request
-        .get('/api/repos')
-        .set('Accept', 'application/json')
-        .expect(200)
-        .expect('Content-Type', /json/)
-        .expect(({body}) => {
-          expect(body).to.be.an('array').and.to.have.length.above(1)
-          expect(body).to.have.deep.property('[0].id').that.is.a('number')
-          expect(body).to.have.deep.property('[0].checks').that.is.a('array')
-          expect(body).to.have.deep.property('[0].json').that.is.an('object')
-        })
-        .end(done)
+      .get('/api/repos')
+      .set('Accept', 'application/json')
+      .expect(200)
+      .expect('Content-Type', /json/)
+      .expect(({body}) => {
+        expect(body).to.be.an('array').and.to.have.length.above(1)
+        expect(body).to.have.deep.property('[0].id').that.is.a('number')
+        expect(body).to.have.deep.property('[0].checks').that.is.a('array')
+        expect(body).to.have.deep.property('[0].json').that.is.an('object')
+      })
+      .end(done)
     })
 
     it('should exclude the github token from the checks', async(done)=> {
@@ -239,16 +338,16 @@ describe('API', () => {
       }
     })
 
-    it('should cache the response in the database', async (done) => {
+    it('should cache the response in the database', async(done) => {
       try {
         const {body} = await request.get('/api/repos')
         // Load repos from the database and transform
         // them into a format equal to the HTTP response.
         const repos = await Repository.userScope(fixtures.user)
-          .findAllSorted({include: [Check]})
-          .then(repos => repos.map(r => r.toJSON()))
-          .then(repos => repos.map(r => JSON.stringify(r)))
-          .then(repos => repos.map(r => JSON.parse(r)))
+                                      .findAllSorted({include: [Check]})
+                                      .then(repos => repos.map(r => r.toJSON()))
+                                      .then(repos => repos.map(r => JSON.stringify(r)))
+                                      .then(repos => repos.map(r => JSON.parse(r)))
 
         expect(repos).to.have.length.above(0)
         expect(body).to.have.length.above(0)
@@ -260,7 +359,7 @@ describe('API', () => {
       }
     })
 
-    it('should refresh github repos', async (done) => {
+    it('should refresh github repos', async(done) => {
       try {
         const repos0 = (await request.get('/api/repos')).body
         expect(repos0).to.have.property('length', 4)
@@ -315,7 +414,7 @@ describe('API', () => {
       }
     })
     it('should return 404 if there is no such repo', async(done) => {
-      try{
+      try {
         const response = await request.get(`/api/repos/${fixtures.repo.id}111/zapprfile`)
         expect(response.statusCode).to.equal(404)
         expect(response.body).to.have.keys('detail', 'status', 'title', 'type')
@@ -331,7 +430,7 @@ describe('API', () => {
       try {
         const response = await request.post('/api/hook').send({})
         expect(response.status).to.equal(200)
-        expect(response.body).to.deep.equal({ message: 'THANKS' })
+        expect(response.body).to.deep.equal({message: 'THANKS'})
         done()
       } catch (e) {
         done(e)
@@ -347,26 +446,26 @@ describe('API', () => {
 
         // wrong signature => 400
         await request
-              .post('/api/hook')
-              .set('X-Hub-Signature', 'foo')
-              .send(body)
-              .expect(400)
+        .post('/api/hook')
+        .set('X-Hub-Signature', 'foo')
+        .send(body)
+        .expect(400)
 
         // no signature => 200
         await request
-              .post('/api/hook')
-              .send(body)
-              .expect(200)
+        .post('/api/hook')
+        .send(body)
+        .expect(200)
 
         // correct signature => 200
         await request
-              .post('/api/hook')
-              .set('X-Hub-Signature', `sha1=${signature}`)
-              .send(body)
-              .expect(200)
+        .post('/api/hook')
+        .set('X-Hub-Signature', `sha1=${signature}`)
+        .send(body)
+        .expect(200)
 
         done()
-      } catch(e) {
+      } catch (e) {
         done(e)
       }
     })
@@ -378,24 +477,32 @@ describe('API', () => {
         // add check first
         const repos = (await request.get('/api/repos').expect(200)).body
         const id = repos[0].id
-        await request.
-          put(`/api/repos/${id}/approval`).
-          send().
-          expect(201)
+        await request.put(`/api/repos/${id}/approval`).send().expect(201)
         // aaaand delete again
-        await request.
-          delete(`/api/repos/${id}/approval`).
-          send().
-          expect(204)
+        await request.delete(`/api/repos/${id}/approval`).send().expect(204)
 
         const repo = await Repository.findById(id, {include: [Check]})
         expect(repo.checks.length).to.equal(0)
 
+        const fullName = `${fixtures.repoOwner}/${fixtures.repoName}`
         const calls = await mountebank.calls(imposter.port)
-        expect(calls.length).to.equal(5)
-        expect(calls[4].method).to.equal('DELETE')
-        expect(calls[4].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`)
-
+        /**
+         * 1. get repos
+         * 2.+3. zapprfiles
+         * 4.+5. get hooks, add hook
+         * 6.+7. get hooks, remove hook
+         */
+        expect(calls.length).to.equal(7)
+        expect(call(calls[0])).to.equal('GET /user/repos')
+        expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        const [,,, ...rest] = calls
+        expect(rest.map(call)).to.deep.equal([
+          `GET /repos/${fullName}/hooks`,
+          `PATCH /repos/${fullName}/hooks/123`,
+          `GET /repos/${fullName}/hooks`,
+          `DELETE /repos/${fullName}/hooks/123`
+        ])
         done()
       } catch (e) {
         done(e)
@@ -404,29 +511,100 @@ describe('API', () => {
   })
 
   describe('PUT /api/repos/:id/:type', () => {
+    it('should create a pull request when used the first time if no zapprfile is in repo', async(done) => {
+      try {
+        const repos = (await request.get('/api/repos').expect(200)).body
+        const id = repos[2].id
+        // enable approval check
+        await request.put(`/api/repos/${id}/approval`)
+                     .send()
+                     .expect(201)
+        const repo = await Repository.findById(id, {include: [Check]})
+        expect(repo.checks.length).to.equal(1)
+        expect(repo.checks[0].type).to.equal('approval')
+        expect(repo.welcomed).to.equal(true)
+
+        const calls = await mountebank.calls(imposter.port)
+        /**
+         * 1) get repos
+         * 2,3) zapprfile
+         * 4) get base
+         * 5) create branch
+         * 6) create file
+         * 7) create PR
+         * 8,9) get, update hooks
+         */
+        expect(calls.length).to.equal(9)
+        expect(call(calls[0])).to.equal('GET /user/repos')
+        // 2+3 are much async and interchangeable
+        expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        const [,,, ...rest] = calls
+        expect(rest.map(call)).to.deep.equal([
+          `GET /repos/${fixtures.repo2FullName}/branches/master`,
+          `POST /repos/${fixtures.repo2FullName}/git/refs`,
+          `PUT /repos/${fixtures.repo2FullName}/contents/.zappr.yaml`,
+          `POST /repos/${fixtures.repo2FullName}/pulls`,
+          `GET /repos/${fixtures.repo2FullName}/hooks`,
+          `PATCH /repos/${fixtures.repo2FullName}/hooks/123`
+        ])
+        const createBranchBody = JSON.parse(rest[1].body)
+        const createZapprBody = JSON.parse(rest[2].body)
+        const createPrBody = JSON.parse(rest[3].body)
+
+        const expectedBranchName = nconf.get('ZAPPR_WELCOME_BRANCH_NAME')
+        expect(createBranchBody).to.deep.equal({
+          ref: `refs/heads/${expectedBranchName}`,
+          sha: fixtures.branch.commit.sha
+        })
+
+        expect(createZapprBody).to.deep.equal({
+          message: `Create ${nconf.get('VALID_ZAPPR_FILE_PATHS')[0]}`,
+          branch: expectedBranchName,
+          content: encode(nconf.get('ZAPPR_AUTOCREATED_CONFIG'))
+        })
+
+        expect(createPrBody).to.deep.equal({
+          title: nconf.get('ZAPPR_WELCOME_TITLE'),
+          base: repos[2].json.default_branch,
+          head: expectedBranchName,
+          body: nconf.get('ZAPPR_WELCOME_TEXT')
+        })
+
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
     it('should update the existing hook and add a check', async(done) => {
       try {
         const repos = (await request.get('/api/repos').expect(200)).body
         const id = repos[0].id
         // enable approval check
-        await request.
-          put(`/api/repos/${id}/approval`).
-          send().
-          expect(201)
+        await request.put(`/api/repos/${id}/approval`)
+                     .send()
+                     .expect(201)
 
         const repo = await Repository.findById(id, {include: [Check]})
         expect(repo.checks.length).to.equal(1)
         expect(repo.checks[0].type).to.equal('approval')
+        const fullName = `${fixtures.repoOwner}/${fixtures.repoName}`
         const calls = await mountebank.calls(imposter.port)
-        expect(calls.length).to.equal(3)
-        expect(calls[0].method).to.equal('GET')
-        expect(calls[0].path).to.equal('/user/repos')
-        expect(calls[1].method).to.equal('GET')
-        expect(calls[1].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks`)
-        expect(calls[2].method).to.equal('PATCH')
-        expect(calls[2].path).to.equal(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/hooks/123`)
+        /**
+         * 1. get repos
+         * 2.+3. get zapprfile
+         * 4.+5. get hooks, add hook
+         */
+        expect(calls.length).to.equal(5)
+        expect(call(calls[0])).to.equal('GET /user/repos')
+        // 2+3 are much async and interchangeable
+        expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
+        expect(call(calls[3])).to.equal(`GET /repos/${fullName}/hooks`)
+        expect(call(calls[4])).to.equal(`PATCH /repos/${fullName}/hooks/123`)
         // patch call should contain hook secret
-        const body = JSON.parse(calls[2].body)
+        const body = JSON.parse(calls[4].body)
         expect(body).to.have.deep.property('config.secret')
         expect(body.config.secret).to.equal('captainHook')
         done()

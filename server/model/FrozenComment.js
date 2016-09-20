@@ -20,9 +20,22 @@ export default db.define('frozen_comment', {
   body: {
     type: Sequelize.TEXT,
     allowNull: false
+  },
+  createdAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW()
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW()
   }
 }, {
   schema: db.schema,
+  timestamps: true,
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   scopes: {
     pullRequest: prId => ({
       where: {

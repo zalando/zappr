@@ -109,6 +109,24 @@ export function repo(router) {
       const id = parseInt(ctx.params.id)
       const type = ctx.params.type
       const repo = await repositoryHandler.onGetOne(id, user)
+      if (!repo.welcomed) {
+        const owner = repo.json.owner.login
+        const name = repo.json.name
+        const defaultBranch = repo.json.default_branch
+        const token = user.accessToken
+        const hasZapprFile = await githubService.hasZapprFile(owner, name, token)
+        try {
+          if (!hasZapprFile) {
+            await githubService.proposeZapprfile(owner, name, defaultBranch, token)
+            info(`${owner}/${name}: Welcome to Zappr.`)
+          } else {
+            info(`${owner}/${name}: Welcome to Zappr (no PR needed).`)
+          }
+          await repositoryHandler.onWelcome(id)
+        } catch (e) {
+          error(`${owner}/${name}: Could not welcome. ${e.message}`)
+        }
+      }
       if (type === 'approval') {
         const branchProtected = await githubService.isBranchProtected(repo.json.owner.login, repo.json.name, repo.json.default_branch, user.accessToken)
         if (!branchProtected) {

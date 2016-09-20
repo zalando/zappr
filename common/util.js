@@ -78,6 +78,31 @@ export function getIn(obj, path, returnDefault = null) {
   return returnDefault
 }
 
+export function setIn(obj, path, value) {
+  if (!Array.isArray(path)) {
+    path = [path]
+  }
+  const [head, ...tail] = path
+  if (tail.length > 0) {
+    // traverse deeper
+    if (!obj.hasOwnProperty(head)) {
+      obj[head] = {}
+    }
+    setIn(obj[head], tail, value)
+  } else {
+    // last element
+    obj[head] = value
+  }
+  return obj
+}
+
+export function encode(string, encoding = 'base64') {
+  if (encoding !== 'base64') {
+    throw new Error(`Encoding "${encoding}" not supported`)
+  }
+  return new Buffer(string, 'utf8').toString(encoding)
+}
+
 export function decode(string, encoding = 'base64') {
   if (encoding !== 'base64') {
     throw new Error(`Encoding "${encoding}" not supported`)
@@ -100,6 +125,38 @@ export function setDifference(set1, set2) {
     return set1
   }
   return new Set([...set1].filter(item => !set2.has(item)))
+}
+
+/**
+ * Returns a union of the sets provided
+ * @param sets
+ * @returns {Set}
+ */
+export function setUnion(...sets) {
+  return new Set(...sets)
+}
+
+/**
+ * Returns true if the two sets are equal
+ * @param set1
+ * @param set2
+ * @returns {boolean}
+ */
+export function setEquals(set1, set2) {
+  const symmetricDifference = setUnion(setDifference(set1, set2), setDifference(set2, set1))
+  return symmetricDifference.size === 0
+}
+
+/**
+ * Returns a new set that is the intersection of two sets provided (only items that are in both)
+ *
+ * @param set1
+ * @param set2
+ * @returns {Set} intersect(set1, set2)
+ */
+export function setIntersection(set1, set2) {
+  const symmetricDifference = setUnion(setDifference(set1, set2), setDifference(set2, set1))
+  return setDifference(setUnion(set1, set2), symmetricDifference)
 }
 
 /**

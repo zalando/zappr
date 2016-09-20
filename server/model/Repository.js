@@ -16,10 +16,25 @@ export default db.define('repository', {
     allowNull: false,
     autoIncrement: false
   },
+  welcomed: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
+  },
   json: {
     type: Sequelize.JSONB,
     allowNull: false,
     get: deserializeJson('json')
+  },
+  createdAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW()
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW()
   }
 }, {
   scopes: {
@@ -59,5 +74,8 @@ export default db.define('repository', {
       })
     }
   },
-  schema: db.schema
+  schema: db.schema,
+  timestamps: true,
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 })

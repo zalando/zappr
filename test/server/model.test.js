@@ -1,7 +1,6 @@
 import { expect } from 'chai'
-
 import Approval from '../../server/checks/Approval'
-import { db, User, Repository, UserRepository, Check } from '../../server/model'
+import { db, User, Repository, UserRepository, Check, Session } from '../../server/model'
 
 const users = {
   a: {
@@ -16,7 +15,7 @@ const users = {
 
 describe('Model', () => {
 
-  before(done => db.sync().then(done).catch(done))
+  before(done => db.createSchemas().then(db._sync).then(() => done()).catch(done))
 
   beforeEach(done => Promise.all([
     User.truncate(),
@@ -30,11 +29,22 @@ describe('Model', () => {
       const userId = user.id
 
       try {
-        await User.create({id: userId, json: user})
+        await User.create({
+          id: userId,
+          json: user
+        })
         const savedUser = await User.findById(userId)
 
+        expect(savedUser.get({plain: true})).to.be.an('object')
+                                            .and.contain.all.keys(
+          'id',
+          'json',
+          'access_level'
+        )
+        expect(savedUser.get('access_level')).to.be.a('string')
+                                             .and.equal('minimal')
         expect(savedUser.get('json')).to.be.an('object')
-        expect(savedUser.get('json')).to.deep.equal(user)
+                                     .and.deep.equal(user)
 
         done()
       } catch (e) {
@@ -102,9 +112,7 @@ describe('Model', () => {
       const reposB = users.b.repos
 
       try {
-        const sharedRepos = reposA.
-          filter(repoA => reposB.
-            findIndex(repoB => repoA.id === repoB.id) !== -1)
+        const sharedRepos = reposA.filter(repoA => reposB.findIndex(repoB => repoA.id === repoB.id) !== -1)
 
         expect(sharedRepos.length).to.be.above(1)
 
@@ -175,12 +183,38 @@ describe('Model', () => {
     })
   })
 
+  describe('Session', () => {
+    it('should store the encrypted token and return the decrypted token', async(done) => {
+      const json = {
+        passport: {
+          user: {
+            accessToken: 'abcd'
+          }
+        }
+      }
+      const id = 'foo'
+      try {
+        await Session.create({id, json})
+        const dbSession = await Session.findById(id, {raw: true})
+        expect(JSON.parse(dbSession.json).passport.user.accessToken).to.be.a('string')
+                                                                    .and.equal('::dcba')
+        const appSession = await Session.findById(id)
+        expect(appSession.json.passport.user.accessToken).to.be.a('string')
+                                                         .and.equal('abcd')
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
+
   describe('Check', () => {
-    it('should return the decrypted token', async(done) => {
+    it('should store the encrypted token and return the decrypted token', async(done) => {
       const repo = users.a.repos[0]
       const repoId = repo.id
       const user = users.a.data
       const userId = user.id
+      const userLogin = user.login
       const checkId = 42
       const token = 'abcd'
 
@@ -188,12 +222,29 @@ describe('Model', () => {
         await User.create({id: userId, json: user})
         await Repository.create({id: repoId, userId, json: repo})
         await Check.create({
-          id: checkId, token, repositoryId: repoId,
-          type: Approval.TYPE, arguments: {}
+          id: checkId,
+          token,
+          repositoryId: repoId,
+          type: Approval.TYPE,
+          created_by: userLogin
         })
         const savedCheck = await Check.findById(checkId)
+        expect(savedCheck.get({plain: true})).to.be.an('object')
+                                             .and.contain.all.keys(
+          // fields we added
+          'id',
+          'token',
+          'created_by',
+          'type',
+          // fields added by sequelize
+          'repositoryId',
+          'createdAt',
+          'updatedAt')
+        expect(savedCheck.get('created_by')).to.equal(userLogin)
         expect(savedCheck.get('token')).to.equal(token)
-
+        const dbCheck = await Check.findById(checkId, {raw: true})
+        expect(dbCheck.token).to.be.a('string')
+                             .and.equal('::dcba')
         done()
       } catch (e) {
         done(e)

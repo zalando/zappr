@@ -2,7 +2,6 @@ import Sequelize from 'sequelize'
 
 import * as EncryptionServiceCreator from '../service/EncryptionServiceCreator'
 import { db } from './Database'
-import { deserializeJson } from './properties'
 import { CHECK_TYPES } from '../checks'
 import { logger } from '../../common/debug'
 
@@ -28,13 +27,25 @@ export default db.define('check', {
     type: Sequelize.ENUM(...CHECK_TYPES),
     allowNull: false
   },
-  arguments: {
-    type: Sequelize.JSONB,
+  created_by: {
+    type: Sequelize.TEXT,
+    allowNull: true
+  },
+  createdAt: {
+    type: Sequelize.DATE,
     allowNull: false,
-    get: deserializeJson('arguments')
+    defaultValue: Sequelize.NOW()
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW()
   }
 }, {
   schema: db.schema,
+  timestamps: true,
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   instanceMethods: {
     /**
      * Never return the token in JSON.

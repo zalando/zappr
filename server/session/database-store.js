@@ -17,7 +17,13 @@ export default class DatabaseStore {
 
   *set(sid, val) {
     log('set value with key %s', sid)
-    return yield Session.upsert({id: sid, json: val})
+    // use update or insert instead of upsert
+    // as upsert does not trigger any hooks until sequelize 4.0.0-1
+    // https://github.com/sequelize/sequelize/blob/master/changelog.md
+    const session = yield Session.findById(sid)
+    return session ?
+      yield Session.update({json: val}, {where: {id: sid}}) :
+      yield Session.create({id: sid, json: val})
   }
 
   *destroy(sid) {
