@@ -11,7 +11,7 @@ Once you're back at Zappr you will see all _public_ repositories that we know li
 ![IMAGE](img/setup/enable-private.png)
 
 <p class="admonition note">
-Be aware that once you gave Zappr permission to read your private repositories, the only way to <strong>really</strong> revoke it is by revoking access for Zappr <a href="https://github.com/settings/applications">here</a>. (When you accepted a scope once, Github will never ask you again about it.) We promise not to do sneaky things, but you should act according to your paranoia level.
+<strong>Note:</strong> Be aware that once you gave Zappr permission to read your private repositories, the only way to <strong>really</strong> revoke it is by revoking access for Zappr <a href="https://github.com/settings/applications">here</a>. (When you accepted a scope once, Github will never ask you again about it.) We promise not to do sneaky things, but you should act according to your paranoia level.
 
 However be also aware that once you revoked access for Zappr, you effectively broke all checks that you enabled, because the stored access tokens were invalidated.
 </p>
@@ -20,7 +20,11 @@ Initially we only fetch the first couple of repositories, so if you don't find t
 
 ![IMAGE](img/setup/repo-list.png)
 
-To enable Zappr features on a specific repository, select a it from the list and switch the toggle to "On". If this repository does not contain a `.zappr.yaml` yet, we will create a pull request with some possible configuration options (not exhaustive).
+To enable Zappr features on a specific repository, select a it from the list and switch the toggle to "On". If this repository does not contain a `.zappr.yaml` yet, we will create a pull request with some possible configuration options (not exhaustive). Also Zappr will automatically [protect](https://github.com/blog/2051-protected-branches-and-required-status-checks) the default branch of your repository (usually `master`) and set the feature you enabled as a required status check.
+
+<p class="admonition note">
+<strong>Note:</strong> You have to have admin access to a repository to enable Zappr features for it.
+</p>
 
 ![IMAGE](img/setup/repo.png)
 
@@ -32,7 +36,7 @@ You can customize Zappr by adding a [`.zappr.yaml`](https://github.com/zalando/z
 
 ### Approvals
 
-The approval feature blocks a pull request (if you enabled [protected branches](https://github.com/blog/2051-protected-branches-and-required-status-checks)) until it has the required amount of approvals (essentially people confirming that the changes are good to merge).
+The approval feature blocks a pull request  until it has the required amount of approvals (essentially people confirming that the changes are good to merge).
 
 It is customized by everything under `approvals`. The following options are supported:
 
