@@ -4,11 +4,11 @@ import { getIn, setDifference } from '../../common/util';
 import { logger } from '../../common/debug'
 
 const CHECK_TYPE = 'pullrequestlabels'
+const CONTEXT = 'zappr/pr/labels'
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
 const debug = logger(CHECK_TYPE)
-const context = 'zappr/pr/labels'
-const createStatePayload = getPayloadFn(context)
+const createStatePayload = getPayloadFn(CONTEXT)
 
 export function generateStatus(labels, checkConfig) {
   const {required, additional} = checkConfig
@@ -32,6 +32,7 @@ export function generateStatus(labels, checkConfig) {
 
 export default class PullRequestLabels extends Check {
   static TYPE = CHECK_TYPE;
+  static CONTEXT = CONTEXT;
   static HOOK_EVENTS = [PULL_REQUEST];
   static NAME = 'Pull request labels check';
 

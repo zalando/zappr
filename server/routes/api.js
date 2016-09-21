@@ -6,6 +6,7 @@ import { hookHandler } from '../handler/HookHandler'
 import { checkHandler } from '../handler/CheckHandler'
 import { repositoryHandler } from '../handler/RepositoryHandler'
 import ZapprConfiguration from '../zapprfile/Configuration'
+import { getCheckByType } from '../checks'
 import { logger } from '../../common/debug'
 
 const error = logger('api', 'error')
@@ -127,11 +128,10 @@ export function repo(router) {
           error(`${owner}/${name}: Could not welcome. ${e.message}`)
         }
       }
-      if (type === 'approval') {
-        const branchProtected = await githubService.isBranchProtected(repo.json.owner.login, repo.json.name, repo.json.default_branch, user.accessToken)
-        if (!branchProtected) {
-          await githubService.protectBranch(repo.json.owner.login, repo.json.name, repo.json.default_branch, user.accessToken)
-        }
+      const checkContext = getCheckByType(type).CONTEXT
+      if (checkContext) {
+        // autobranch doesn't have a context
+        await githubService.protectBranch(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
       }
       const check = await checkHandler.onEnableCheck(user, repo, type)
       ctx.response.status = 201
@@ -147,6 +147,10 @@ export function repo(router) {
       const repo = await repositoryHandler.onGetOne(id, user)
       const type = ctx.params.type
       await checkHandler.onDisableCheck(user, repo, type)
+      const checkContext = getCheckByType(type).CONTEXT
+      if (checkContext) {
+        await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
+      }
       ctx.response.status = 204
       ctx.body = null
     } catch (e) {

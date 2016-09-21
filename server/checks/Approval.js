@@ -14,6 +14,7 @@ const error = logger('approval', 'error')
 export default class Approval extends Check {
 
   static TYPE = 'approval'
+  static CONTEXT = context
   static NAME = 'Approval check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
 

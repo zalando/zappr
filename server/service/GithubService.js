@@ -31,7 +31,8 @@ const API_URL_TEMPLATES = {
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
   CREATE_REF: '/repos/${owner}/${repo}/git/refs',
   PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits',
-  PROTECT_BRANCH: '/repos/${owner}/${repo}/branches/${branch}/protection',
+  BRANCH_PROTECTION: '/repos/${owner}/${repo}/branches/${branch}/protection',
+  REQUIRED_STATUS_CHECKS: '/repos/${owner}/${repo}/branches/${branch}/protection/required_status_checks',
   ISSUE: '/repos/${owner}/${repo}/issues/${number}',
   PULL_REQUESTS: '/repos/${owner}/${repo}/pulls',
   BRANCH: '/repos/${owner}/${repo}/branches/${branch}',
@@ -316,52 +317,124 @@ export class GithubService {
     })
   }
 
-  getBranchProtection(user, repo, branch, accessToken) {
-    const url = API_URL_TEMPLATES.PROTECT_BRANCH
-                                 .replace('${owner}', user)
-                                 .replace('${repo}', repo)
-                                 .replace('${branch}', branch)
-    const body = await
-    return this.fetchPath('GET', url, null, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
-  }
-
   /**
+   * Returns the status check settings of supplied repository.
    *
    * @param user
    * @param repo
    * @param branch
    * @param accessToken
+   * @returns {*}
    */
-  async isBranchProtected(user, repo, branch, accessToken) {
-    const settings = await this.getBranchProtection(user, repo, branch, accessToken)
-    const requiredChecks = getIn(settings, ['required_status_checks', 'contexts'], [])
-    const include_admins = getIn(settings, ['required_stauts_checks', 'include_admins'], false)
-    return requiredChecks.indexOf('zappr') !== -1 && include_admins
+  getRequiredStatusChecks(user, repo, branch, accessToken) {
+    const url = API_URL_TEMPLATES.REQUIRED_STATUS_CHECKS
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    return this.fetchPath('GET', url, null, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
   }
 
   /**
+   * Removes `check` from required status checks for supplied branch of repository.
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param check
+   * @param accessToken
+   */
+  async removeRequiredStatusCheck(user, repo, branch, check, accessToken) {
+    const url = API_URL_TEMPLATES.REQUIRED_STATUS_CHECKS
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    const settings = await this.getRequiredStatusChecks(user, repo, branch, accessToken)
+    const requiredChecks = getIn(settings, 'contexts', [])
+    if (requiredChecks.indexOf(check) !== -1) {
+      const payload = {
+        "include_admins": true,
+        "contexts": requiredChecks.filter(required => check !== required)
+      }
+      debug(`${user}/${repo}: Removing status check ${check}`)
+      await this.fetchPath('PATCH', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+    }
+  }
+
+  /**
+   * Adds `check` as a required status check for supplied branch of supplied repository.
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param check
+   * @param accessToken
+   */
+  async addRequiredStatusCheck(user, repo, branch, check, accessToken) {
+    const url = API_URL_TEMPLATES.REQUIRED_STATUS_CHECKS
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    const settings = await this.getRequiredStatusChecks(user, repo, branch, accessToken)
+    const requiredChecks = getIn(settings, 'contexts', [])
+    if (requiredChecks.indexOf(check) === -1) {
+      const payload = {
+        "include_admins": true,
+        "contexts": [...requiredChecks, check]
+      }
+      info(`${user}/${repo}: Adding status check ${check}`)
+      await this.fetchPath('PATCH', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+    }
+  }
+
+  /**
+   * Returns true iff supplied branch of repository is protected.
+   *
    * @param user
    * @param repo
    * @param branch
    * @param accessToken
+   * @returns {boolean}
    */
-  async protectBranch(user, repo, branch, accessToken) {
-    const url = API_URL_TEMPLATES.PROTECT_BRANCH
+  async isBranchProtected(user, repo, branch, accessToken) {
+    const url = API_URL_TEMPLATES.BRANCH
                                  .replace('${owner}', user)
                                  .replace('${repo}', repo)
                                  .replace('${branch}', branch)
-    const settings = this.getBranchProtection(user, repo, branch, accessToken)
-    const requiredChecks = getIn(settings, ['required_status_checks', 'contexts'], [])
+    const branchInfo = await this.fetchPath('GET', url, null, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+    return !!branchInfo.protected
+  }
 
-    const payload = {
-      "required_status_checks": {
-        "include_admins": true,
-        "strict": false,
-        "contexts": [...requiredChecks, 'zappr']
-      },
-      "restrictions": null
+  /**
+   * Makes the branch protected if it isn't already and adds the supplied contexts as required status checks.
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param statusCheck
+   * @param accessToken
+   */
+  async protectBranch(user, repo, branch, statusCheck, accessToken) {
+    const isProtected = await this.isBranchProtected(user, repo, branch, accessToken)
+    if (!isProtected) {
+      // set up new protection
+      const url = API_URL_TEMPLATES.BRANCH_PROTECTION
+                                   .replace('${owner}', user)
+                                   .replace('${repo}', repo)
+                                   .replace('${branch}', branch)
+      const payload = {
+        required_status_checks: {
+          "include_admins": true,
+          "strict": false,
+          "contexts": statusCheck ? [statusCheck] : []
+        },
+        restrictions: null
+      }
+      debug(`${user}/${repo}: Protecting branch ${branch} with status check ${statusCheck}`)
+      await this.fetchPath('PUT', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+    } else {
+      // update protection
+      await this.addRequiredStatusCheck(user, repo, branch, statusCheck, accessToken)
     }
-    return this.fetchPath('PUT', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
   }
 
   /**
