@@ -146,11 +146,11 @@ export function repo(router) {
       const id = parseInt(ctx.params.id)
       const repo = await repositoryHandler.onGetOne(id, user)
       const type = ctx.params.type
-      await checkHandler.onDisableCheck(user, repo, type)
       const checkContext = getCheckByType(type).CONTEXT
       if (checkContext) {
         await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
       }
+      await checkHandler.onDisableCheck(user, repo, type)
       ctx.response.status = 204
       ctx.body = null
     } catch (e) {
