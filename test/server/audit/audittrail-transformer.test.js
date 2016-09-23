@@ -29,7 +29,7 @@ describe('The AuditTrailTransformer', () => {
       expect(result.event_type).to.be.a('object')
                                .and.have.all.keys('namespace', 'name', 'version')
                                .and.deep.equal({
-        namespace: 'internal',
+        namespace: 'cloud.zalando.com',
         name: 'pull-request-merged',
         version: '1'
       })
@@ -135,7 +135,7 @@ describe('The AuditTrailTransformer', () => {
       expect(result.event_type).to.be.a('object')
                                .and.have.all.keys('namespace', 'name', 'version')
                                .and.deep.equal({
-        namespace: 'internal',
+        namespace: 'cloud.zalando.com',
         name: 'pull-request-interaction',
         version: '1'
       })
