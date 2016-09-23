@@ -56,11 +56,6 @@ class CheckHandler {
     return Promise.resolve()
   }
 
-  async onGetAll(repositoryId) {
-    return Check.find({where: {repositoryId}})
-                .then(checks => checks || [])
-  }
-
   /**
    * @param {Number} repoId - Repository ID
    * @param {String} type - Check type
