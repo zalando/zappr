@@ -7,7 +7,7 @@ function getRepo({id, full_name, url, clone_url, git_url, ssh_url}) {
 
 function getPrInteractionEvent(auditEvent) {
   const event_type = {
-    namespace: 'internal',
+    namespace: 'cloud.zalando.com',
     name: 'pull-request-interaction',
     version: '1'
   }
@@ -28,7 +28,7 @@ function getPrInteractionEvent(auditEvent) {
 
 function getPrMergedEvent(auditEvent) {
   const event_type = {
-    namespace: 'internal',
+    namespace: 'cloud.zalando.com',
     name: 'pull-request-merged',
     version: '1'
   }
