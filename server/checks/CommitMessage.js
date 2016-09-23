@@ -6,9 +6,9 @@ import * as EVENTS from '../model/GithubEvents'
 const CHECK_TYPE = 'commitmessage'
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
-const context = 'zappr/commit/message'
+const CONTEXT = 'zappr/commit/message'
 const SHORT_SHA_LENGTH = 7
-const createStatePayload = getPayloadFn(context)
+const createStatePayload = getPayloadFn(CONTEXT)
 
 /**
  * Takes RegExps and returns a function that takes a string
@@ -37,6 +37,7 @@ function isMergeCommit({parents}) {
 
 export default class CommitMessage extends Check {
   static TYPE = CHECK_TYPE;
+  static CONTEXT = CONTEXT;
   static NAME = 'Commit message check';
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST];
 
