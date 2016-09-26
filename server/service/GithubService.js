@@ -18,6 +18,7 @@ const ZAPPR_WELCOME_BRANCH_NAME = nconf.get('ZAPPR_WELCOME_BRANCH_NAME')
 const ZAPPR_WELCOME_TITLE = nconf.get('ZAPPR_WELCOME_TITLE')
 const ZAPPR_WELCOME_TEXT = nconf.get('ZAPPR_WELCOME_TEXT')
 const COMMIT_STATUS_MAX_LENGTH = 140
+const BRANCH_PREVIEW_HEADER = 'application/vnd.github.loki-preview+json'
 
 const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
@@ -30,6 +31,9 @@ const API_URL_TEMPLATES = {
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
   CREATE_REF: '/repos/${owner}/${repo}/git/refs',
   PR_COMMITS: '/repos/${owner}/${repo}/pulls/${number}/commits',
+  BRANCH_PROTECTION: '/repos/${owner}/${repo}/branches/${branch}/protection',
+  REQUIRED_STATUS_CHECKS: '/repos/${owner}/${repo}/branches/${branch}/protection/required_status_checks',
+  ISSUE: '/repos/${owner}/${repo}/issues/${number}',
   PULL_REQUESTS: '/repos/${owner}/${repo}/pulls',
   BRANCH: '/repos/${owner}/${repo}/branches/${branch}',
   COMMITS: '/repos/${owner}/${repo}/git/commits',
@@ -38,8 +42,7 @@ const API_URL_TEMPLATES = {
 
 export class GithubService {
 
-  getOptions(method, path, body, accessToken) {
-    const headers = {}
+  getOptions(method, path, body, accessToken, headers = {}) {
     headers['User-Agent'] = `Zappr (+${nconf.get('HOST_ADDR')})`
     if (accessToken) {
       headers['Authorization'] = `token ${accessToken}`
@@ -53,8 +56,8 @@ export class GithubService {
     }
   }
 
-  async fetchPath(method, path, payload, accessToken) {
-    const options = this.getOptions(method, path, payload, accessToken)
+  async fetchPath(method, path, payload, accessToken, headers = {}) {
+    const options = this.getOptions(method, path, payload, accessToken, headers)
     const [response, body] = await request(options)
     const {statusCode} = response || {}
 
@@ -302,7 +305,8 @@ export class GithubService {
    */
   _readFile(paths, user, repo, accessToken) {
     const repoUrl = API_URL_TEMPLATES.REPO_CONTENT
-                                     .replace('${owner}', user).replace('${repo}', repo)
+                                     .replace('${owner}', user)
+                                     .replace('${repo}', repo)
 
     return promiseFirst((Array.isArray(paths) ? paths : [paths])
     .map(filename => path.join(repoUrl, filename))
@@ -311,6 +315,126 @@ export class GithubService {
       info(`${user}/${repo}: Found ${name}.`)
       return name ? decode(content, encoding) : ''
     })
+  }
+
+  /**
+   * Returns the status check settings of supplied repository.
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param accessToken
+   * @returns {*}
+   */
+  getRequiredStatusChecks(user, repo, branch, accessToken) {
+    const url = API_URL_TEMPLATES.REQUIRED_STATUS_CHECKS
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    return this.fetchPath('GET', url, null, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+  }
+
+  /**
+   * Removes `check` from required status checks for supplied branch of repository.
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param check
+   * @param accessToken
+   */
+  async removeRequiredStatusCheck(user, repo, branch, check, accessToken) {
+    const url = API_URL_TEMPLATES.REQUIRED_STATUS_CHECKS
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    const settings = await this.getRequiredStatusChecks(user, repo, branch, accessToken)
+    const requiredChecks = getIn(settings, 'contexts', [])
+    if (requiredChecks.indexOf(check) !== -1) {
+      const payload = {
+        "include_admins": true,
+        "contexts": requiredChecks.filter(required => check !== required)
+      }
+      debug(`${user}/${repo}: Removing status check ${check}`)
+      await this.fetchPath('PATCH', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+    }
+  }
+
+  /**
+   * Adds `check` as a required status check for supplied branch of supplied repository.
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param check
+   * @param accessToken
+   */
+  async addRequiredStatusCheck(user, repo, branch, check, accessToken) {
+    const url = API_URL_TEMPLATES.REQUIRED_STATUS_CHECKS
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    const settings = await this.getRequiredStatusChecks(user, repo, branch, accessToken)
+    const requiredChecks = getIn(settings, 'contexts', [])
+    if (requiredChecks.indexOf(check) === -1) {
+      const payload = {
+        "include_admins": true,
+        "contexts": [...requiredChecks, check]
+      }
+      info(`${user}/${repo}: Adding status check ${check}`)
+      await this.fetchPath('PATCH', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+    }
+  }
+
+  /**
+   * Returns true iff supplied branch of repository is protected.
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param accessToken
+   * @returns {boolean}
+   */
+  async isBranchProtected(user, repo, branch, accessToken) {
+    const url = API_URL_TEMPLATES.BRANCH
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${branch}', branch)
+    const branchInfo = await this.fetchPath('GET', url, null, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+    return !!branchInfo.protected
+  }
+
+  /**
+   * Makes the branch protected if it isn't already and adds the supplied contexts as required status checks.
+   *
+   * @param user
+   * @param repo
+   * @param branch
+   * @param statusCheck
+   * @param accessToken
+   */
+  async protectBranch(user, repo, branch, statusCheck, accessToken) {
+    const isProtected = await this.isBranchProtected(user, repo, branch, accessToken)
+    if (!isProtected) {
+      // set up new protection
+      const url = API_URL_TEMPLATES.BRANCH_PROTECTION
+                                   .replace('${owner}', user)
+                                   .replace('${repo}', repo)
+                                   .replace('${branch}', branch)
+      const payload = {
+        required_status_checks: {
+          "include_admins": true,
+          "strict": false,
+          "contexts": statusCheck ? [statusCheck] : []
+        },
+        restrictions: null
+      }
+      debug(`${user}/${repo}: Protecting branch ${branch} with status check ${statusCheck}`)
+      await this.fetchPath('PUT', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
+    } else {
+      // update protection
+      await this.addRequiredStatusCheck(user, repo, branch, statusCheck, accessToken)
+    }
   }
 
   /**
@@ -438,6 +562,24 @@ export class GithubService {
     const title = ZAPPR_WELCOME_TITLE
     const body = ZAPPR_WELCOME_TEXT
     return this.createPullRequest(user, repo, ZAPPR_WELCOME_BRANCH_NAME, base, title, body, accessToken)
+  }
+
+  /**
+   * Returns all labels present on an issue/pull request.
+   *
+   * @param user
+   * @param repo
+   * @param number
+   * @param token
+   * @returns {Array<string>}
+   */
+  async getIssueLabels(user, repo, number, token) {
+    const url = API_URL_TEMPLATES.ISSUE
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${number}', number)
+    const issue = await this.fetchPath('GET', url, null, token)
+    return issue.labels.map(l => l.name)
   }
 }
 

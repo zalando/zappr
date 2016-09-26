@@ -118,6 +118,120 @@ describe('The Github service', () => {
     })
   })
 
+  describe('branch protection calls contain special Accept header', () => {
+    const USER = 'user'
+    const REPO = 'repo'
+    const BRANCH = 'master'
+    const CHECK = 'check'
+    const TOKEN = 'token'
+    const HEADER = {Accept: 'application/vnd.github.loki-preview+json'}
+
+    beforeEach(() => {
+      github.fetchPath = sinon.stub().returns({})
+    })
+    it('getRequiredStatusChecks', async(done) => {
+      try {
+        await github.getRequiredStatusChecks(USER, REPO, BRANCH, TOKEN)
+        expect(github.fetchPath.args).to.deep.equal([
+          ['GET', `/repos/${USER}/${REPO}/branches/${BRANCH}/protection/required_status_checks`,
+            null,
+            TOKEN,
+            HEADER]
+        ])
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('removeRequiredStatusCheck', async(done) => {
+      try {
+        github.fetchPath = sinon.stub().returns({contexts: [CHECK, 'foo']})
+        await github.removeRequiredStatusCheck(USER, REPO, BRANCH, CHECK, TOKEN)
+        expect(github.fetchPath.args).to.deep.equal([
+          ['GET', `/repos/${USER}/${REPO}/branches/${BRANCH}/protection/required_status_checks`,
+            null,
+            TOKEN,
+            HEADER],
+          ['PATCH', `/repos/${USER}/${REPO}/branches/${BRANCH}/protection/required_status_checks`,
+            {
+              include_admins: true,
+              contexts: ['foo']
+            },
+            TOKEN,
+            HEADER]
+        ])
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('addRequiredStatusCheck', async(done) => {
+      try {
+        github.fetchPath = sinon.stub().returns({contexts: ['foo']})
+        await github.addRequiredStatusCheck(USER, REPO, BRANCH, CHECK, TOKEN)
+        expect(github.fetchPath.args).to.deep.equal([
+          ['GET', `/repos/${USER}/${REPO}/branches/${BRANCH}/protection/required_status_checks`,
+            null,
+            TOKEN,
+            HEADER],
+          ['PATCH', `/repos/${USER}/${REPO}/branches/${BRANCH}/protection/required_status_checks`,
+            {
+              include_admins: true,
+              contexts: ['foo', CHECK]
+            },
+            TOKEN,
+            HEADER]
+        ])
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('isBranchProtected', async(done) => {
+      try {
+        await github.isBranchProtected(USER, REPO, BRANCH, TOKEN)
+        expect(github.fetchPath.args).to.deep.equal([
+          ['GET', `/repos/${USER}/${REPO}/branches/${BRANCH}`,
+            null,
+            TOKEN,
+            HEADER]
+        ])
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('protectBranch', async(done) => {
+      try {
+        await github.protectBranch(USER, REPO, BRANCH, CHECK, TOKEN)
+        expect(github.fetchPath.args).to.deep.equal([
+          ['GET', `/repos/${USER}/${REPO}/branches/${BRANCH}`,
+            null,
+            TOKEN,
+            HEADER],
+          ['PUT', `/repos/${USER}/${REPO}/branches/${BRANCH}/protection`,
+            {
+              required_status_checks: {
+                include_admins: true,
+                strict: false,
+                contexts: [CHECK]
+              },
+              restrictions: null
+            },
+            TOKEN,
+            HEADER]
+        ])
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
+
   describe('#proposeZapprFile', () => {
     it('should call the correct functions', async(done) => {
       try {

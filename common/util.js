@@ -128,6 +128,38 @@ export function setDifference(set1, set2) {
 }
 
 /**
+ * Returns a union of the sets provided
+ * @param sets
+ * @returns {Set}
+ */
+export function setUnion(...sets) {
+  return new Set(...sets)
+}
+
+/**
+ * Returns true if the two sets are equal
+ * @param set1
+ * @param set2
+ * @returns {boolean}
+ */
+export function setEquals(set1, set2) {
+  const symmetricDifference = setUnion(setDifference(set1, set2), setDifference(set2, set1))
+  return symmetricDifference.size === 0
+}
+
+/**
+ * Returns a new set that is the intersection of two sets provided (only items that are in both)
+ *
+ * @param set1
+ * @param set2
+ * @returns {Set} intersect(set1, set2)
+ */
+export function setIntersection(set1, set2) {
+  const symmetricDifference = setUnion(setDifference(set1, set2), setDifference(set2, set1))
+  return setDifference(setUnion(set1, set2), symmetricDifference)
+}
+
+/**
  * Map over the keys and values of an object.
  *
  * @param {Object} object

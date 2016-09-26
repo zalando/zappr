@@ -9,7 +9,8 @@ describe('Server', () => {
 
   before(async(done) => {
     try {
-      await db.sync()
+      await db.createSchemas()
+      await db._sync()
       await request.get('/auth/github') // Initialize session
       done()
     } catch (err) {

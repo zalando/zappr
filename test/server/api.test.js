@@ -45,7 +45,8 @@ describe('API', () => {
 
     try {
       // Initialize database
-      await db.sync()
+      await db.createSchemas()
+      await db._sync()
 
       // Load fixtures
       fixtures.user = testUser
@@ -224,6 +225,53 @@ describe('API', () => {
                 .add()
                 .predicate()
                   .setPath(`/repos/${fixtures.repo2FullName}/hooks/123`)
+                  .setMethod('PATCH')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.branch)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/branches/master`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody({}) // irrelevant
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/branches/master/protection`)
+                  .setMethod('PUT')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody({
+                    contexts: ['zappr', 'travis-ci'],
+                    include_admins: true
+                  })
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/branches/master/protection/required_status_checks`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody({}) // irrelevant
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/branches/master/protection/required_status_checks`)
                   .setMethod('PATCH')
                 .add()
               .add()
@@ -489,19 +537,29 @@ describe('API', () => {
          * 1. get repos
          * 2.+3. zapprfiles
          * 4.+5. get hooks, add hook
-         * 6.+7. get hooks, remove hook
+         * 6.+7. get, update branch protection
+         * 8.+9. get hooks, remove hook
          */
-        expect(calls.length).to.equal(7)
+        expect(calls.length).to.equal(11)
         expect(call(calls[0])).to.equal('GET /user/repos')
         expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
         expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
         const [,,, ...rest] = calls
         expect(rest.map(call)).to.deep.equal([
+          `GET /repos/${fullName}/branches/master`,
+          `PUT /repos/${fullName}/branches/master/protection`,
           `GET /repos/${fullName}/hooks`,
           `PATCH /repos/${fullName}/hooks/123`,
+          `GET /repos/${fullName}/branches/master/protection/required_status_checks`,
+          `PATCH /repos/${fullName}/branches/master/protection/required_status_checks`,
           `GET /repos/${fullName}/hooks`,
           `DELETE /repos/${fullName}/hooks/123`
         ])
+        const updateSettings = JSON.parse(rest[5].body)
+        expect(updateSettings).to.deep.equal({
+          include_admins: true,
+          contexts: ['travis-ci']
+        })
         done()
       } catch (e) {
         done(e)
@@ -531,9 +589,10 @@ describe('API', () => {
          * 5) create branch
          * 6) create file
          * 7) create PR
-         * 8,9) get, update hooks
+         * 8,9) get, update branch protection
+         * 10,11) get, update web hooks
          */
-        expect(calls.length).to.equal(9)
+        expect(calls.length).to.equal(11)
         expect(call(calls[0])).to.equal('GET /user/repos')
         // 2+3 are much async and interchangeable
         expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
@@ -544,6 +603,8 @@ describe('API', () => {
           `POST /repos/${fixtures.repo2FullName}/git/refs`,
           `PUT /repos/${fixtures.repo2FullName}/contents/.zappr.yaml`,
           `POST /repos/${fixtures.repo2FullName}/pulls`,
+          `GET /repos/${fixtures.repo2FullName}/branches/master`,
+          `PUT /repos/${fixtures.repo2FullName}/branches/master/protection`,
           `GET /repos/${fixtures.repo2FullName}/hooks`,
           `PATCH /repos/${fixtures.repo2FullName}/hooks/123`
         ])
@@ -593,17 +654,34 @@ describe('API', () => {
         /**
          * 1. get repos
          * 2.+3. get zapprfile
-         * 4.+5. get hooks, add hook
+         * 4.+5. check if branch is protected, update protection
+         * 6.+7. get hooks, add hook
          */
-        expect(calls.length).to.equal(5)
+        expect(calls.length).to.equal(7)
         expect(call(calls[0])).to.equal('GET /user/repos')
         // 2+3 are much async and interchangeable
         expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
         expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
-        expect(call(calls[3])).to.equal(`GET /repos/${fullName}/hooks`)
-        expect(call(calls[4])).to.equal(`PATCH /repos/${fullName}/hooks/123`)
+        const [,,, ...rest] = calls
+        expect(rest.map(call)).to.deep.equal([
+          `GET /repos/${fullName}/branches/master`,
+          `PUT /repos/${fullName}/branches/master/protection`,
+          `GET /repos/${fullName}/hooks`,
+          `PATCH /repos/${fullName}/hooks/123`
+        ])
+        // branch protection call should have approval context
+        const protectionSettings = JSON.parse(rest[1].body)
+        expect(protectionSettings).to.deep.equal({
+          required_status_checks: {
+            include_admins: true,
+            strict: false,
+            contexts: ['zappr']
+          },
+          restrictions: null
+        })
+
         // patch call should contain hook secret
-        const body = JSON.parse(calls[4].body)
+        const body = JSON.parse(rest[3].body)
         expect(body).to.have.deep.property('config.secret')
         expect(body.config.secret).to.equal('captainHook')
         done()

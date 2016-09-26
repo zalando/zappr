@@ -6,7 +6,7 @@ export class UserHandler {
   }
 
   onGet(userId) {
-    return User.findOne({id: userId})
+    return User.findOne({where: {id: userId}})
   }
 
   onChangeLevel(userId, access_level) {
