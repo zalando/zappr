@@ -103,6 +103,9 @@ ZAPPR_DEFAULT_CONFIG:
       contains-issue-number: true
     template:
       differs-from-body: true
+  pull-reqest:
+    labels:
+      additional: true
 
 ZAPPR_AUTOCREATED_CONFIG: |
   # this is how you configure zappr
