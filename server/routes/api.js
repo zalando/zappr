@@ -148,7 +148,12 @@ export function repo(router) {
       const type = ctx.params.type
       const checkContext = getCheckByType(type).CONTEXT
       if (checkContext) {
-        await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
+        try {
+          await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
+        } catch (e) {
+          // did not work, who cares
+          error(`${repo.json.full_name}: Could not not remove status check. ${e.message}`)
+        }
       }
       await checkHandler.onDisableCheck(user, repo, type)
       ctx.response.status = 204
