@@ -128,12 +128,12 @@ export function repo(router) {
           error(`${owner}/${name}: Could not welcome. ${e.message}`)
         }
       }
+      const check = await checkHandler.onEnableCheck(user, repo, type)
       const checkContext = getCheckByType(type).CONTEXT
       if (checkContext) {
         // autobranch doesn't have a context
         await githubService.protectBranch(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
       }
-      const check = await checkHandler.onEnableCheck(user, repo, type)
       ctx.response.status = 201
       ctx.body = check.toJSON()
     } catch (e) {
