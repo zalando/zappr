@@ -323,7 +323,7 @@ export default class Approval extends Check {
    * - PR synchronize (new commits on top):
    *   1. set status back to pending (b/c there can't be comments afterwards already)
    */
-  async execute(config, event, hookPayload, token, dbRepoId) {
+  async execute(config, event, hookPayload, dbRepoId, token) {
     const {action, repository, pull_request, number, issue} = hookPayload
     const repoName = repository.name
     const user = repository.owner.login
@@ -355,61 +355,17 @@ export default class Approval extends Check {
     }
 
 
-    try {
-      // on an open pull request
-      if (event === EVENTS.PULL_REQUEST && pull_request.state === 'open') {
-        sha = pull_request.head.sha
-        const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, number)
-        // if it was (re)opened
-        if (action === 'opened' || action === 'reopened') {
-          // set status to pending first
-          await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
+    // on an open pull request
+    if (event === EVENTS.PULL_REQUEST && pull_request.state === 'open') {
+      sha = pull_request.head.sha
+      const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, number)
+      // if it was (re)opened
+      if (action === 'opened' || action === 'reopened') {
+        // set status to pending first
+        await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
 
-          if (action === 'opened' && minimum > 0) {
-            // if it was opened, set to pending
-            const approvals = {total: []}
-            const vetos = []
-            const status = Approval.generateStatus({approvals, vetos}, config.approvals)
-            await this.github.setCommitStatus(user, repoName, sha, status, token)
-            await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
-                                                                                  .withResult({
-                                                                                    approvals,
-                                                                                    vetos,
-                                                                                    status
-                                                                                  })
-                                                                                  .onResource({
-                                                                                    commit: sha,
-                                                                                    issue_number: number,
-                                                                                    repository
-                                                                                  }))
-            info(`${repository.full_name}#${number}: PR was opened, set state to pending`)
-            return
-          }
-          // get approvals for pr
-          const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
-          const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pull_request, dbPR.last_push, frozenComments, config, token)
-          const status = Approval.generateStatus({approvals, vetos}, config.approvals)
-          // update status
-          await this.github.setCommitStatus(user, repoName, sha, status, token)
-          await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
-                                                                                .withResult({
-                                                                                  approvals,
-                                                                                  vetos,
-                                                                                  status
-                                                                                })
-                                                                                .onResource({
-                                                                                  commit: sha,
-                                                                                  issue_number: number,
-                                                                                  repository
-                                                                                }))
-          info(`${repository.full_name}#${number}: PR was reopened, set state to ${status.state} (${approvals.total.length}/${minimum})`)
-          // if it was synced, ie a commit added to it
-        } else if (action === 'synchronize') {
-          // update last push in db
-          await this.pullRequestHandler.onAddCommit(dbRepoId, number)
-          // remove frozen comments
-          await this.pullRequestHandler.onRemoveFrozenComments(dbPR.id)
-          // set status to pending (has to be unlocked with further comments)
+        if (action === 'opened' && minimum > 0) {
+          // if it was opened, set to pending
           const approvals = {total: []}
           const vetos = []
           const status = Approval.generateStatus({approvals, vetos}, config.approvals)
@@ -425,43 +381,12 @@ export default class Approval extends Check {
                                                                                   issue_number: number,
                                                                                   repository
                                                                                 }))
-          info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
-        }
-        // on an issue comment
-      } else if (event === EVENTS.ISSUE_COMMENT) {
-        // check it belongs to an open pr
-        const pr = await this.github.getPullRequest(user, repoName, issue.number, token)
-        if (!pr || pr.state !== 'open') {
-          debug(`${repository.full_name}#${issue.number}: Ignoring comment, not a PR`)
+          info(`${repository.full_name}#${number}: PR was opened, set state to pending`)
           return
         }
-        sha = pr.head.sha
-        // set status to pending first
-        await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
-        // read last push date from db
-        const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, issue.number)
-        // read frozen comments and update if appropriate
+        // get approvals for pr
         const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
-        const commentId = hookPayload.comment.id
-        if (['edited', 'deleted'].indexOf(action) !== -1 && frozenComments.indexOf(commentId) === -1) {
-          // check if it was edited by someone else than the original author
-          const editor = hookPayload.sender.login
-          const author = hookPayload.comment.user.login
-          if (editor !== author) {
-            // OMFG
-            const comment = toGenericComment(hookPayload.comment)
-            const frozenComment = {
-              id: commentId,
-              body: action === 'edited' ? hookPayload.changes.body.from : comment.body,
-              user: comment.user,
-              created_at: comment.created_at
-            }
-            await this.pullRequestHandler.onAddFrozenComment(dbPR.id, frozenComment)
-            frozenComments.push(frozenComment)
-            info(`${repository.full_name}#${issue.number}: ${editor} ${action} ${author}'s comment ${commentId}, it's now frozen.`)
-          }
-        }
-        const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pr, dbPR.last_push, frozenComments, config, token)
+        const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pull_request, dbPR.last_push, frozenComments, config, token)
         const status = Approval.generateStatus({approvals, vetos}, config.approvals)
         // update status
         await this.github.setCommitStatus(user, repoName, sha, status, token)
@@ -473,19 +398,84 @@ export default class Approval extends Check {
                                                                               })
                                                                               .onResource({
                                                                                 commit: sha,
-                                                                                issue_number: issue.number,
+                                                                                issue_number: number,
                                                                                 repository
                                                                               }))
-        info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals.total.length}/${minimum} - ${vetos} vetos)`)
+        info(`${repository.full_name}#${number}: PR was reopened, set state to ${status.state} (${approvals.total.length}/${minimum})`)
+        // if it was synced, ie a commit added to it
+      } else if (action === 'synchronize') {
+        // update last push in db
+        await this.pullRequestHandler.onAddCommit(dbRepoId, number)
+        // remove frozen comments
+        await this.pullRequestHandler.onRemoveFrozenComments(dbPR.id)
+        // set status to pending (has to be unlocked with further comments)
+        const approvals = {total: []}
+        const vetos = []
+        const status = Approval.generateStatus({approvals, vetos}, config.approvals)
+        await this.github.setCommitStatus(user, repoName, sha, status, token)
+        await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+                                                                              .withResult({
+                                                                                approvals,
+                                                                                vetos,
+                                                                                status
+                                                                              })
+                                                                              .onResource({
+                                                                                commit: sha,
+                                                                                issue_number: number,
+                                                                                repository
+                                                                              }))
+        info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
       }
-    }
-    catch (e) {
-      error(e)
-      await this.github.setCommitStatus(user, repoName, sha, {
-        state: 'error',
-        context,
-        description: e.message
-      }, token)
+      // on an issue comment
+    } else if (event === EVENTS.ISSUE_COMMENT) {
+      // check it belongs to an open pr
+      const pr = await this.github.getPullRequest(user, repoName, issue.number, token)
+      if (!pr || pr.state !== 'open') {
+        debug(`${repository.full_name}#${issue.number}: Ignoring comment, not a PR`)
+        return
+      }
+      sha = pr.head.sha
+      // set status to pending first
+      await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
+      // read last push date from db
+      const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, issue.number)
+      // read frozen comments and update if appropriate
+      const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
+      const commentId = hookPayload.comment.id
+      if (['edited', 'deleted'].indexOf(action) !== -1 && frozenComments.indexOf(commentId) === -1) {
+        // check if it was edited by someone else than the original author
+        const editor = hookPayload.sender.login
+        const author = hookPayload.comment.user.login
+        if (editor !== author) {
+          // OMFG
+          const comment = toGenericComment(hookPayload.comment)
+          const frozenComment = {
+            id: commentId,
+            body: action === 'edited' ? hookPayload.changes.body.from : comment.body,
+            user: comment.user,
+            created_at: comment.created_at
+          }
+          await this.pullRequestHandler.onAddFrozenComment(dbPR.id, frozenComment)
+          frozenComments.push(frozenComment)
+          info(`${repository.full_name}#${issue.number}: ${editor} ${action} ${author}'s comment ${commentId}, it's now frozen.`)
+        }
+      }
+      const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pr, dbPR.last_push, frozenComments, config, token)
+      const status = Approval.generateStatus({approvals, vetos}, config.approvals)
+      // update status
+      await this.github.setCommitStatus(user, repoName, sha, status, token)
+      await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+                                                                            .withResult({
+                                                                              approvals,
+                                                                              vetos,
+                                                                              status
+                                                                            })
+                                                                            .onResource({
+                                                                              commit: sha,
+                                                                              issue_number: issue.number,
+                                                                              repository
+                                                                            }))
+      info(`${repository.full_name}#${issue.number}: Comment added, set state to ${status.state} (${approvals.total.length}/${minimum} - ${vetos} vetos)`)
     }
   }
 

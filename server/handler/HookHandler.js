@@ -36,6 +36,7 @@ class HookHandler {
     this.pullrequestlabels = new PullRequestLabels(this.githubService)
   }
 
+
   /**
    * Executes hook triggered by Github.
    *
@@ -44,10 +45,14 @@ class HookHandler {
    * @return {object}
    */
   async onHandleHook(event, payload) {
-    async function getToken(dbRepo, checkType) {
-      const check = dbRepo.checks.filter(check => check.type === checkType && !!check.token)[0]
+    async function executeCheck(checkInstance, dbRepo, args) {
+      const check = dbRepo.checks.filter(check => check.type === checkInstance.TYPE && !!check.token)[0]
       if (!!check) {
-        return Promise.resolve(check.token)
+        try {
+          await checkInstance.execute.apply(checkInstance, [...args, check.token])
+        } catch(e) {
+          // TODO implement
+        }
       }
     }
 
@@ -61,29 +66,19 @@ class HookHandler {
         config = zapprfile.getConfiguration()
       }
       if (Specification.isTriggeredBy(event)) {
-        getToken(repo, Specification.TYPE).then(token =>
-          this.specification.execute(config, payload, token)
-        )
+        executeCheck(this.specification, repo, [config, payload]);
       }
       if (Approval.isTriggeredBy(event)) {
-        getToken(repo, Approval.TYPE).then(token =>
-          this.approval.execute(config, event, payload, token, repo.id)
-        )
+        executeCheck(this.approval, repo, [config, event, payload, repo.id])
       }
       if (Autobranch.isTriggeredBy(event)) {
-        getToken(repo, Autobranch.TYPE).then(token =>
-          this.autobranch.execute(config, payload, token)
-        )
+        executeCheck(this.autobranch, repo, [config, payload])
       }
       if (CommitMessage.isTriggeredBy(event)) {
-        getToken(repo, CommitMessage.TYPE).then(token =>
-          this.commitMessage.execute(config, payload, token)
-        )
+        executeCheck(this.commitMessage, repo, [config, payload])
       }
       if (PullRequestLabels.isTriggeredBy(event)) {
-        getToken(repo, PullRequestLabels.TYPE).then(token =>
-          this.pullrequestlabels.execute(config, payload, token)
-        )
+        executeCheck(this.pullrequestlabels, repo, [config, payload])
       }
     }
     return {
