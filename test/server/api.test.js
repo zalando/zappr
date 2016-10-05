@@ -534,11 +534,11 @@ describe('API', () => {
         const fullName = `${fixtures.repoOwner}/${fixtures.repoName}`
         const calls = await mountebank.calls(imposter.port)
         /**
-         * 1. get repos
-         * 2.+3. zapprfiles
-         * 4.+5. get hooks, add hook
-         * 6.+7. get, update branch protection
-         * 8.+9. get hooks, remove hook
+         * get repos
+         * zapprfiles
+         * get, update branch protection
+         * get hooks, add hook
+         * get hooks, remove hook
          */
         expect(calls.length).to.equal(11)
         expect(call(calls[0])).to.equal('GET /user/repos')
@@ -546,10 +546,10 @@ describe('API', () => {
         expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
         const [,,, ...rest] = calls
         expect(rest.map(call)).to.deep.equal([
-          `GET /repos/${fullName}/branches/master`,
-          `PUT /repos/${fullName}/branches/master/protection`,
           `GET /repos/${fullName}/hooks`,
           `PATCH /repos/${fullName}/hooks/123`,
+          `GET /repos/${fullName}/branches/master`,
+          `PUT /repos/${fullName}/branches/master/protection`,
           `GET /repos/${fullName}/branches/master/protection/required_status_checks`,
           `PATCH /repos/${fullName}/branches/master/protection/required_status_checks`,
           `GET /repos/${fullName}/hooks`,
@@ -589,8 +589,8 @@ describe('API', () => {
          * 5) create branch
          * 6) create file
          * 7) create PR
-         * 8,9) get, update branch protection
-         * 10,11) get, update web hooks
+         * 8,9) get, update web hooks
+         * 10,11) get, update branch protection
          */
         expect(calls.length).to.equal(11)
         expect(call(calls[0])).to.equal('GET /user/repos')
@@ -603,10 +603,10 @@ describe('API', () => {
           `POST /repos/${fixtures.repo2FullName}/git/refs`,
           `PUT /repos/${fixtures.repo2FullName}/contents/.zappr.yaml`,
           `POST /repos/${fixtures.repo2FullName}/pulls`,
+          `GET /repos/${fixtures.repo2FullName}/hooks`,
+          `PATCH /repos/${fixtures.repo2FullName}/hooks/123`,
           `GET /repos/${fixtures.repo2FullName}/branches/master`,
           `PUT /repos/${fixtures.repo2FullName}/branches/master/protection`,
-          `GET /repos/${fixtures.repo2FullName}/hooks`,
-          `PATCH /repos/${fixtures.repo2FullName}/hooks/123`
         ])
         const createBranchBody = JSON.parse(rest[1].body)
         const createZapprBody = JSON.parse(rest[2].body)
@@ -654,8 +654,8 @@ describe('API', () => {
         /**
          * 1. get repos
          * 2.+3. get zapprfile
-         * 4.+5. check if branch is protected, update protection
-         * 6.+7. get hooks, add hook
+         * 4.+5. get hooks, add hook
+         * 6.+7. check if branch is protected, update protection
          */
         expect(calls.length).to.equal(7)
         expect(call(calls[0])).to.equal('GET /user/repos')
@@ -664,13 +664,13 @@ describe('API', () => {
         expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
         const [,,, ...rest] = calls
         expect(rest.map(call)).to.deep.equal([
+          `GET /repos/${fullName}/hooks`,
+          `PATCH /repos/${fullName}/hooks/123`,
           `GET /repos/${fullName}/branches/master`,
           `PUT /repos/${fullName}/branches/master/protection`,
-          `GET /repos/${fullName}/hooks`,
-          `PATCH /repos/${fullName}/hooks/123`
         ])
         // branch protection call should have approval context
-        const protectionSettings = JSON.parse(rest[1].body)
+        const protectionSettings = JSON.parse(rest[3].body)
         expect(protectionSettings).to.deep.equal({
           required_status_checks: {
             include_admins: true,
@@ -681,7 +681,7 @@ describe('API', () => {
         })
 
         // patch call should contain hook secret
-        const body = JSON.parse(rest[3].body)
+        const body = JSON.parse(rest[1].body)
         expect(body).to.have.deep.property('config.secret')
         expect(body.config.secret).to.equal('captainHook')
         done()
