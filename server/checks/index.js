@@ -3,6 +3,7 @@ import Autobranch from './Autobranch'
 import CommitMessage from './CommitMessage'
 import Specification from './Specification'
 import PullRequestLabels from './PullRequestLabels'
+import PullRequestTasks from './PullRequestTasks'
 
 const CHECKS = {
   [Approval.TYPE]: Approval,
@@ -10,6 +11,7 @@ const CHECKS = {
   [CommitMessage.TYPE]: CommitMessage,
   [Specification.TYPE]: Specification,
   [PullRequestLabels.TYPE]: PullRequestLabels
+  [PullRequestTasks.TYPE]: PullRequestTasks
 }
 
 export const CHECK_NAMES = {
@@ -18,6 +20,7 @@ export const CHECK_NAMES = {
   [CommitMessage.TYPE]: CommitMessage.NAME,
   [Specification.TYPE]: Specification.NAME,
   [PullRequestLabels.TYPE]: PullRequestLabels.NAME
+  [PullRequestTasks.TYPE]: PullRequestTasks.NAME
 }
 
 export const CHECK_TYPES = Object.keys(CHECKS)
@@ -26,4 +29,4 @@ export function getCheckByType(type) {
   return CHECKS[type]
 }
 
-export { Approval, Autobranch, CommitMessage, Specification, PullRequestLabels }
+export { Approval, Autobranch, CommitMessage, Specification, PullRequestLabels, PullRequestTasks }
