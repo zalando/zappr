@@ -1,5 +1,6 @@
 import Check, { getPayloadFn } from './Check'
 import { PULL_REQUEST } from '../model/GithubEvents'
+import { logger } from '../../common/debug'
 
 const CHECK_TYPE = 'pullrequesttasks'
 const CONTEXT = 'zappr/pr/tasks'

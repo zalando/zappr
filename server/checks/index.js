@@ -10,7 +10,7 @@ const CHECKS = {
   [Autobranch.TYPE]: Autobranch,
   [CommitMessage.TYPE]: CommitMessage,
   [Specification.TYPE]: Specification,
-  [PullRequestLabels.TYPE]: PullRequestLabels
+  [PullRequestLabels.TYPE]: PullRequestLabels,
   [PullRequestTasks.TYPE]: PullRequestTasks
 }
 
@@ -19,7 +19,7 @@ export const CHECK_NAMES = {
   [Autobranch.TYPE]: Autobranch.NAME,
   [CommitMessage.TYPE]: CommitMessage.NAME,
   [Specification.TYPE]: Specification.NAME,
-  [PullRequestLabels.TYPE]: PullRequestLabels.NAME
+  [PullRequestLabels.TYPE]: PullRequestLabels.NAME,
   [PullRequestTasks.TYPE]: PullRequestTasks.NAME
 }
 
