@@ -176,3 +176,27 @@ pull-request:
     # allow additional labels to be present. true is the default..
     additional: true
 ~~~
+
+### Pull Request Tasks
+
+This check blocks pull requests that have open tasks. E.g. a pull request with this description:
+
+~~~
+Fixes #1
+
+Needs to be done:
+
+- [ ] Write tests
+~~~
+
+Would be blocked until it reads like this:
+
+~~~
+Fixes #1
+
+Needs to be done:
+
+- [x] Write tests
+~~~
+
+Currently this check doesn't take configuration.
