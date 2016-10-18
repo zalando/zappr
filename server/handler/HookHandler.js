@@ -64,32 +64,32 @@ class HookHandler {
       }
       if (Specification.isTriggeredBy(event)) {
         getToken(repo, Specification.TYPE).then(token =>
-          this.specification.execute(config, payload, token)
+          this.specification.execute({config, payload, token})
         )
       }
       if (Approval.isTriggeredBy(event)) {
         getToken(repo, Approval.TYPE).then(token =>
-          this.approval.execute(config, event, payload, token, repo.id)
+          this.approval.execute({config, event, payload, token, dbRepoId: repo.id})
         )
       }
       if (Autobranch.isTriggeredBy(event)) {
         getToken(repo, Autobranch.TYPE).then(token =>
-          this.autobranch.execute(config, payload, token)
+          this.autobranch.execute({config, payload, token})
         )
       }
       if (CommitMessage.isTriggeredBy(event)) {
         getToken(repo, CommitMessage.TYPE).then(token =>
-          this.commitMessage.execute(config, payload, token)
+          this.commitMessage.execute({config, payload, token})
         )
       }
       if (PullRequestLabels.isTriggeredBy(event)) {
         getToken(repo, PullRequestLabels.TYPE).then(token =>
-          this.pullrequestlabels.execute(config, payload, token)
+          this.pullrequestlabels.execute({config, payload, token})
         )
       }
       if (PullRequestTasks.isTriggeredBy(event)) {
         getToken(repo, PullRequestTasks.TYPE).then(token =>
-          this.pullrequesttasks.execute(config, payload, token)
+          this.pullrequesttasks.execute({config, payload, token})
         )
       }
     }

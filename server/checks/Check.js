@@ -17,4 +17,8 @@ export default class Check {
   static isTriggeredBy(event) {
     return this.HOOK_EVENTS.indexOf(event) !== -1
   }
+
+  async execute(options) {
+    throw new Error("Override Check.execute() in subclass") // what's the appropriate vocabulary as these are not real classes?
+  }
 }

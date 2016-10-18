@@ -46,8 +46,8 @@ export default class PullRequestTasks extends Check {
     this.github = github;
   }
 
-  async execute(config, hookPayload, token) {
-    const {action, repository, number, pull_request} = hookPayload
+  async execute({config, payload, token}) {
+    const {action, repository, number, pull_request} = payload
     const repoOwner = repository.owner.login
     const repoName = repository.name
     const fullName = repository.full_name

@@ -33,8 +33,11 @@ describe('Specification', () => {
                 state
               }
             })
-
-            await pullRequest.execute(config(), payload, TOKEN)
+            await pullRequest.execute({
+              config: config(),
+              payload,
+              token: TOKEN
+            })
             expect(github.setCommitStatus.called).to.be.false
             done()
           } catch (e) {
@@ -51,7 +54,11 @@ describe('Specification', () => {
             state: 'close'
           })
 
-          await pullRequest.execute(config(), payload, TOKEN)
+          await pullRequest.execute({
+            config: config(),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.called).to.be.false
           done()
         } catch (e) {
@@ -67,7 +74,11 @@ describe('Specification', () => {
             body: 'This one is a good body for the PR'
           })
 
-          await pullRequest.execute(config(), payload, TOKEN)
+          await pullRequest.execute({
+            config: config(),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'success',
@@ -90,7 +101,11 @@ describe('Specification', () => {
             body: 'This one is a good body for the PR'
           })
 
-          await pullRequest.execute(config(), payload, TOKEN)
+          await pullRequest.execute({
+            config: config(),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',
@@ -112,7 +127,11 @@ describe('Specification', () => {
             body: 'This one is a good body for the PR'
           })
 
-          await pullRequest.execute(config(), payload, TOKEN)
+          await pullRequest.execute({
+            config: config(),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'success',
@@ -135,7 +154,11 @@ describe('Specification', () => {
             title: 'This one is a good title for the PR'
           })
 
-          await pullRequest.execute(config(), payload, TOKEN)
+          await pullRequest.execute({
+            config: config(),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',
@@ -161,13 +184,17 @@ describe('Specification', () => {
               title: 'This one is a good title for the PR'
             })
 
-            await pullRequest.execute(config({
-              body: { // make sure that issue and url are real validators
-                'minimum-length': {
-                  enabled: false
+            await pullRequest.execute({
+              config: config({
+                body: { // make sure that issue and url are real validators
+                  'minimum-length': {
+                    enabled: false
+                  }
                 }
-              }
-            }), payload, TOKEN)
+              }),
+              payload,
+              token: TOKEN
+            })
             expect(github.setCommitStatus.calledWithExactly(
               'sample', 'one', '1a2b3c', {
                 state: 'success',
@@ -192,13 +219,17 @@ describe('Specification', () => {
             body: 'This is a good body for the PR'
           })
 
-          await pullRequest.execute(config({
-            title: {
-              'minimum-length': {
-                enabled: false
+          await pullRequest.execute({
+            config: config({
+              title: {
+                'minimum-length': {
+                  enabled: false
+                }
               }
-            }
-          }), payload, TOKEN)
+            }),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'success',
@@ -223,19 +254,22 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: 'Issue #42'
           })
-
-          await pullRequest.execute(config({
-            template: {
-              'differs-from-body': true
-            },
-            body: {
-              'minimum-length': {
-                enabled: false
+          await pullRequest.execute({
+            config: config({
+              template: {
+                'differs-from-body': true
               },
-              'contains-url': false,
-              'contains-issue-number': false
-            }
-          }), payload, TOKEN)
+              body: {
+                'minimum-length': {
+                  enabled: false
+                },
+                'contains-url': false,
+                'contains-issue-number': false
+              }
+            }),
+            payload,
+            token: TOKEN
+          })
 
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
@@ -259,11 +293,15 @@ describe('Specification', () => {
             body: '#4'
           })
 
-          await pullRequest.execute(config({
-            body: {
-              'contains-issue-number': false
-            }
-          }), payload, TOKEN)
+          await pullRequest.execute({
+            config: config({
+              body: {
+                'contains-issue-number': false
+              }
+            }),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',
@@ -286,15 +324,18 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: 'https://t.co'
           })
-
-          await pullRequest.execute(config({
-            body: {
-              'contains-url': false,
-              'minimum-length': {
-                enabled: false
+          await pullRequest.execute({
+            config: config({
+              body: {
+                'contains-url': false,
+                'minimum-length': {
+                  enabled: false
+                }
               }
-            }
-          }), payload, TOKEN)
+            }),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',
@@ -320,18 +361,22 @@ describe('Specification', () => {
             body: 'Fill in this template'
           })
 
-          await pullRequest.execute(config({
-            template: {
-              'differs-from-body': true
-            },
-            body: {
-              'minimum-length': {
-                enabled: false
+          await pullRequest.execute({
+            config: config({
+              template: {
+                'differs-from-body': true
               },
-              'contains-url': false,
-              'contains-issue-number': false
-            }
-          }), payload, TOKEN)
+              body: {
+                'minimum-length': {
+                  enabled: false
+                },
+                'contains-url': false,
+                'contains-issue-number': false
+              }
+            }),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',
@@ -357,18 +402,22 @@ describe('Specification', () => {
             body: 'Fix #'
           })
 
-          await pullRequest.execute(config({
-            template: {
-              'differs-from-body': true
-            },
-            body: {
-              'minimum-length': {
-                enabled: false
+          await pullRequest.execute({
+            config: config({
+              template: {
+                'differs-from-body': true
               },
-              'contains-url': false,
-              'contains-issue-number': false
-            }
-          }), payload, TOKEN)
+              body: {
+                'minimum-length': {
+                  enabled: false
+                },
+                'contains-url': false,
+                'contains-issue-number': false
+              }
+            }),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',
@@ -392,19 +441,22 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: 'Issue #42'
           })
-
-          await pullRequest.execute(config({
-            template: {
-              'differs-from-body': true
-            },
-            body: {
-              'minimum-length': {
-                enabled: false
+          await pullRequest.execute({
+            config: config({
+              template: {
+                'differs-from-body': true
               },
-              'contains-url': false,
-              'contains-issue-number': false
-            }
-          }), payload, TOKEN)
+              body: {
+                'minimum-length': {
+                  enabled: false
+                },
+                'contains-url': false,
+                'contains-issue-number': false
+              }
+            }),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'success',
@@ -428,20 +480,23 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: 'Lol?'
           })
-
-          await pullRequest.execute(config({
-            template: {
-              'differs-from-body': true
-            },
-            body: {
-              'minimum-length': {
-                enabled: true,
-                length: 8
+          await pullRequest.execute({
+            config: config({
+              template: {
+                'differs-from-body': true
               },
-              'contains-url': false,
-              'contains-issue-number': false
-            }
-          }), payload, TOKEN)
+              body: {
+                'minimum-length': {
+                  enabled: true,
+                  length: 8
+                },
+                'contains-url': false,
+                'contains-issue-number': false
+              }
+            }),
+            payload,
+            token: TOKEN
+          })
           expect(github.setCommitStatus.calledWithExactly(
             'sample', 'one', '1a2b3c', {
               state: 'failure',

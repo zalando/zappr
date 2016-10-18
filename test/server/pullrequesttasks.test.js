@@ -63,7 +63,11 @@ describe('Pull Request Tasks', () => {
     ALL.forEach(action =>
       it('ignores everything with state = closed', async(done) => {
         try {
-          await prTasks.execute(CONFIG, Object.assign({}, PAYLOAD, {action, pull_request: {state: 'closed'}}), TOKEN)
+          await prTasks.execute({
+            config: CONFIG,
+            payload: Object.assign({}, PAYLOAD, {action, pull_request: {state: 'closed'}}),
+            token: TOKEN
+          })
           expect(github.setCommitStatus.called).to.be.false
           done()
         } catch (e) {
@@ -74,7 +78,11 @@ describe('Pull Request Tasks', () => {
     REACT_ON.forEach(action =>
       it(`reacts on "${action}"`, async(done) => {
         try {
-          await prTasks.execute(CONFIG, Object.assign({}, PAYLOAD, {action}), TOKEN)
+          await prTasks.execute({
+            config: CONFIG,
+            payload: Object.assign({}, PAYLOAD, {action}),
+            token: TOKEN
+          })
           expect(github.setCommitStatus.called).to.be.true
           done()
         } catch (e) {
@@ -85,7 +93,11 @@ describe('Pull Request Tasks', () => {
     IGNORE.forEach(action =>
       it(`does not react on "${action}"`, async(done) => {
         try {
-          await prTasks.execute(CONFIG, Object.assign({}, PAYLOAD, {action}), TOKEN)
+          await prTasks.execute({
+            config: CONFIG,
+            payload: Object.assign({}, PAYLOAD, {action}),
+            token: TOKEN
+          })
           expect(github.setCommitStatus.called).to.be.false
           done()
         } catch (e) {
@@ -95,7 +107,11 @@ describe('Pull Request Tasks', () => {
 
     it('calls githubService with correct arguments when PR has open tasks', async(done) => {
       try {
-        await prTasks.execute(CONFIG, PAYLOAD, TOKEN)
+        await prTasks.execute({
+          config: CONFIG,
+          payload: PAYLOAD,
+          token: TOKEN
+        })
 
         const expectedStatus = {
           state: 'failure',
@@ -115,11 +131,15 @@ describe('Pull Request Tasks', () => {
 
     it('calls githubService with correct arguments when PR has no open tasks', async(done) => {
       try {
-        let pl = Object.assign({}, PAYLOAD);
+        let payload = Object.assign({}, PAYLOAD);
 
-        pl.pull_request.body = "- [x] test1\r\n- [x] test2";
+        payload.pull_request.body = "- [x] test1\r\n- [x] test2";
 
-        await prTasks.execute(CONFIG, pl, TOKEN)
+        await prTasks.execute({
+          config: CONFIG,
+          payload,
+          token: TOKEN
+        })
 
         const expectedStatus = {
           state: 'success',

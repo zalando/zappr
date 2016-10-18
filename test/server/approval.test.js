@@ -388,7 +388,13 @@ describe('Approval#execute', () => {
   SKIP_ACTIONS.forEach(action=> {
     it(`should do nothing on "${action}"`, async(done) => {
       try {
-        await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, Object.assign(PR_PAYLOAD, {action}), TOKEN, DB_REPO_ID)
+        await approval.execute({
+          config: DEFAULT_CONFIG,
+          event: EVENTS.PULL_REQUEST,
+          payload: Object.assign(PR_PAYLOAD, {action}),
+          token: TOKEN,
+          dbRepoId: DB_REPO_ID
+        })
         expect(github.setCommitStatus.callCount).to.equal(0)
         expect(github.getApprovals.callCount).to.equal(0)
         done()
@@ -418,7 +424,13 @@ describe('Approval#execute', () => {
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
-      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute({
+        config: DEFAULT_CONFIG,
+        event: EVENTS.ISSUE_COMMENT,
+        payload: ISSUE_PAYLOAD,
+        token: TOKEN,
+        dbRepoId: DB_REPO_ID
+      })
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -472,7 +484,13 @@ describe('Approval#execute', () => {
     }])
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
-      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute({
+        config: DEFAULT_CONFIG,
+        event: EVENTS.ISSUE_COMMENT,
+        payload: ISSUE_PAYLOAD,
+        token: TOKEN,
+        dbRepoId: DB_REPO_ID
+      })
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
@@ -512,7 +530,13 @@ describe('Approval#execute', () => {
 
   it('should do nothing on comment on non-open pull_request', async(done) => {
     github.getPullRequest = sinon.stub().returns(CLOSED_PR)
-    await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+    await approval.execute({
+      config: DEFAULT_CONFIG,
+      event: EVENTS.ISSUE_COMMENT,
+      payload: ISSUE_PAYLOAD,
+      token: TOKEN,
+      dbRepoId: DB_REPO_ID
+    })
     expect(github.setCommitStatus.callCount).to.equal(0)
     expect(github.getApprovals.callCount).to.equal(0)
     expect(auditService.log.called).to.be.false
@@ -522,7 +546,13 @@ describe('Approval#execute', () => {
   it('should set status to pending on PR:opened', async(done) => {
     PR_PAYLOAD.action = 'opened'
     try {
-      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute({
+        config: DEFAULT_CONFIG,
+        event: EVENTS.PULL_REQUEST,
+        payload: PR_PAYLOAD,
+        token: TOKEN,
+        dbRepoId: DB_REPO_ID
+      })
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(0)
       expect(auditService.log.callCount).to.equal(1)
@@ -559,7 +589,13 @@ describe('Approval#execute', () => {
         approvals: {total: ['red', 'blue', 'green', 'yellow']},
         vetos: []
       })
-      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute({
+        config: DEFAULT_CONFIG,
+        event: EVENTS.PULL_REQUEST,
+        payload: PR_PAYLOAD,
+        token: TOKEN,
+        dbRepoId: DB_REPO_ID
+      })
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.getComments.callCount).to.equal(1)
       expect(auditService.log.callCount).to.equal(1)
@@ -591,7 +627,13 @@ describe('Approval#execute', () => {
   it('should set status to pending on PR:synchronize', async(done) => {
     try {
       const payload = Object.assign({}, PR_PAYLOAD, {action: 'synchronize'})
-      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, payload, TOKEN, DB_REPO_ID)
+      await approval.execute({
+        config: DEFAULT_CONFIG,
+        event: EVENTS.PULL_REQUEST,
+        payload,
+        token: TOKEN,
+        dbRepoId: DB_REPO_ID
+      })
       expect(pullRequestHandler.onRemoveFrozenComments.calledWith(DB_PR.id)).to.be.true
       expect(pullRequestHandler.onAddCommit.calledWith(DB_REPO_ID, payload.number)).to.be.true
       expect(github.setCommitStatus.callCount).to.equal(1)
@@ -613,7 +655,13 @@ describe('Approval#execute', () => {
     try {
       PR_PAYLOAD.action = 'synchronize'
       auditService.log = sinon.stub().throws(new Error('Audit API Error'))
-      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, PR_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute({
+        config: DEFAULT_CONFIG,
+        event: EVENTS.PULL_REQUEST,
+        payload: PR_PAYLOAD,
+        token: TOKEN,
+        dbRepoId: DB_REPO_ID
+      })
 
       expect(github.setCommitStatus.callCount).to.equal(2)
       expect(github.setCommitStatus.args[1][3].state).to.equal('error')
@@ -636,7 +684,13 @@ describe('Approval#execute', () => {
                                                            .withArgs(DB_REPO_ID, payload.issue.number)
                                                            .returns(DB_PR)
         github.getComments = sinon.stub().returns([]) // does not matter for this test
-        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+        await approval.execute({
+          config: DEFAULT_CONFIG,
+          event: EVENTS.ISSUE_COMMENT,
+          payload,
+          token: TOKEN,
+          dbRepoId: DB_REPO_ID
+        })
         expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
         expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
         expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
@@ -664,7 +718,13 @@ describe('Approval#execute', () => {
                                                            .withArgs(DB_REPO_ID, payload.issue.number)
                                                            .returns(DB_PR)
         github.getComments = sinon.stub().returns([]) // does not matter for this test
-        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+        await approval.execute({
+          config: DEFAULT_CONFIG,
+          event: EVENTS.ISSUE_COMMENT,
+          payload,
+          token: TOKEN,
+          dbRepoId: DB_REPO_ID
+        })
         expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
         expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
         expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
@@ -686,7 +746,13 @@ describe('Approval#execute', () => {
                                                          .withArgs(DB_REPO_ID, payload.issue.number)
                                                          .returns(DB_PR)
       github.getComments = sinon.stub().returns([]) // does not matter for this test
-      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+      await approval.execute({
+        config: DEFAULT_CONFIG,
+        event: EVENTS.ISSUE_COMMENT,
+        payload,
+        token: TOKEN,
+        dbRepoId: DB_REPO_ID
+      })
       expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
       expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
       expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
@@ -728,7 +794,13 @@ describe('Approval#execute', () => {
                                                     .returns(frozenComments)
       github.getComments = sinon.stub()
                                 .returns(upstreamComments)
-      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+      await approval.execute({
+        config: DEFAULT_CONFIG,
+        event: EVENTS.ISSUE_COMMENT,
+        payload: ISSUE_PAYLOAD,
+        token: TOKEN,
+        dbRepoId: DB_REPO_ID
+      })
       expect(pullRequestHandler.onGetFrozenComments.calledOnce).to.be.true
       expect(pullRequestHandler.onGetFrozenComments.calledWith(DB_PR.id, DB_PR.last_push)).to.be.true
       expect(pullRequestHandler.onAddFrozenComment.calledOnce).to.be.false
@@ -743,7 +815,13 @@ describe('Approval#execute', () => {
 
   it('should log an audit event on pull request merge and delete the pull request from the db', async(done) => {
     try {
-      await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, MERGED_PR_PAYLOAD, null, null)
+      await approval.execute({
+        config: DEFAULT_CONFIG,
+        event: EVENTS.PULL_REQUEST,
+        payload: MERGED_PR_PAYLOAD,
+        token: null,
+        dbRepoId: null
+      })
       expect(auditService.log.calledOnce).to.be.true
       expect(pullRequestHandler.onDeletePullRequest.calledOnce).to.be.true
       expect(github.setCommitStatus.called).to.be.false

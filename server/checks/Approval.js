@@ -310,7 +310,10 @@ export default class Approval extends Check {
     return await this.countApprovalsAndVetos(repository, pull_request, comments, config.approvals, token)
   }
 
+
   /**
+   * Executes approval check.
+   *
    * - PR open/reopen:
    *   1. set status to pending
    *   2. count approvals since last commit
@@ -322,9 +325,15 @@ export default class Approval extends Check {
    *   4. set status to ok when there are enough approvals
    * - PR synchronize (new commits on top):
    *   1. set status back to pending (b/c there can't be comments afterwards already)
+   *
+   * @param config The Zappr configuration (all of it)
+   * @param event The GitHub event, e.g. pull_request
+   * @param payload The payload of the call
+   * @param token The GitHub token to use
+   * @param dbRepoId The database ID of the affected repository
    */
-  async execute(config, event, hookPayload, token, dbRepoId) {
-    const {action, repository, pull_request, number, issue} = hookPayload
+  async execute({config, event, payload, token, dbRepoId}) {
+    const {action, repository, pull_request, number, issue} = payload
     const repoName = repository.name
     const user = repository.owner.login
     const {minimum} = config.approvals
@@ -342,7 +351,7 @@ export default class Approval extends Check {
       // if it was merged
       if (pull_request.merged) {
         await this.pullRequestHandler.onDeletePullRequest(dbRepoId, number)
-        await this.audit.log(new AuditEvent(AUDIT_EVENTS.PULL_REQUEST_MERGED).fromGithubEvent(hookPayload)
+        await this.audit.log(new AuditEvent(AUDIT_EVENTS.PULL_REQUEST_MERGED).fromGithubEvent(payload)
                                                                              .onResource({
                                                                                repository,
                                                                                pull_request,
@@ -371,7 +380,7 @@ export default class Approval extends Check {
             const vetos = []
             const status = Approval.generateStatus({approvals, vetos}, config.approvals)
             await this.github.setCommitStatus(user, repoName, sha, status, token)
-            await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+            await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(payload)
                                                                                   .withResult({
                                                                                     approvals,
                                                                                     vetos,
@@ -391,7 +400,7 @@ export default class Approval extends Check {
           const status = Approval.generateStatus({approvals, vetos}, config.approvals)
           // update status
           await this.github.setCommitStatus(user, repoName, sha, status, token)
-          await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+          await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(payload)
                                                                                 .withResult({
                                                                                   approvals,
                                                                                   vetos,
@@ -414,7 +423,7 @@ export default class Approval extends Check {
           const vetos = []
           const status = Approval.generateStatus({approvals, vetos}, config.approvals)
           await this.github.setCommitStatus(user, repoName, sha, status, token)
-          await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+          await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(payload)
                                                                                 .withResult({
                                                                                   approvals,
                                                                                   vetos,
@@ -442,17 +451,17 @@ export default class Approval extends Check {
         const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, issue.number)
         // read frozen comments and update if appropriate
         const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
-        const commentId = hookPayload.comment.id
+        const commentId = payload.comment.id
         if (['edited', 'deleted'].indexOf(action) !== -1 && frozenComments.indexOf(commentId) === -1) {
           // check if it was edited by someone else than the original author
-          const editor = hookPayload.sender.login
-          const author = hookPayload.comment.user.login
+          const editor = payload.sender.login
+          const author = payload.comment.user.login
           if (editor !== author) {
             // OMFG
-            const comment = toGenericComment(hookPayload.comment)
+            const comment = toGenericComment(payload.comment)
             const frozenComment = {
               id: commentId,
-              body: action === 'edited' ? hookPayload.changes.body.from : comment.body,
+              body: action === 'edited' ? payload.changes.body.from : comment.body,
               user: comment.user,
               created_at: comment.created_at
             }
@@ -465,7 +474,7 @@ export default class Approval extends Check {
         const status = Approval.generateStatus({approvals, vetos}, config.approvals)
         // update status
         await this.github.setCommitStatus(user, repoName, sha, status, token)
-        await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
+        await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(payload)
                                                                               .withResult({
                                                                                 approvals,
                                                                                 vetos,

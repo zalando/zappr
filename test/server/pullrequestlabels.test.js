@@ -80,7 +80,11 @@ describe('Pull Request Labels', () => {
     ALL.forEach(action =>
       it(`ignores everything with state = closed`, async(done) => {
         try {
-          await prLabels.execute(CONFIG, Object.assign({}, PAYLOAD, {action, pull_request: {state: 'closed'}}), TOKEN)
+          await prLabels.execute({
+            config: CONFIG,
+            payload: Object.assign({}, PAYLOAD, {action, pull_request: {state: 'closed'}}),
+            token: TOKEN
+          })
           expect(github.getIssueLabels.called).to.be.false
           done()
         } catch (e) {
@@ -91,7 +95,11 @@ describe('Pull Request Labels', () => {
     REACT_ON.forEach(action =>
       it(`reacts on "${action}"`, async(done) => {
         try {
-          await prLabels.execute(CONFIG, Object.assign({}, PAYLOAD, {action}), TOKEN)
+          await prLabels.execute({
+            config: CONFIG,
+            payload: Object.assign({}, PAYLOAD, {action}),
+            token: TOKEN
+          })
           expect(github.getIssueLabels.called).to.be.true
           done()
         } catch (e) {
@@ -102,7 +110,11 @@ describe('Pull Request Labels', () => {
     IGNORE.forEach(action =>
       it(`does not react on "${action}"`, async(done) => {
         try {
-          await prLabels.execute(CONFIG, Object.assign({}, PAYLOAD, {action}), TOKEN)
+          await prLabels.execute({
+            config: CONFIG,
+            payload: Object.assign({}, PAYLOAD, {action}),
+            token: TOKEN
+          })
           expect(github.getIssueLabels.called).to.be.false
           done()
         } catch (e) {
@@ -112,7 +124,11 @@ describe('Pull Request Labels', () => {
 
     it('does nothing when config is empty', async(done) => {
       try {
-        await prLabels.execute({}, PAYLOAD, TOKEN)
+        await prLabels.execute({
+          config: {},
+          payload: PAYLOAD,
+          token: TOKEN
+        })
         expect(github.getIssueLabels.called).to.be.false
         done()
       } catch (e) {
@@ -123,7 +139,11 @@ describe('Pull Request Labels', () => {
     it('calls githubService with correct arguments', async(done) => {
       try {
         github.getIssueLabels = sinon.stub().returns(['approved', 'wip'])
-        await prLabels.execute(CONFIG, PAYLOAD, TOKEN)
+        await prLabels.execute({
+          config: CONFIG,
+          payload: PAYLOAD,
+          token: TOKEN
+        })
         expect(github.getIssueLabels.args).to.deep.equal([
           ['prayerslayer', 'hello-world', 1, TOKEN]
         ])
