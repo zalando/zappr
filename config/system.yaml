@@ -102,7 +102,7 @@ ZAPPR_WELCOME_TEXT: |
 
   ## Pull Request guidelines
 
-    * Block a PR until it has the required set of labels (e.g. `reviewed`).
+    * Block a PR until it has the required set of labels (e.g. `reviewed`)
     * Block a PR as long as it has unfinished tasks
 
   ## Specification guidelines
