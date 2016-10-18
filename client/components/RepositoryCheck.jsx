@@ -1,6 +1,6 @@
 import React, { Component, PropTypes } from 'react'
 import Time from 'react-time'
-import { Alert, Panel, Well } from 'react-bootstrap'
+import { Alert, Panel } from 'react-bootstrap'
 
 import Toggle from './Toggle.jsx'
 
@@ -22,6 +22,9 @@ const INFO_TEXT = {
   pullrequestlabels: <p>The pull request labels check (<a
     href='https://zappr.readthedocs.io/en/latest/setup/#pull-request-labels'>docs</a>) will verify that an open pull request has (or does not have)
     labels you defined before it can be merged. (Examples could be <code>Work in progress</code> or <code>Review needed</code>.)
+  </p>,
+  pullrequesttasks: <p>The pull request tasks check (<a
+    href='https://zappr.readthedocs.io/en/latest/setup/#pull-request-tasks'>docs</a>) will block pull requests that have open tasks.
   </p>
 }
 
