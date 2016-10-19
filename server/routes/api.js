@@ -3,6 +3,7 @@ import nconf from '../nconf'
 import { githubService } from '../service/GithubService'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
+import { checkRunner } from '../checks/runner'
 import { checkHandler } from '../handler/CheckHandler'
 import { repositoryHandler } from '../handler/RepositoryHandler'
 import ZapprConfiguration from '../zapprfile/Configuration'
@@ -109,15 +110,15 @@ export function repo(router) {
       const user = ctx.req.user
       const id = parseInt(ctx.params.id)
       const type = ctx.params.type
-      const repo = await repositoryHandler.onGetOne(id, user)
+      const repo = await repositoryHandler.onGetOne(id, user, true)
+      const token = user.accessToken
+      const owner = repo.json.owner.login
+      const name = repo.json.name
+      const defaultBranch = repo.json.default_branch
+      const zapprFile = await githubService.readZapprFile(owner, name, token)
       if (!repo.welcomed) {
-        const owner = repo.json.owner.login
-        const name = repo.json.name
-        const defaultBranch = repo.json.default_branch
-        const token = user.accessToken
-        const hasZapprFile = await githubService.hasZapprFile(owner, name, token)
         try {
-          if (!hasZapprFile) {
+          if (zapprFile.length === 0) {
             await githubService.proposeZapprfile(owner, name, defaultBranch, token)
             info(`${owner}/${name}: Welcome to Zappr.`)
           } else {
@@ -132,7 +133,9 @@ export function repo(router) {
       const checkContext = getCheckByType(type).CONTEXT
       if (checkContext) {
         // autobranch doesn't have a context
-        await githubService.protectBranch(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
+        await githubService.protectBranch(owner, name, defaultBranch, checkContext, token)
+        const config = new ZapprConfiguration(zapprFile)
+        checkRunner.runSingle(repo, getCheckByType(type).TYPE, {config})
       }
       ctx.response.status = 201
       ctx.body = check.toJSON()

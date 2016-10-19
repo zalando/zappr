@@ -22,6 +22,7 @@ const BRANCH_PREVIEW_HEADER = 'application/vnd.github.loki-preview+json'
 
 const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
+  PRS: '/repos/${owner}/${repo}/pulls',
   PR: '/repos/${owner}/${repo}/pulls/${number}',
   ORG_MEMBER: '/orgs/${org}/public_members/${user}',
   STATUS: '/repos/${owner}/${repo}/statuses/${sha}',
@@ -131,6 +132,18 @@ export class GithubService {
     }
     // return generic comments
     return comments.map(toGenericComment)
+  }
+
+  getPullRequests(user, repo, accessToken) {
+    const path = API_URL_TEMPLATES.PRS
+                                  .replace('${owner}', user)
+                                  .replace('${repo}', repo)
+    try {
+      return this.fetchPath('GET', path, null, accessToken)
+    } catch (e) {
+      error(`${user}/${repo}: Could not fetch pull requests. ${e.message}`)
+      throw e
+    }
   }
 
   async getPullRequest(user, repo, number, accessToken) {
