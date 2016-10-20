@@ -88,7 +88,7 @@ export default class Specification extends Check {
       return this.github.setCommitStatus(user, repo.name, sha,
         status('PR has passed specification checks'), token)
     } catch (e) {
-      info(`${repo.full_name}#{pr.number}: Set status to failure: ${e.message}`)
+      info(`${repo.full_name}#${pr.number}: Set status to failure: ${e.message}`)
       return this.github.setCommitStatus(user, repo.name, sha, status(
         e.message, 'failure'), token)
     }

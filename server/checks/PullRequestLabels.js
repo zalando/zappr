@@ -41,25 +41,34 @@ export default class PullRequestLabels extends Check {
     this.github = github
   }
 
+  async fetchLabelsAndSetStatus({repository, pull_request, token, config}) {
+    const required = getIn(config, ['pull-request', 'labels', 'required'], [])
+    const additional = getIn(config, ['pull-request', 'labels', 'additional'], true)
+    const repoOwner = repository.owner.login
+    const repoName = repository.name
+    const fullName = repository.full_name
+    const number = pull_request.number
+
+    if (required.length === 0) {
+      // there is nothing to check against
+      info(`${fullName}#${number}: Configuration is empty, nothing to do.`)
+      return
+    }
+    const labels = await this.github.getIssueLabels(repoOwner, repoName, number, token)
+    const status = generateStatus(labels, {required, additional})
+    debug(`${fullName}#${number}: ${labels} (required: ${required}, additional: ${additional})`)
+    info(`${fullName}#${number}: Set status to ${status.state}.`)
+    await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
+  }
+
   async execute({config, payload, token}) {
     const {action, repository, number, pull_request} = payload
     const repoOwner = repository.owner.login
     const repoName = repository.name
     const fullName = repository.full_name
     try {
-      const required = getIn(config, ['pull-request', 'labels', 'required'], [])
-      const additional = getIn(config, ['pull-request', 'labels', 'additional'], true)
-      if (required.length === 0) {
-        // there is nothing to check against
-        info(`${fullName}#${number}: Configuration is empty, nothing to do.`)
-        return
-      }
       if (['labeled', 'unlabeled', 'opened', 'reopened'].indexOf(action) !== -1 && pull_request.state === 'open') {
-        const labels = await this.github.getIssueLabels(repoOwner, repoName, number, token)
-        const status = generateStatus(labels, {required, additional})
-        debug(`${fullName}#${number}: ${labels} (required: ${required}, additional: ${additional})`)
-        info(`${fullName}#${number}: Set status to ${status.state}.`)
-        await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
+        await this.fetchLabelsAndSetStatus({repository, pull_request, token, config})
       }
     } catch (e) {
       error(`${fullName}#${number}: Could not execute Pull Request Labels check`, e)

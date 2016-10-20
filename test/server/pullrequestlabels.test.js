@@ -51,9 +51,9 @@ describe('Pull Request Labels', () => {
 
     const TOKEN = 'token'
     const PAYLOAD = {
-      number: 1,
       action: 'labeled',
       pull_request: {
+        number: 1,
         state: 'open',
         head: {
           sha: 'commit-id'

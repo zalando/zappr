@@ -25,7 +25,8 @@ export default class CheckRunner {
               pullRequestHandler = defaultPullRequestHandler,
               auditService = createAuditService()) {
     this.githubService = githubService
-    this.approval = new Approval(this.githubService, pullRequestHandler, auditService)
+    this.pullRequestHandler = pullRequestHandler
+    this.approval = new Approval(this.githubService, this.pullRequestHandler, auditService)
     this.autobranch = new Autobranch(this.githubService)
     this.commitMessage = new CommitMessage(this.githubService)
     this.specification = new Specification(this.githubService)
@@ -49,7 +50,7 @@ export default class CheckRunner {
         const name = dbRepo.json.name
         const openPullRequests = await this.githubService.getPullRequests(owner, name, token)
 
-        openPullRequests.forEach(pullRequest => {
+        const processedPullRequests = openPullRequests.map(async pullRequest => {
           const openedPullRequestPayload = {
             action: 'opened', // we have to simulate something
             repository: dbRepo.json,
@@ -63,19 +64,42 @@ export default class CheckRunner {
             payload: openedPullRequestPayload,
             dbRepoId: dbRepo.id
           }
+          const dbPR = await this.pullRequestHandler.onGetOne(dbRepo.id, pullRequest.number)
           switch (checkType) {
             case Approval.TYPE:
-              return this.approval.execute(checkArgs)
+              return this.approval.fetchApprovalsAndSetStatus({
+                repository: dbRepo.json,
+                pull_request: pullRequest,
+                lastPush: dbPR ? dbPR.last_push : new Date(0), // beginning of time
+                config,
+                token
+              })
             case Specification.TYPE:
-              return this.specification.execute(checkArgs)
+              return this.specification.validate(config, pull_request, repository, token)
             case PullRequestLabels.TYPE:
-              return this.pullRequestLabels.execute(checkArgs)
+              return this.pullRequestLabels.fetchLabelsAndSetStatus({
+                config,
+                pull_request,
+                repository,
+                token
+              })
             case PullRequestTasks.TYPE:
-              return this.pullRequestTasks.execute(checkArgs)
+              return this.pullRequestTasks.countTasksAndSetStatus({
+                pull_request,
+                repository,
+                token
+              })
             case CommitMessage.TYPE:
-              return this.commitMessage.execute(checkArgs)
+              return this.commitMessage.fetchCommitsAndSetStatus({
+                pull_request,
+                config,
+                token,
+                repository
+              })
           }
         })
+
+        return Promise.all(processedPullRequests)
       }
     } catch (e) {
       // do something?
