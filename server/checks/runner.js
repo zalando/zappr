@@ -6,11 +6,13 @@ import {
   PullRequestLabels,
   PullRequestTasks
 } from './index'
-import * as EVENTS from '../model/GithubEvents'
 import createAuditService from '../service/AuditServiceCreator'
 import { githubService as defaultGithubService } from '../service/GithubService'
 import { pullRequestHandler as defaultPullRequestHandler } from '../handler/PullRequestHandler'
 import merge from 'lodash/merge'
+import {logger} from '../../common/debug'
+
+const error = logger('checkrunner', 'error')
 
 function getToken(dbRepo, checkType) {
   const check = dbRepo.checks.filter(check => check.type === checkType && !!check.token)[0]
@@ -45,25 +47,11 @@ export default class CheckRunner {
         CommitMessage.TYPE,
       ]
       if (PR_TYPES.indexOf(checkType) !== -1) {
-        // fetch PRs, fake event payload
         const owner = dbRepo.json.owner.login
         const name = dbRepo.json.name
         const openPullRequests = await this.githubService.getPullRequests(owner, name, token)
 
         const processedPullRequests = openPullRequests.map(async pullRequest => {
-          const openedPullRequestPayload = {
-            action: 'opened', // we have to simulate something
-            repository: dbRepo.json,
-            number: pullRequest.number,
-            pull_request: pullRequest
-          }
-          const checkArgs = {
-            config,
-            token,
-            event: EVENTS.PULL_REQUEST,
-            payload: openedPullRequestPayload,
-            dbRepoId: dbRepo.id
-          }
           const dbPR = await this.pullRequestHandler.onGetOne(dbRepo.id, pullRequest.number)
           switch (checkType) {
             case Approval.TYPE:
@@ -102,8 +90,7 @@ export default class CheckRunner {
         return Promise.all(processedPullRequests)
       }
     } catch (e) {
-      // do something?
-      console.error(e)
+      error(e)
     }
   }
 
@@ -124,10 +111,12 @@ export default class CheckRunner {
       getToken(dbRepo, Approval.TYPE).then(token =>
         this.approval.execute(merge({token}, checkArgs)))
     }
+
     if (Autobranch.isTriggeredBy(event)) {
       getToken(dbRepo, Autobranch.TYPE).then(token =>
         this.autobranch.execute(merge({token}, checkArgs)))
     }
+
     if (CommitMessage.isTriggeredBy(event)) {
       getToken(dbRepo, CommitMessage.TYPE).then(token =>
         this.commitMessage.execute(merge({token}, checkArgs)))
