@@ -3,7 +3,7 @@ import { PullRequest, FrozenComment } from '../model'
 import { logger } from '../../common/debug'
 const debug = logger('pr-handler')
 
-class PullRequestHandler {
+export class PullRequestHandler {
   onCreatePullRequest(repositoryId, number) {
     debug(`create pr ${number} for repo ${repositoryId}`)
     return PullRequest.create({

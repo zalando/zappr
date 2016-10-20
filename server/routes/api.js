@@ -3,7 +3,7 @@ import nconf from '../nconf'
 import { githubService } from '../service/GithubService'
 import { requireAuth } from './auth'
 import { hookHandler } from '../handler/HookHandler'
-import { checkRunner } from '../checks/runner'
+import { checkRunner } from '../checks/CheckRunner'
 import { checkHandler } from '../handler/CheckHandler'
 import { repositoryHandler } from '../handler/RepositoryHandler'
 import ZapprConfiguration from '../zapprfile/Configuration'
@@ -152,6 +152,7 @@ export function repo(router) {
       const checkContext = getCheckByType(type).CONTEXT
       if (checkContext) {
         try {
+          await checkRunner.release(repo, type)
           await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
         } catch (e) {
           // did not work, who cares

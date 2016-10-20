@@ -1,7 +1,7 @@
 import ZapprConfiguration from '../zapprfile/Configuration'
 import { githubService as defaultGithubService } from '../service/GithubService'
 import { repositoryHandler as defaultRepositoryHandler } from './RepositoryHandler'
-import { checkRunner as defaultCheckRunner } from '../checks/runner'
+import { checkRunner as defaultCheckRunner } from '../checks/CheckRunner'
 
 class HookHandler {
   constructor(githubService = defaultGithubService,
