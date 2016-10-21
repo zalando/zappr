@@ -10,6 +10,7 @@ import {
   Specification,
   PullRequestLabels,
   PullRequestTasks,
+  CHECK_TYPES
 } from '../../server/checks'
 
 const PR_TYPES = [
@@ -19,10 +20,9 @@ const PR_TYPES = [
   PullRequestTasks.TYPE,
   CommitMessage.TYPE,
 ]
-const ALL_TYPES = [Autobranch.TYPE, ...PR_TYPES]
 const DB_REPO = {
   id: 1,
-  checks: ALL_TYPES.map(type => ({
+  checks: CHECK_TYPES.map(type => ({
     type,
     token: 'token'
   })),
@@ -58,7 +58,7 @@ describe('CheckRunner', () => {
   describe('#release', () => {
     it('should set the head status to success', async(done) => {
       try {
-        await checkRunner.release(DB_REPO, Approval.TYPE)
+        await checkRunner.release(DB_REPO, Approval.TYPE, 'user-token')
         expect(github.setCommitStatus.args.length).to.equal(1)
         expect(github.setCommitStatus.args[0]).to.deep.equal([
           'mxfoo',
@@ -69,14 +69,14 @@ describe('CheckRunner', () => {
             description: 'This check is disabled.',
             context: Approval.CONTEXT
           },
-          'token'
+          'user-token'
         ])
 
         expect(github.getPullRequests.args.length).to.equal(1)
         expect(github.getPullRequests.args[0]).to.deep.equal([
           'mxfoo',
           'hello-world',
-          'token'
+          'user-token'
         ])
         done()
       } catch (e) {
@@ -95,12 +95,12 @@ describe('CheckRunner', () => {
           checkRunner.pullRequestTasks.countTasksAndSetStatus = sinon.stub()
           checkRunner.commitMessage.fetchCommitsAndSetStatus = sinon.stub()
 
-          await checkRunner.runSingle(DB_REPO, type, {config: CONFIG})
+          await checkRunner.runSingle(DB_REPO, type, {config: CONFIG, token: 'user-token'})
           expect(github.getPullRequests.args.length).to.equal(1)
           expect(github.getPullRequests.args[0]).to.deep.equal([
             'mxfoo',
             'hello-world',
-            'token'
+            'user-token'
           ])
 
           switch (type) {
@@ -120,7 +120,7 @@ describe('CheckRunner', () => {
               expect(checkRunner.commitMessage.fetchCommitsAndSetStatus.calledOnce).to.be.true
               break
             default:
-              throw new Error(`Unknown type ${type} used`)
+              throw new Error(`Type ${type} not covered by this test.`)
           }
 
           done()
@@ -131,7 +131,7 @@ describe('CheckRunner', () => {
     })
   })
   describe('#runAll', () => {
-    ALL_TYPES.forEach(type => {
+    CHECK_TYPES.forEach(type => {
       it(`[${type}] merges token into provided args and calls execute`, async(done)=> {
         try {
           const CHECK_PROPS = {
@@ -166,6 +166,8 @@ describe('CheckRunner', () => {
             case CommitMessage.TYPE:
               event = CommitMessage.HOOK_EVENTS[0]
               break;
+            default:
+              throw new Error(`Type ${type} not covered by this test.`)
           }
           await checkRunner.runAll(DB_REPO, {event})
 

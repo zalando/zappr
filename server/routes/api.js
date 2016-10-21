@@ -135,7 +135,7 @@ export function repo(router) {
         // autobranch doesn't have a context
         await githubService.protectBranch(owner, name, defaultBranch, checkContext, token)
         const config = new ZapprConfiguration(zapprFile)
-        checkRunner.runSingle(repo, getCheckByType(type).TYPE, {config})
+        await checkRunner.runSingle(repo, getCheckByType(type).TYPE, {config: config.getConfiguration(), token})
       }
       ctx.response.status = 201
       ctx.body = check.toJSON()

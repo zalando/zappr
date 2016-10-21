@@ -62,7 +62,8 @@ describe('API', () => {
       fixtures.validZappr = require('../fixtures/github.zapprfile.valid.json')
       fixtures.invalidZappr = require('../fixtures/github.zapprfile.invalid.json')
       fixtures.noZappr = require('../fixtures/github.zapprfile.notfound.json')
-
+      fixtures.pullRequests = require('../fixtures/github.pull_requests.json')
+      fixtures.pullRequestComments = require('../fixtures/github.pull_request.comments.json')
       // Configure mountebank
       const mb = await mountebank.start()
       // @formatter:off
@@ -275,9 +276,52 @@ describe('API', () => {
                   .setMethod('PATCH')
                 .add()
               .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.pullRequests)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/pulls`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.pullRequests)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/pulls`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.pullRequestComments)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repoOwner}/${fixtures.repoName}/issues/${fixtures.pullRequests[0].number}/comments`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.pullRequestComments)
+                .add()
+                .predicate()
+                  .setPath(`/repos/${fixtures.repo2FullName}/issues/${fixtures.pullRequests[0].number}/comments`)
+                  .setMethod('GET')
+                .add()
+              .add()
               .create()
       // @formatter:on
-
       done()
     } catch (err) {
       return done(err)
@@ -540,7 +584,7 @@ describe('API', () => {
          * get hooks, add hook
          * get hooks, remove hook
          */
-        expect(calls.length).to.equal(11)
+        expect(calls.length).to.equal(16)
         expect(call(calls[0])).to.equal('GET /user/repos')
         expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
         expect(call(calls[2])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
@@ -550,12 +594,17 @@ describe('API', () => {
           `PATCH /repos/${fullName}/hooks/123`,
           `GET /repos/${fullName}/branches/master`,
           `PUT /repos/${fullName}/branches/master/protection`,
+          `GET /repos/${fullName}/pulls`,
+          `GET /repos/${fullName}/issues/${fixtures.pullRequests[0].number}/comments`,
+          `POST /repos/${fullName}/statuses/${fixtures.pullRequests[0].head.sha}`,
+          `GET /repos/${fullName}/pulls`,
+          `POST /repos/${fullName}/statuses/${fixtures.pullRequests[0].head.sha}`,
           `GET /repos/${fullName}/branches/master/protection/required_status_checks`,
           `PATCH /repos/${fullName}/branches/master/protection/required_status_checks`,
           `GET /repos/${fullName}/hooks`,
           `DELETE /repos/${fullName}/hooks/123`
         ])
-        const updateSettings = JSON.parse(rest[5].body)
+        const updateSettings = JSON.parse(rest[10].body)
         expect(updateSettings).to.deep.equal({
           include_admins: true,
           contexts: ['travis-ci']
@@ -592,7 +641,7 @@ describe('API', () => {
          * 8,9) get, update web hooks
          * 10,11) get, update branch protection
          */
-        expect(calls.length).to.equal(11)
+        expect(calls.length).to.equal(14)
         expect(call(calls[0])).to.equal('GET /user/repos')
         // 2+3 are much async and interchangeable
         expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
@@ -607,6 +656,9 @@ describe('API', () => {
           `PATCH /repos/${fixtures.repo2FullName}/hooks/123`,
           `GET /repos/${fixtures.repo2FullName}/branches/master`,
           `PUT /repos/${fixtures.repo2FullName}/branches/master/protection`,
+          `GET /repos/${fixtures.repo2FullName}/pulls`,
+          `GET /repos/${fixtures.repo2FullName}/issues/${fixtures.pullRequests[0].number}/comments`,
+          `POST /repos/${fixtures.repo2FullName}/statuses/${fixtures.pullRequests[0].head.sha}`,
         ])
         const createBranchBody = JSON.parse(rest[1].body)
         const createZapprBody = JSON.parse(rest[2].body)
@@ -657,7 +709,7 @@ describe('API', () => {
          * 4.+5. get hooks, add hook
          * 6.+7. check if branch is protected, update protection
          */
-        expect(calls.length).to.equal(7)
+        expect(calls.length).to.equal(10)
         expect(call(calls[0])).to.equal('GET /user/repos')
         // 2+3 are much async and interchangeable
         expect(call(calls[1])).to.match(/^GET \/repos\/.+?\/contents\/\.zappr\.ya?ml$/)
@@ -668,6 +720,9 @@ describe('API', () => {
           `PATCH /repos/${fullName}/hooks/123`,
           `GET /repos/${fullName}/branches/master`,
           `PUT /repos/${fullName}/branches/master/protection`,
+          `GET /repos/${fullName}/pulls`,
+          `GET /repos/${fullName}/issues/${fixtures.pullRequests[0].number}/comments`,
+          `POST /repos/${fullName}/statuses/${fixtures.pullRequests[0].head.sha}`,
         ])
         // branch protection call should have approval context
         const protectionSettings = JSON.parse(rest[3].body)

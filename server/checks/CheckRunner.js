@@ -21,7 +21,7 @@ function getToken(dbRepo, checkType) {
   if (!!check) {
     return Promise.resolve(check.token)
   }
-  return Promise.reject()
+  return Promise.reject(`No token available for ${checkType} of repo ${dbRepo.id}`)
 }
 
 export default class CheckRunner {
@@ -38,77 +38,72 @@ export default class CheckRunner {
     this.pullRequestTasks = new PullRequestTasks(this.githubService)
   }
 
-  async release(dbRepo, checkType) {
+  async release(dbRepo, checkType, accessToken) {
+    info(`release locks`, dbRepo.id, checkType)
     const owner = dbRepo.json.owner.login
     const name = dbRepo.json.name
-    const token = await getToken(dbRepo, checkType)
-    const openPullRequests = await this.githubService.getPullRequests(owner, name, token)
+
+    const openPullRequests = await this.githubService.getPullRequests(owner, name, accessToken)
     const status = getPayloadFn(getCheckByType(checkType).CONTEXT)('This check is disabled.')
 
     info(`${owner}/${name} [${checkType}]: Release maybe locked pull requests`)
-
     const processedPullRequests = openPullRequests.map(async pullRequest =>
-      await this.githubService.setCommitStatus(owner, name, pullRequest.head.sha, status, token))
+      await this.githubService.setCommitStatus(owner, name, pullRequest.head.sha, status, accessToken))
     return Promise.all(processedPullRequests)
   }
 
-  async runSingle(dbRepo, checkType, {config}) {
-    try {
-      const token = await getToken(dbRepo, checkType)
-      const PR_TYPES = [
-        Approval.TYPE,
-        Specification.TYPE,
-        PullRequestLabels.TYPE,
-        PullRequestTasks.TYPE,
-        CommitMessage.TYPE,
-      ]
-      if (PR_TYPES.indexOf(checkType) !== -1) {
-        const repository = dbRepo.json
-        const owner = dbRepo.json.owner.login
-        const name = dbRepo.json.name
-        const openPullRequests = await this.githubService.getPullRequests(owner, name, token)
+  async runSingle(dbRepo, checkType, {config, token}) {
+    const PR_TYPES = [
+      Approval.TYPE,
+      Specification.TYPE,
+      PullRequestLabels.TYPE,
+      PullRequestTasks.TYPE,
+      CommitMessage.TYPE,
+    ]
+    if (PR_TYPES.indexOf(checkType) !== -1) {
+      const repository = dbRepo.json
+      const owner = dbRepo.json.owner.login
+      const name = dbRepo.json.name
+      const openPullRequests = await this.githubService.getPullRequests(owner, name, token)
 
-        info(`${owner}/${name} [${checkType}]: Run single`)
-        const processedPullRequests = openPullRequests.map(async pullRequest => {
-          const dbPR = await this.pullRequestHandler.onGetOne(dbRepo.id, pullRequest.number)
-          switch (checkType) {
-            case Approval.TYPE:
-              return this.approval.fetchApprovalsAndSetStatus({
-                repository,
-                pull_request: pullRequest,
-                lastPush: dbPR ? dbPR.last_push : new Date(0), // beginning of time
-                config,
-                token
-              })
-            case Specification.TYPE:
-              return this.specification.validate(config, pullRequest, repository, token)
-            case PullRequestLabels.TYPE:
-              return this.pullRequestLabels.fetchLabelsAndSetStatus({
-                config,
-                pull_request: pullRequest,
-                repository,
-                token
-              })
-            case PullRequestTasks.TYPE:
-              return this.pullRequestTasks.countTasksAndSetStatus({
-                pull_request: pullRequest,
-                repository,
-                token
-              })
-            case CommitMessage.TYPE:
-              return this.commitMessage.fetchCommitsAndSetStatus({
-                pull_request: pullRequest,
-                config,
-                token,
-                repository
-              })
-          }
-        })
+      info(`${owner}/${name} [${checkType}]: Run single`)
+      const processedPullRequests = openPullRequests.map(async pullRequest => {
+        const dbPR = await this.pullRequestHandler.onGet(dbRepo.id, pullRequest.number)
+        switch (checkType) {
+          case Approval.TYPE:
+            return this.approval.fetchApprovalsAndSetStatus({
+              repository,
+              pull_request: pullRequest,
+              lastPush: dbPR ? dbPR.last_push : new Date(0), // beginning of time
+              config,
+              token
+            })
+          case Specification.TYPE:
+            return this.specification.validate(config, pullRequest, repository, token)
+          case PullRequestLabels.TYPE:
+            return this.pullRequestLabels.fetchLabelsAndSetStatus({
+              config,
+              pull_request: pullRequest,
+              repository,
+              token
+            })
+          case PullRequestTasks.TYPE:
+            return this.pullRequestTasks.countTasksAndSetStatus({
+              pull_request: pullRequest,
+              repository,
+              token
+            })
+          case CommitMessage.TYPE:
+            return this.commitMessage.fetchCommitsAndSetStatus({
+              pull_request: pullRequest,
+              config,
+              token,
+              repository
+            })
+        }
+      })
 
-        return Promise.all(processedPullRequests)
-      }
-    } catch (e) {
-      error(e)
+      return Promise.all(processedPullRequests)
     }
   }
 
