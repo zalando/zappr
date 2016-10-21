@@ -582,6 +582,8 @@ describe('API', () => {
          * zapprfiles
          * get, update branch protection
          * get hooks, add hook
+         * run approval check on pull requests
+         * remove approval status on pull requests
          * get hooks, remove hook
          */
         expect(calls.length).to.equal(16)
@@ -640,6 +642,7 @@ describe('API', () => {
          * 7) create PR
          * 8,9) get, update web hooks
          * 10,11) get, update branch protection
+         * 12-14) fetch pull requests and update status on those
          */
         expect(calls.length).to.equal(14)
         expect(call(calls[0])).to.equal('GET /user/repos')
@@ -708,6 +711,7 @@ describe('API', () => {
          * 2.+3. get zapprfile
          * 4.+5. get hooks, add hook
          * 6.+7. check if branch is protected, update protection
+         * 8.-10. fetch pull requests and update status on those
          */
         expect(calls.length).to.equal(10)
         expect(call(calls[0])).to.equal('GET /user/repos')
