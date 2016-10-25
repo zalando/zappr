@@ -59,8 +59,8 @@ export default class Autobranch extends Check {
                   .substring(0, length)
   }
 
-  async execute(config, payload, token) {
-    const {action, issue, repository} = payload
+  async execute(config, hookPayload, token) {
+    const {action, issue, repository} = hookPayload
     const branchName = Autobranch.createBranchNameFromIssue(issue, config.autobranch)
     // only interested in open events right now
     if (action !== 'opened') {

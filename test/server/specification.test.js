@@ -33,6 +33,7 @@ describe('Specification', () => {
                 state
               }
             })
+
             await pullRequest.execute(config(), payload, TOKEN)
             expect(github.setCommitStatus.called).to.be.false
             done()
@@ -222,6 +223,7 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: 'Issue #42'
           })
+
           await pullRequest.execute(config({
             template: {
               'differs-from-body': true
@@ -256,6 +258,7 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: '#4'
           })
+
           await pullRequest.execute(config({
             body: {
               'contains-issue-number': false
@@ -283,6 +286,7 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: 'https://t.co'
           })
+
           await pullRequest.execute(config({
             body: {
               'contains-url': false,
@@ -352,6 +356,7 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: 'Fix #'
           })
+
           await pullRequest.execute(config({
             template: {
               'differs-from-body': true
@@ -387,6 +392,7 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: 'Issue #42'
           })
+
           await pullRequest.execute(config({
             template: {
               'differs-from-body': true
@@ -422,6 +428,7 @@ describe('Specification', () => {
             title: 'This is a good title for the PR',
             body: 'Lol?'
           })
+
           await pullRequest.execute(config({
             template: {
               'differs-from-body': true
