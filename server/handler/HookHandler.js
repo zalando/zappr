@@ -23,11 +23,10 @@ class HookHandler {
     if (payload.repository) {
       const {name, id, owner} = payload.repository
       const dbRepo = await this.repositoryHandler.onGetOne(id, null, true)
-      let config = {}
       if (dbRepo.checks.length) {
         const zapprFileContent = await this.githubService.readZapprFile(owner.login, name, dbRepo.checks[0].token)
         const zapprfile = new ZapprConfiguration(zapprFileContent)
-        config = zapprfile.getConfiguration()
+        const config = zapprfile.getConfiguration()
         this.checkRunner.runAll(dbRepo, {event, payload, config})
       }
     }

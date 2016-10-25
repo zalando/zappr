@@ -152,7 +152,7 @@ export function repo(router) {
       const checkContext = getCheckByType(type).CONTEXT
       if (checkContext) {
         try {
-          await checkRunner.release(repo, type)
+          await checkRunner.release(repo, type, user.accessToken)
           await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
         } catch (e) {
           // did not work, who cares

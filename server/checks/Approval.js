@@ -498,7 +498,7 @@ export default class Approval extends Check {
             info(`${repository.full_name}#${issue.number}: ${editor} ${action} ${author}'s comment ${commentId}, it's now frozen.`)
           }
         }
-        info(`${repository.full_name}#${number}: Comment added`)
+        info(`${repository.full_name}#${issue.number}: Comment added`)
         await this.fetchApprovalsAndSetStatus({
           repository,
           pull_request: pr,

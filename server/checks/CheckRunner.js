@@ -125,7 +125,7 @@ export default class CheckRunner {
 
     if (Approval.isTriggeredBy(event)) {
       await getToken(dbRepo, Approval.TYPE).then(token =>
-        this.approval.execute(merge({token}, checkArgs)))
+        this.approval.execute(merge({token, dbRepoId: dbRepo.id}, checkArgs)))
     }
 
     if (Autobranch.isTriggeredBy(event)) {
