@@ -62,6 +62,7 @@ describe('API', () => {
       fixtures.validZappr = require('../fixtures/github.zapprfile.valid.json')
       fixtures.invalidZappr = require('../fixtures/github.zapprfile.invalid.json')
       fixtures.noZappr = require('../fixtures/github.zapprfile.notfound.json')
+
       fixtures.pullRequests = require('../fixtures/github.pull_requests.json')
       fixtures.pullRequestComments = require('../fixtures/github.pull_request.comments.json')
       // Configure mountebank
@@ -322,6 +323,7 @@ describe('API', () => {
               .add()
               .create()
       // @formatter:on
+
       done()
     } catch (err) {
       return done(err)
