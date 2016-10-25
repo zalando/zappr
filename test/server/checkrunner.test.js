@@ -169,19 +169,27 @@ describe('CheckRunner', () => {
             default:
               throw new Error(`Type ${type} not covered by this test.`)
           }
-          await checkRunner.runAll(DB_REPO, {event})
+          const config = {}
+          const payload = {}
+          const dbRepoId = 1
+          await checkRunner.runAll(DB_REPO, {event, config, payload, dbRepoId})
 
           expect(fnExpectedToBeCalled.calledOnce).to.be.true
-          
+
           if (type === Approval.TYPE) {
-            expect(fnExpectedToBeCalled.args[0]).to.deep.equal([{
+            expect(fnExpectedToBeCalled.args[0]).to.deep.equal([
+              config,
               event,
-              dbRepoId: 1,
-              token: 'token'
-            }])
+              payload,
+              'token',
+              dbRepoId
+            ])
           } else {
             expect(fnExpectedToBeCalled.args[0]).to.deep.equal([{
               event,
+              dbRepoId,
+              config,
+              payload,
               token: 'token'
             }])
           }

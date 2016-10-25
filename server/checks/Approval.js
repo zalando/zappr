@@ -320,7 +320,7 @@ export default class Approval extends Check {
    * @param token The GH token to use
    * @param additionalComments Additional comments to consider that are not available via the API
    */
-  async fetchApprovalsAndSetStatus({repository, pull_request, lastPush, config, token, additionalComments = []}) {
+  async fetchApprovalsAndSetStatus(repository, pull_request, lastPush, config, token, additionalComments = []) {
     const user = repository.owner.login
     const repoName = repository.name
     const sha = pull_request.head.sha
@@ -363,12 +363,12 @@ export default class Approval extends Check {
    *
    * @param config The Zappr configuration (all of it)
    * @param event The GitHub event, e.g. pull_request
-   * @param payload The payload of the call
+   * @param hookPayload The payload of the call
    * @param token The GitHub token to use
    * @param dbRepoId The database ID of the affected repository
    */
-  async execute({config, event, payload, token, dbRepoId}) {
-    const {action, repository, pull_request, number, issue} = payload
+  async execute(config, event, hookPayload, token, dbRepoId) {
+    const {action, repository, pull_request, number, issue} = hookPayload
     const repoName = repository.name
     const user = repository.owner.login
     const {minimum} = config.approvals
@@ -386,7 +386,7 @@ export default class Approval extends Check {
       // if it was merged
       if (pull_request.merged) {
         await this.pullRequestHandler.onDeletePullRequest(dbRepoId, number)
-        await this.audit.log(new AuditEvent(AUDIT_EVENTS.PULL_REQUEST_MERGED).fromGithubEvent(payload)
+        await this.audit.log(new AuditEvent(AUDIT_EVENTS.PULL_REQUEST_MERGED).fromGithubEvent(hookPayload)
                                                                              .onResource({
                                                                                repository,
                                                                                pull_request,
@@ -415,7 +415,7 @@ export default class Approval extends Check {
             const vetos = []
             const status = Approval.generateStatus({approvals, vetos}, config.approvals)
             await this.github.setCommitStatus(user, repoName, sha, status, token)
-            await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(payload)
+            await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
                                                                                   .withResult({
                                                                                     approvals,
                                                                                     vetos,
@@ -432,14 +432,7 @@ export default class Approval extends Check {
           // get approvals for pr
           info(`${repository.full_name}#${number}: PR was reopened`)
           const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
-          await this.fetchApprovalsAndSetStatus({
-            repository,
-            pull_request,
-            lastPush: dbPR.last_push,
-            config,
-            token,
-            additionalComments: frozenComments
-          })
+          await this.fetchApprovalsAndSetStatus(repository, pull_request, dbPR.last_push, config, token, frozenComments)
           // if it was synced, ie a commit added to it
         } else if (action === 'synchronize') {
           // update last push in db
@@ -451,7 +444,7 @@ export default class Approval extends Check {
           const vetos = []
           const status = Approval.generateStatus({approvals, vetos}, config.approvals)
           await this.github.setCommitStatus(user, repoName, sha, status, token)
-          await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(payload)
+          await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
                                                                                 .withResult({
                                                                                   approvals,
                                                                                   vetos,
@@ -479,17 +472,17 @@ export default class Approval extends Check {
         const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, issue.number)
         // read frozen comments and update if appropriate
         const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
-        const commentId = payload.comment.id
+        const commentId = hookPayload.comment.id
         if (['edited', 'deleted'].indexOf(action) !== -1 && frozenComments.indexOf(commentId) === -1) {
           // check if it was edited by someone else than the original author
-          const editor = payload.sender.login
-          const author = payload.comment.user.login
+          const editor = hookPayload.sender.login
+          const author = hookPayload.comment.user.login
           if (editor !== author) {
             // OMFG
-            const comment = toGenericComment(payload.comment)
+            const comment = toGenericComment(hookPayload.comment)
             const frozenComment = {
               id: commentId,
-              body: action === 'edited' ? payload.changes.body.from : comment.body,
+              body: action === 'edited' ? hookPayload.changes.body.from : comment.body,
               user: comment.user,
               created_at: comment.created_at
             }
@@ -499,14 +492,7 @@ export default class Approval extends Check {
           }
         }
         info(`${repository.full_name}#${issue.number}: Comment added`)
-        await this.fetchApprovalsAndSetStatus({
-          repository,
-          pull_request: pr,
-          lastPush: dbPR.last_push,
-          config,
-          token,
-          additionalComments: frozenComments
-        })
+        await this.fetchApprovalsAndSetStatus(repository, pr, dbPR.last_push, config, token, frozenComments)
       }
     }
     catch (e) {

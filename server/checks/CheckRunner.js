@@ -71,13 +71,13 @@ export default class CheckRunner {
         const dbPR = await this.pullRequestHandler.onGet(dbRepo.id, pullRequest.number)
         switch (checkType) {
           case Approval.TYPE:
-            return this.approval.fetchApprovalsAndSetStatus({
+            return this.approval.fetchApprovalsAndSetStatus(
               repository,
-              pull_request: pullRequest,
-              lastPush: dbPR ? dbPR.last_push : new Date(0), // beginning of time
+              pullRequest,
+              dbPR ? dbPR.last_push : new Date(0), // beginning of time
               config,
               token
-            })
+            )
           case Specification.TYPE:
             return this.specification.validate(config, pullRequest, repository, token)
           case PullRequestLabels.TYPE:
@@ -125,7 +125,7 @@ export default class CheckRunner {
 
     if (Approval.isTriggeredBy(event)) {
       await getToken(dbRepo, Approval.TYPE).then(token =>
-        this.approval.execute(merge({token, dbRepoId: dbRepo.id}, checkArgs)))
+        this.approval.execute(checkArgs.config, event, checkArgs.payload, token, checkArgs.dbRepoId))
     }
 
     if (Autobranch.isTriggeredBy(event)) {
