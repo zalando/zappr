@@ -74,8 +74,8 @@ describe('Pull Request Labels', () => {
         }
       }
     }
-    const REACT_ON = ['labeled', 'unlabeled', 'opened', 'reopened']
-    const IGNORE = ['synchronize', 'assigned', 'unassigned', 'closed', 'edited']
+    const REACT_ON = ['labeled', 'unlabeled', 'opened', 'reopened', 'synchronize']
+    const IGNORE = ['assigned', 'unassigned', 'closed', 'edited']
     const ALL = [...REACT_ON, ...IGNORE]
     ALL.forEach(action =>
       it(`ignores everything with state = closed`, async(done) => {

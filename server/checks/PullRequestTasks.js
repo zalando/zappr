@@ -54,7 +54,7 @@ export default class PullRequestTasks extends Check {
     let status;
 
     try {
-      if (pull_request.state === 'open' && ['opened', 'edited', 'reopened'].indexOf(action) !== -1) {
+      if (pull_request.state === 'open' && ['opened', 'edited', 'reopened', 'synchronize'].indexOf(action) !== -1) {
         let openTaskCount = countOpenTasks(pull_request.body, fullName, number);
         let msg;
 
