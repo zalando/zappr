@@ -125,7 +125,7 @@ export default class CheckRunner {
 
     if (Approval.isTriggeredBy(event)) {
       await getToken(dbRepo, Approval.TYPE).then(token =>
-        this.approval.execute(checkArgs.config, event, checkArgs.payload, token, checkArgs.dbRepoId))
+        this.approval.execute(checkArgs.config, event, checkArgs.payload, token, dbRepo.id))
     }
 
     if (Autobranch.isTriggeredBy(event)) {
