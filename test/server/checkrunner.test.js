@@ -185,13 +185,11 @@ describe('CheckRunner', () => {
               dbRepoId
             ])
           } else {
-            expect(fnExpectedToBeCalled.args[0]).to.deep.equal([{
-              event,
-              dbRepoId,
+            expect(fnExpectedToBeCalled.args[0]).to.deep.equal([
               config,
               payload,
-              token: 'token'
-            }])
+              'token'
+            ])
           }
           done()
         }

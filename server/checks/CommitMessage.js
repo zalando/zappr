@@ -87,7 +87,7 @@ export default class CommitMessage extends Check {
     }
   }
 
-  async execute({config, payload, token}) {
+  async execute(config, payload, token) {
     const {action, repository, pull_request, number} = payload
     const {state} = pull_request
     const {name, full_name} = repository

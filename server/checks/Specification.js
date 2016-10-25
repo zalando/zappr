@@ -43,7 +43,7 @@ export default class Specification extends Check {
     this.github = github
   }
 
-  async execute({config, payload, token}) {
+  async execute(config, payload, token) {
     const {action, pull_request: pr, repository: repo} = payload
 
     if (ACTIONS.indexOf(action) === -1 || !pr || 'open' !== pr.state) {

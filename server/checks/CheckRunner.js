@@ -115,12 +115,12 @@ export default class CheckRunner {
 
     if (PullRequestLabels.isTriggeredBy(event)) {
       await getToken(dbRepo, PullRequestLabels.TYPE).then(token =>
-        this.pullRequestLabels.execute(merge({token}, checkArgs)))
+        this.pullRequestLabels.execute(checkArgs.config, checkArgs.payload, token))
     }
 
     if (Specification.isTriggeredBy(event)) {
       await getToken(dbRepo, Specification.TYPE).then(token =>
-        this.specification.execute(merge({token}, checkArgs)))
+        this.specification.execute(checkArgs.config, checkArgs.payload, token))
     }
 
     if (Approval.isTriggeredBy(event)) {
@@ -130,17 +130,17 @@ export default class CheckRunner {
 
     if (Autobranch.isTriggeredBy(event)) {
       await getToken(dbRepo, Autobranch.TYPE).then(token =>
-        this.autobranch.execute(merge({token}, checkArgs)))
+        this.autobranch.execute(checkArgs.config, checkArgs.payload, token))
     }
 
     if (CommitMessage.isTriggeredBy(event)) {
       await getToken(dbRepo, CommitMessage.TYPE).then(token =>
-        this.commitMessage.execute(merge({token}, checkArgs)))
+        this.commitMessage.execute(checkArgs.config, checkArgs.payload, token))
     }
 
     if (PullRequestTasks.isTriggeredBy(event)) {
       await getToken(dbRepo, PullRequestTasks.TYPE).then(token =>
-        this.pullRequestTasks.execute(merge({token}, checkArgs)))
+        this.pullRequestTasks.execute(checkArgs.config, checkArgs.payload, token))
     }
   }
 }

@@ -61,7 +61,7 @@ export default class PullRequestLabels extends Check {
     await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
   }
 
-  async execute({config, payload, token}) {
+  async execute(config, payload, token) {
     const {action, repository, number, pull_request} = payload
     const repoOwner = repository.owner.login
     const repoName = repository.name

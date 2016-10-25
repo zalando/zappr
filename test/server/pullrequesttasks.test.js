@@ -63,11 +63,7 @@ describe('Pull Request Tasks', () => {
     ALL.forEach(action =>
       it('ignores everything with state = closed', async(done) => {
         try {
-          await prTasks.execute({
-            config: CONFIG,
-            payload: Object.assign({}, PAYLOAD, {action, pull_request: {state: 'closed'}}),
-            token: TOKEN
-          })
+          await prTasks.execute(CONFIG, Object.assign({}, PAYLOAD, {action, pull_request: {state: 'closed'}}), TOKEN)
           expect(github.setCommitStatus.called).to.be.false
           done()
         } catch (e) {
@@ -78,11 +74,7 @@ describe('Pull Request Tasks', () => {
     REACT_ON.forEach(action =>
       it(`reacts on "${action}"`, async(done) => {
         try {
-          await prTasks.execute({
-            config: CONFIG,
-            payload: Object.assign({}, PAYLOAD, {action}),
-            token: TOKEN
-          })
+          await prTasks.execute(CONFIG, Object.assign({}, PAYLOAD, {action}), TOKEN)
           expect(github.setCommitStatus.called).to.be.true
           done()
         } catch (e) {
@@ -93,11 +85,7 @@ describe('Pull Request Tasks', () => {
     IGNORE.forEach(action =>
       it(`does not react on "${action}"`, async(done) => {
         try {
-          await prTasks.execute({
-            config: CONFIG,
-            payload: Object.assign({}, PAYLOAD, {action}),
-            token: TOKEN
-          })
+          await prTasks.execute(CONFIG, Object.assign({}, PAYLOAD, {action}), TOKEN)
           expect(github.setCommitStatus.called).to.be.false
           done()
         } catch (e) {
@@ -107,12 +95,7 @@ describe('Pull Request Tasks', () => {
 
     it('calls githubService with correct arguments when PR has open tasks', async(done) => {
       try {
-        await prTasks.execute({
-          config: CONFIG,
-          payload: PAYLOAD,
-          token: TOKEN
-        })
-
+        await prTasks.execute(CONFIG, PAYLOAD, TOKEN)
         const expectedStatus = {
           state: 'failure',
           context: 'zappr/pr/tasks',
@@ -134,12 +117,7 @@ describe('Pull Request Tasks', () => {
         let payload = Object.assign({}, PAYLOAD);
 
         payload.pull_request.body = "- [x] test1\r\n- [x] test2";
-
-        await prTasks.execute({
-          config: CONFIG,
-          payload,
-          token: TOKEN
-        })
+        await prTasks.execute(CONFIG, payload, TOKEN)
 
         const expectedStatus = {
           state: 'success',

@@ -70,11 +70,7 @@ describe('CommitMessage', () => {
           number: PR.number,
           repository: REPO
         }
-        await commitMessage.execute({
-          config: CONFIG,
-          payload: notOpenedOrSyncedPayload,
-          token: TOKEN
-        })
+        await commitMessage.execute(CONFIG, notOpenedOrSyncedPayload, TOKEN)
         expect(github.setCommitStatus.callCount).to.equal(0)
         expect(github.fetchPullRequestCommits.callCount).to.equal(0)
 
@@ -84,11 +80,7 @@ describe('CommitMessage', () => {
           number: PR.number,
           repository: REPO
         }
-        await commitMessage.execute({
-          config: CONFIG,
-          payload: notOpenPayload,
-          token: TOKEN
-        })
+        await commitMessage.execute(CONFIG, notOpenPayload, TOKEN)
         expect(github.setCommitStatus.callCount).to.equal(0)
         expect(github.fetchPullRequestCommits.callCount).to.equal(0)
         done()
@@ -104,11 +96,7 @@ describe('CommitMessage', () => {
           number: PR.number,
           repository: REPO
         }
-        await commitMessage.execute({
-          config: {},
-          payload,
-          token: TOKEN
-        })
+        await commitMessage.execute({}, payload, TOKEN)
         expect(github.setCommitStatus.callCount).to.equal(1)
         expect(github.setCommitStatus.args[0]).to.deep.equal([
           REPO.owner.login,
@@ -152,11 +140,7 @@ describe('CommitMessage', () => {
           repository: REPO
         }
         github.fetchPullRequestCommits = sinon.stub().returns(commits)
-        await commitMessage.execute({
-          config: CONFIG,
-          payload,
-          token: TOKEN
-        })
+        await commitMessage.execute(CONFIG, payload, TOKEN)
         expect(github.fetchPullRequestCommits.callCount).to.equal(1)
         expect(github.setCommitStatus.callCount).to.equal(2)
         expect(github.setCommitStatus.args.map(a => a[3].state)).to.deep.equal(['pending', 'success'])
@@ -200,11 +184,7 @@ describe('CommitMessage', () => {
           repository: REPO
         }
         github.fetchPullRequestCommits = sinon.stub().returns(commits)
-        await commitMessage.execute({
-          config: CONFIG,
-          payload,
-          token: TOKEN
-        })
+        await commitMessage.execute(CONFIG, payload, TOKEN)
         expect(github.fetchPullRequestCommits.callCount).to.equal(1)
         expect(github.fetchPullRequestCommits.args[0]).to.deep.equal([
           REPO.owner.login,
