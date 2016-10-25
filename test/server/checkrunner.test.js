@@ -172,10 +172,19 @@ describe('CheckRunner', () => {
           await checkRunner.runAll(DB_REPO, {event})
 
           expect(fnExpectedToBeCalled.calledOnce).to.be.true
-          expect(fnExpectedToBeCalled.args[0]).to.deep.equal([{
-            event,
-            token: 'token'
-          }])
+          
+          if (type === Approval.TYPE) {
+            expect(fnExpectedToBeCalled.args[0]).to.deep.equal([{
+              event,
+              dbRepoId: 1,
+              token: 'token'
+            }])
+          } else {
+            expect(fnExpectedToBeCalled.args[0]).to.deep.equal([{
+              event,
+              token: 'token'
+            }])
+          }
           done()
         }
         catch (e) {
