@@ -22,7 +22,7 @@ const BRANCH_PREVIEW_HEADER = 'application/vnd.github.loki-preview+json'
 
 const API_URL_TEMPLATES = {
   HOOK: '/repos/${owner}/${repo}/hooks',
-  PRS: '/repos/${owner}/${repo}/pulls',
+  PRS: '/repos/${owner}/${repo}/pulls?state=${state}&page=${page}',
   PR: '/repos/${owner}/${repo}/pulls/${number}',
   ORG_MEMBER: '/orgs/${org}/public_members/${user}',
   STATUS: '/repos/${owner}/${repo}/statuses/${sha}',
@@ -77,6 +77,37 @@ export class GithubService {
       CallCounter.inc({type: 'success'}, 1)
       return body
     }
+  }
+
+  async _fetchPage(url, token) {
+    let links = {}
+    const [resp, body] = await request(this.getOptions('GET', url, null, token))
+    if (resp.headers && resp.headers.link) {
+      links = this.parseLinkHeader(resp.headers.link)
+    }
+    return {body, links}
+  }
+
+  /**
+   * Takes an URL where it expects to find "${page}" as a placeholder for a
+   * specific page to fetch. If loadAll is true, will return all pages, only
+   * the first otherwise.
+   *
+   * @param urlTemplate
+   * @param loadAll
+   * @param token
+   */
+  async _fetchPaged(urlTemplate, loadAll, token) {
+    const firstPage = await this._fetchPage(urlTemplate.replace('${page}', '0'), token)
+    if (loadAll && firstPage.links.last > 0) {
+      const pageDefs = Array(firstPage.links.last).fill(0).map((p, i) => i + 1)
+      const pages = await Promise.all(
+        pageDefs.map(
+          page => this._fetchPage(urlTemplate.replace('${page}', page), token)))
+      info(`Fetched ${pageDefs.length + 1} pages for ${urlTemplate}`)
+      return pages.reduce((all, page) => [...all, ...page.body], firstPage.body)
+    }
+    return firstPage.body
   }
 
   setCommitStatus(user, repo, sha, status, accessToken) {
@@ -134,16 +165,13 @@ export class GithubService {
     return comments.map(toGenericComment)
   }
 
-  getPullRequests(user, repo, accessToken) {
-    const path = API_URL_TEMPLATES.PRS
-                                  .replace('${owner}', user)
-                                  .replace('${repo}', repo)
-    try {
-      return this.fetchPath('GET', path, null, accessToken)
-    } catch (e) {
-      error(`${user}/${repo}: Could not fetch pull requests. ${e.message}`)
-      throw e
-    }
+
+  getPullRequests(user, repo, token, state = 'open', loadAll = false) {
+    const urlTemplate = API_URL_TEMPLATES.PRS
+                                         .replace('${owner}', user)
+                                         .replace('${repo}', repo)
+                                         .replace('${state}', state)
+    return this._fetchPaged(urlTemplate, loadAll, token)
   }
 
   async getPullRequest(user, repo, number, accessToken) {
@@ -243,19 +271,6 @@ export class GithubService {
                  }, {})
   }
 
-  async fetchRepoPage(page, accessToken) {
-    let links = {}
-    const url = API_URL_TEMPLATES.REPOS.replace('${page}', page)
-    const [resp, body] = await request(this.getOptions('GET', url, null, accessToken))
-
-    debug('fetched repository page response headers: %o body: %o', resp.headers, body)
-
-    if (resp.headers && resp.headers.link) {
-      links = this.parseLinkHeader(resp.headers.link)
-    }
-    return {body, links, page}
-  }
-
   /**
    * Load the first page or all pages of repositories.
    *
@@ -263,18 +278,8 @@ export class GithubService {
    * @param {Boolean} loadAll - Load all pages of repositories
    * @returns {Array.<Object>}
    */
-  async fetchRepos(accessToken, loadAll = false) {
-    let repos = []
-    var that = this
-    const firstPage = await this.fetchRepoPage(0, accessToken)
-    Array.prototype.push.apply(repos, firstPage.body)
-    if (loadAll && firstPage.links.last > 0) {
-      const pageDefs = Array(firstPage.links.last).fill(0).map((p, i) => i + 1)
-      const pages = await Promise.all(pageDefs.map(async(page) => await that.fetchRepoPage(page, accessToken)))
-      pages.forEach(p => Array.prototype.push.apply(repos, p.body))
-    }
-    info('Loaded %d repos from Github', repos.length)
-    return repos
+  fetchRepos(accessToken, loadAll = false) {
+    return this._fetchPaged(API_URL_TEMPLATES.REPOS, loadAll, accessToken)
   }
 
   /**

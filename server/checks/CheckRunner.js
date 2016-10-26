@@ -43,7 +43,7 @@ export default class CheckRunner {
     const owner = dbRepo.json.owner.login
     const name = dbRepo.json.name
 
-    const openPullRequests = await this.githubService.getPullRequests(owner, name, accessToken)
+    const openPullRequests = await this.githubService.getPullRequests(owner, name, accessToken, 'open', true)
     const status = getPayloadFn(getCheckByType(checkType).CONTEXT)('This check is disabled.')
 
     info(`${owner}/${name} [${checkType}]: Release maybe locked pull requests`)
@@ -64,7 +64,7 @@ export default class CheckRunner {
       const repository = dbRepo.json
       const owner = dbRepo.json.owner.login
       const name = dbRepo.json.name
-      const openPullRequests = await this.githubService.getPullRequests(owner, name, token)
+      const openPullRequests = await this.githubService.getPullRequests(owner, name, token, 'open', true)
 
       info(`${owner}/${name} [${checkType}]: Run single`)
       const processedPullRequests = openPullRequests.map(async pullRequest => {

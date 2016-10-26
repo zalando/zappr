@@ -76,7 +76,9 @@ describe('CheckRunner', () => {
         expect(github.getPullRequests.args[0]).to.deep.equal([
           'mxfoo',
           'hello-world',
-          'user-token'
+          'user-token',
+          'open',
+          true
         ])
         done()
       } catch (e) {
@@ -100,7 +102,9 @@ describe('CheckRunner', () => {
           expect(github.getPullRequests.args[0]).to.deep.equal([
             'mxfoo',
             'hello-world',
-            'user-token'
+            'user-token',
+            'open',
+            true
           ])
 
           switch (type) {
@@ -188,7 +192,7 @@ describe('CheckRunner', () => {
             expect(fnExpectedToBeCalled.args[0]).to.deep.equal([
               config,
               payload,
-              'token'
+              'token',
             ])
           }
           done()
