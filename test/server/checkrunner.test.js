@@ -87,7 +87,7 @@ describe('CheckRunner', () => {
     })
   })
 
-  describe('#runSingle', () => {
+  describe('#handleExistingPullRequests', () => {
     PR_TYPES.forEach(type => {
       it(`[${type}] it proxies to the correct function`, async(done) => {
         try {
@@ -97,7 +97,7 @@ describe('CheckRunner', () => {
           checkRunner.pullRequestTasks.countTasksAndSetStatus = sinon.stub()
           checkRunner.commitMessage.fetchCommitsAndSetStatus = sinon.stub()
 
-          await checkRunner.runSingle(DB_REPO, type, {config: CONFIG, token: 'user-token'})
+          await checkRunner.handleExistingPullRequests(DB_REPO, type, {config: CONFIG, token: 'user-token'})
           expect(github.getPullRequests.args.length).to.equal(1)
           expect(github.getPullRequests.args[0]).to.deep.equal([
             'mxfoo',
@@ -134,7 +134,7 @@ describe('CheckRunner', () => {
       })
     })
   })
-  describe('#runAll', () => {
+  describe('#handleGithubWebhook', () => {
     CHECK_TYPES.forEach(type => {
       it(`[${type}] merges token into provided args and calls execute`, async(done)=> {
         try {
@@ -176,7 +176,7 @@ describe('CheckRunner', () => {
           const config = {}
           const payload = {}
           const dbRepoId = 1
-          await checkRunner.runAll(DB_REPO, {event, config, payload, dbRepoId})
+          await checkRunner.handleGithubWebhook(DB_REPO, {event, config, payload, dbRepoId})
 
           expect(fnExpectedToBeCalled.calledOnce).to.be.true
 

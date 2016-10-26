@@ -139,11 +139,11 @@ export function repo(router) {
         if (NODE_ENV !== PROD_ENV) {
           // blocking in dev and tests
           await githubService.protectBranch(owner, name, defaultBranch, checkContext, token)
-          await checkRunner.runSingle(repo, getCheckByType(type).TYPE, {config: config.getConfiguration(), token})
+          await checkRunner.handleExistingPullRequests(repo, getCheckByType(type).TYPE, {config: config.getConfiguration(), token})
         } else {
           // not blocking in production
           githubService.protectBranch(owner, name, defaultBranch, checkContext, token)
-          checkRunner.runSingle(repo, getCheckByType(type).TYPE, {config: config.getConfiguration(), token})
+          checkRunner.handleExistingPullRequests(repo, getCheckByType(type).TYPE, {config: config.getConfiguration(), token})
         }
       }
       ctx.response.status = 201

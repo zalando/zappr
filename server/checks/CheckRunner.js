@@ -52,7 +52,7 @@ export default class CheckRunner {
     return Promise.all(processedPullRequests)
   }
 
-  async runSingle(dbRepo, checkType, {config, token}) {
+  async handleExistingPullRequests(dbRepo, checkType, {config, token}) {
     const PR_TYPES = [
       Approval.TYPE,
       Specification.TYPE,
@@ -107,7 +107,7 @@ export default class CheckRunner {
     }
   }
 
-  async runAll(dbRepo, checkArgs) {
+  async handleGithubWebhook(dbRepo, checkArgs) {
     const {event} = checkArgs
     const owner = dbRepo.json.owner.login
     const name = dbRepo.json.name
