@@ -16,12 +16,15 @@ import { logger } from '../../common/debug'
 const info = logger('checkrunner', 'info')
 const error = logger('checkrunner', 'error')
 
-function getToken(dbRepo, checkType) {
-  const check = dbRepo.checks.filter(check => check.type === checkType && !!check.token)[0]
-  if (!!check) {
-    return Promise.resolve(check.token)
-  }
-  return Promise.reject(`No token available for ${checkType} of repo ${dbRepo.id}`)
+/**
+ * Returns a map of {<checkType>: <token>} for the given repository.
+ * If repository has no checks, returns empty map.
+ *
+ * @param dbRepo
+ * @returns {*}
+ */
+function getTokens(dbRepo) {
+  return (dbRepo.checks || []).reduce((agg, check) => ({[check.type]: check.token, ...agg}), {})
 }
 
 export default class CheckRunner {
@@ -109,42 +112,37 @@ export default class CheckRunner {
     const {event} = checkArgs
     const owner = dbRepo.json.owner.login
     const name = dbRepo.json.name
+    const tokens = getTokens(dbRepo)
     info(`${owner}/${name}: Handling Github event ${event}.${checkArgs.payload.action}`)
 
-    if (PullRequestLabels.isTriggeredBy(event)) {
+    if (PullRequestLabels.isTriggeredBy(event) && tokens[PullRequestLabels.TYPE]) {
       info(`${owner}/${name}: Executing check PullRequestLabels`)
-      await getToken(dbRepo, PullRequestLabels.TYPE).then(token =>
-        this.pullRequestLabels.execute(checkArgs.config, checkArgs.payload, token))
+      await this.pullRequestLabels.execute(checkArgs.config, checkArgs.payload, tokens[PullRequestLabels.TYPE])
     }
 
-    if (Specification.isTriggeredBy(event)) {
+    if (Specification.isTriggeredBy(event) && tokens[Specification.TYPE]) {
       info(`${owner}/${name}: Executing check Specification`)
-      await getToken(dbRepo, Specification.TYPE).then(token =>
-        this.specification.execute(checkArgs.config, checkArgs.payload, token))
+      await this.specification.execute(checkArgs.config, checkArgs.payload, tokens[Specification.TYPE])
     }
 
-    if (Approval.isTriggeredBy(event)) {
+    if (Approval.isTriggeredBy(event) && tokens[Approval.TYPE]) {
       info(`${owner}/${name}: Executing check Approval`)
-      await getToken(dbRepo, Approval.TYPE).then(token =>
-        this.approval.execute(checkArgs.config, event, checkArgs.payload, token, dbRepo.id))
+      await this.approval.execute(checkArgs.config, event, checkArgs.payload, tokens[Approval.TYPE], dbRepo.id)
     }
 
-    if (Autobranch.isTriggeredBy(event)) {
+    if (Autobranch.isTriggeredBy(event) && tokens[Autobranch.TYPE]) {
       info(`${owner}/${name}: Executing check Autobranch`)
-      await getToken(dbRepo, Autobranch.TYPE).then(token =>
-        this.autobranch.execute(checkArgs.config, checkArgs.payload, token))
+      await this.autobranch.execute(checkArgs.config, checkArgs.payload, tokens[Autobranch.TYPE])
     }
 
-    if (CommitMessage.isTriggeredBy(event)) {
+    if (CommitMessage.isTriggeredBy(event) && tokens[CommitMessage.TYPE]) {
       info(`${owner}/${name}: Executing check CommitMessage`)
-      await getToken(dbRepo, CommitMessage.TYPE).then(token =>
-        this.commitMessage.execute(checkArgs.config, checkArgs.payload, token))
+      await this.commitMessage.execute(checkArgs.config, checkArgs.payload, tokens[CommitMessage.TYPE])
     }
 
-    if (PullRequestTasks.isTriggeredBy(event)) {
+    if (PullRequestTasks.isTriggeredBy(event) && tokens[PullRequestTasks.TYPE]) {
       info(`${owner}/${name}: Executing check PullRequestTasks`)
-      await getToken(dbRepo, PullRequestTasks.TYPE).then(token =>
-        this.pullRequestTasks.execute(checkArgs.config, checkArgs.payload, token))
+      await this.pullRequestTasks.execute(checkArgs.config, checkArgs.payload, tokens[PullRequestTasks.TYPE])
     }
   }
 }
