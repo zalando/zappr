@@ -56,8 +56,8 @@ describe('Pull Request Tasks', () => {
       }
     }
     const CONFIG = {}
-    const REACT_ON = ['opened', 'edited', 'reopened']
-    const IGNORE = ['synchronize', 'assigned', 'unassigned', 'closed', 'labeled', 'unlabeled']
+    const REACT_ON = ['opened', 'edited', 'reopened', 'synchronize']
+    const IGNORE = ['assigned', 'unassigned', 'closed', 'labeled', 'unlabeled']
     const ALL = [...REACT_ON, ...IGNORE]
 
     ALL.forEach(action =>

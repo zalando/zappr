@@ -67,7 +67,7 @@ export default class PullRequestLabels extends Check {
     const repoName = repository.name
     const fullName = repository.full_name
     try {
-      if (['labeled', 'unlabeled', 'opened', 'reopened'].indexOf(action) !== -1 && pull_request.state === 'open') {
+      if (['labeled', 'unlabeled', 'opened', 'reopened', 'synchronize'].indexOf(action) !== -1 && pull_request.state === 'open') {
         await this.fetchLabelsAndSetStatus({repository, pull_request, token, config})
       }
     } catch (e) {

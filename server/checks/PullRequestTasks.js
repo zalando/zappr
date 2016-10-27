@@ -72,7 +72,7 @@ export default class PullRequestTasks extends Check {
     let status;
 
     try {
-      if (pull_request.state === 'open' && ['opened', 'edited', 'reopened'].indexOf(action) !== -1) {
+      if (pull_request.state === 'open' && ['opened', 'edited', 'reopened', 'synchronize'].indexOf(action) !== -1) {
         await this.countTasksAndSetStatus({pull_request, repository, token})
       }
     } catch (e) {
