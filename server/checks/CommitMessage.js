@@ -65,7 +65,7 @@ export default class CommitMessage extends Check {
       // get all the commits in the PR
       const commits = await this.github.fetchPullRequestCommits(owner.login, name, number, token)
       // get matcher function for all those patterns
-      const matcherFn = getAnyMatcherFn(patterns.map(pattern => new RegExp(pattern)))
+      const matcherFn = getAnyMatcherFn(patterns.map(pattern => new RegExp(pattern, 'm')))
       // gather non-merge commits with bad messages
       const badCommits = commits.filter(c => !isMergeCommit(c) && !matcherFn(c.commit.message.trim()))
 

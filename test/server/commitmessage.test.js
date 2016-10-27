@@ -5,7 +5,7 @@ import CommitMessage, {getAnyMatcherFn} from '../../server/checks/CommitMessage'
 const CONFIG = {
   commit: {
     message: {
-      patterns: ['^#[0-9]+']
+      patterns: ['#[0-9]+']
     }
   }
 }
@@ -124,7 +124,13 @@ describe('CommitMessage', () => {
         }, {
           sha: '2commit',
           commit: {
-            message: '#123 polizei'
+            message: `also matching, but multiline
+#552`
+          }
+        }, {
+          sha: '3commit',
+          commit: {
+            message: `does not have to be at beginning: #123`
           }
         }, {
           sha: '4commit',
