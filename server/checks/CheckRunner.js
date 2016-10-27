@@ -39,14 +39,12 @@ export default class CheckRunner {
   }
 
   async release(dbRepo, checkType, accessToken) {
-    info(`release locks`, dbRepo.id, checkType)
     const owner = dbRepo.json.owner.login
     const name = dbRepo.json.name
+    info(`${owner}/${name}: Release locks of ${checkType}`)
 
     const openPullRequests = await this.githubService.getPullRequests(owner, name, accessToken, 'open', true)
     const status = getPayloadFn(getCheckByType(checkType).CONTEXT)('This check is disabled.')
-
-    info(`${owner}/${name} [${checkType}]: Release maybe locked pull requests`)
     const processedPullRequests = openPullRequests.map(async pullRequest =>
       await this.githubService.setCommitStatus(owner, name, pullRequest.head.sha, status, accessToken))
     return Promise.all(processedPullRequests)
@@ -66,7 +64,7 @@ export default class CheckRunner {
       const name = dbRepo.json.name
       const openPullRequests = await this.githubService.getPullRequests(owner, name, token, 'open', true)
 
-      info(`${owner}/${name} [${checkType}]: Run single`)
+      info(`${owner}/${name}: Run ${checkType} for all open pull requests`)
       const processedPullRequests = openPullRequests.map(async pullRequest => {
         const dbPR = await this.pullRequestHandler.onGet(dbRepo.id, pullRequest.number)
         switch (checkType) {
@@ -111,34 +109,40 @@ export default class CheckRunner {
     const {event} = checkArgs
     const owner = dbRepo.json.owner.login
     const name = dbRepo.json.name
-    info(`${owner}/${name}: Run all checks`)
+    info(`${owner}/${name}: Handling Github event ${event}.${checkArgs.payload.action}`)
 
     if (PullRequestLabels.isTriggeredBy(event)) {
+      info(`${owner}/${name}: Executing check PullRequestLabels`)
       await getToken(dbRepo, PullRequestLabels.TYPE).then(token =>
         this.pullRequestLabels.execute(checkArgs.config, checkArgs.payload, token))
     }
 
     if (Specification.isTriggeredBy(event)) {
+      info(`${owner}/${name}: Executing check Specification`)
       await getToken(dbRepo, Specification.TYPE).then(token =>
         this.specification.execute(checkArgs.config, checkArgs.payload, token))
     }
 
     if (Approval.isTriggeredBy(event)) {
+      info(`${owner}/${name}: Executing check Approval`)
       await getToken(dbRepo, Approval.TYPE).then(token =>
         this.approval.execute(checkArgs.config, event, checkArgs.payload, token, dbRepo.id))
     }
 
     if (Autobranch.isTriggeredBy(event)) {
+      info(`${owner}/${name}: Executing check Autobranch`)
       await getToken(dbRepo, Autobranch.TYPE).then(token =>
         this.autobranch.execute(checkArgs.config, checkArgs.payload, token))
     }
 
     if (CommitMessage.isTriggeredBy(event)) {
+      info(`${owner}/${name}: Executing check CommitMessage`)
       await getToken(dbRepo, CommitMessage.TYPE).then(token =>
         this.commitMessage.execute(checkArgs.config, checkArgs.payload, token))
     }
 
     if (PullRequestTasks.isTriggeredBy(event)) {
+      info(`${owner}/${name}: Executing check PullRequestTasks`)
       await getToken(dbRepo, PullRequestTasks.TYPE).then(token =>
         this.pullRequestTasks.execute(checkArgs.config, checkArgs.payload, token))
     }
