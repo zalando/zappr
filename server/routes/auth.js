@@ -2,6 +2,9 @@ import nconf from '../nconf'
 import passport from 'koa-passport'
 import UserHandler from '../handler/UserHandler'
 import * as AccessLevel from '../../common/AccessLevels'
+import { logger } from '../../common/debug'
+
+const info = logger('api-auth', 'info')
 
 /**
  * Login endpoint.
@@ -27,7 +30,7 @@ export function login(router) {
  */
 export async function ensureModeMiddleware(ctx, next) {
   const user = ctx.req.user
-  if (!!user) {
+  if (!!user && !!user.json) {
     const {access_level} = await UserHandler.onGet(user.id)
     const accessLevelCookie = ctx.cookies.get(AccessLevel.COOKIE_NAME)
     if (access_level !== accessLevelCookie) {
@@ -35,6 +38,7 @@ export async function ensureModeMiddleware(ctx, next) {
       ctx.redirect(`/change-access-level?level=${access_level}`)
     }
   }
+  info(`ensureMode end`)
   // for some reason only works with await
   await next()
 }

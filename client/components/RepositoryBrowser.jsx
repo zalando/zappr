@@ -36,7 +36,7 @@ export default class RepositoryBrowser extends Component {
         </Button>
       </Alert>
     } else if (!selected) {
-      content = <Alert bsStyle='info'>Please select a repository from the list to enable ZAPPR for it.</Alert>
+      content = <Alert bsStyle='info'>Please select a repository from the list to enable Zappr for it.</Alert>
     }
 
     return (

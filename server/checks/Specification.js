@@ -3,6 +3,7 @@ import { logger } from '../../common/debug'
 import * as EVENTS from '../model/GithubEvents'
 
 const CHECK_TYPE = 'specification'
+const CONTEXT = 'zappr/pr/specification'
 const ACTIONS = ['opened', 'edited', 'reopened', 'synchronize']
 
 const DEFAULT_REQUIRED_LENGTH = 8
@@ -19,7 +20,7 @@ const error = logger(CHECK_TYPE, 'error')
 const status = (description, state = 'success') => ({
   description,
   state,
-  context: 'zappr/pr/specification'
+  context: CONTEXT
 })
 
 const isLongEnough = (str, requiredLength) => (str || '').length > requiredLength
@@ -30,6 +31,7 @@ const containsIssueNumber = containsPattern(ISSUE_PATTERN)
 
 export default class Specification extends Check {
   static TYPE = CHECK_TYPE
+  static CONTEXT = CONTEXT
   static NAME = 'Specification check'
   static HOOK_EVENTS = [EVENTS.PULL_REQUEST]
 
@@ -86,7 +88,7 @@ export default class Specification extends Check {
       return this.github.setCommitStatus(user, repo.name, sha,
         status('PR has passed specification checks'), token)
     } catch (e) {
-      info(`${repo.full_name}#{pr.number}: Set status to failure: ${e.message}`)
+      info(`${repo.full_name}#${pr.number}: Set status to failure: ${e.message}`)
       return this.github.setCommitStatus(user, repo.name, sha, status(
         e.message, 'failure'), token)
     }

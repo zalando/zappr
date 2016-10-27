@@ -1,5 +1,6 @@
 {
   "name": "master",
+  "protected": false,
   "commit": {
     "sha": "3c948365144a8141b8ab37d3e8613659f09ad7f5",
     "commit": {

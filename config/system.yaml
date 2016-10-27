@@ -100,6 +100,11 @@ ZAPPR_WELCOME_TEXT: |
     * Configure how many approvals your pull request needs before merging
     * Extensively configure who can approve or veto in your project
 
+  ## Pull Request guidelines
+
+    * Block a PR until it has the required set of labels (e.g. `reviewed`)
+    * Block a PR as long as it has unfinished tasks
+
   ## Specification guidelines
 
     * Configure minimum length of pull request title and description
