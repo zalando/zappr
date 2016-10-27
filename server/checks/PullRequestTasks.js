@@ -46,6 +46,24 @@ export default class PullRequestTasks extends Check {
     this.github = github;
   }
 
+  async countTasksAndSetStatus({pull_request, repository, token}) {
+    const {fullName, name, owner} = repository
+    const {number} = pull_request
+    const openTaskCount = countOpenTasks(pull_request.body, fullName, number);
+    let msg, status;
+
+    if (openTaskCount > 0) {
+      info(`${fullName}#${number}: Failed the PR due to open tasks.`);
+      status = createStatePayload(`PR has ${openTaskCount} open tasks.`, 'failure');
+    } else {
+      msg = `PR has no open tasks.`;
+      info(`${fullName}#${number}: ${msg}`);
+      status = createStatePayload(msg);
+    }
+
+    await this.github.setCommitStatus(owner.login, name, pull_request.head.sha, status, token);
+  }
+
   async execute(config, hookPayload, token) {
     const {action, repository, number, pull_request} = hookPayload
     const repoOwner = repository.owner.login
@@ -55,19 +73,7 @@ export default class PullRequestTasks extends Check {
 
     try {
       if (pull_request.state === 'open' && ['opened', 'edited', 'reopened', 'synchronize'].indexOf(action) !== -1) {
-        let openTaskCount = countOpenTasks(pull_request.body, fullName, number);
-        let msg;
-
-        if (openTaskCount > 0) {
-          info(`${fullName}#${number}: Failed the PR due to open tasks.`);
-          status = createStatePayload(`PR has ${openTaskCount} open tasks.`, 'failure');
-        } else {
-          msg = `PR has no open tasks.`;
-          info(`${fullName}#${number}: ${msg}`);
-          status = createStatePayload(msg);
-        }
-
-        await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token);
+        await this.countTasksAndSetStatus({pull_request, repository, token})
       }
     } catch (e) {
       error(`${fullName}#${number}: Could not execute Pull Request Tasks check`, e)

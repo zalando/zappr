@@ -96,7 +96,6 @@ describe('Pull Request Tasks', () => {
     it('calls githubService with correct arguments when PR has open tasks', async(done) => {
       try {
         await prTasks.execute(CONFIG, PAYLOAD, TOKEN)
-
         const expectedStatus = {
           state: 'failure',
           context: 'zappr/pr/tasks',
@@ -115,11 +114,10 @@ describe('Pull Request Tasks', () => {
 
     it('calls githubService with correct arguments when PR has no open tasks', async(done) => {
       try {
-        let pl = Object.assign({}, PAYLOAD);
+        let payload = Object.assign({}, PAYLOAD);
 
-        pl.pull_request.body = "- [x] test1\r\n- [x] test2";
-
-        await prTasks.execute(CONFIG, pl, TOKEN)
+        payload.pull_request.body = "- [x] test1\r\n- [x] test2";
+        await prTasks.execute(CONFIG, payload, TOKEN)
 
         const expectedStatus = {
           state: 'success',
