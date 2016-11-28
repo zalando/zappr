@@ -7,10 +7,9 @@ To help you decide if Zappr's the right tool for your use case, we've compared i
 ## LGTM
 
 [LGTM](https://lgtm.co/docs/overview/) works in a fashion very similar to Zappr. Some differences to note:
-
-* LGTM requires you to keep a MAINTAINERS file to identify valid approvers. This is good practice anyways, but with Zappr you can reference entire GitHub organizations, project collaborators, or even single users.
-* LGTM gives you approvals for PRs. Zappr gives you that, as well as veto power for different approver groups, commit message checks, automatic branch creation, and heuristics for specifications, with more to come.
-* LGTM *"will require a [modest licensing fee for on-premise enterprise use](https://lgtm.co/docs/install/) in the near future"*. Zappr/Zappr Enterprise is completely free (as in beer and freedom) to use.
+ 
+ * LGTM requires you to keep a MAINTAINERS file to identify valid approvers. This is good practice anyways, but with Zappr you can reference entire GitHub organizations, project collaborators, or even single users.
+ * LGTM gives you approvals for PRs. Zappr gives you that, as well as veto power for different approver groups, commit message checks, automatic branch creation, and heuristics for specifications, with more to come.
 
 ## PullApprove
 
