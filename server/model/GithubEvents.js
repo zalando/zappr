@@ -89,3 +89,7 @@ export const TEAM_ADD = 'team_add'
  * Any time a User stars a Repository.
  */
 export const WATCH = 'watch'
+/**
+ * Triggered when a pull request review is submitted into a non-pending state.
+ */
+export const PULL_REQUEST_REVIEW = 'pull_request_review'

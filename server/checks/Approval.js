@@ -16,7 +16,7 @@ export default class Approval extends Check {
   static TYPE = 'approval'
   static CONTEXT = context
   static NAME = 'Approval check'
-  static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
+  static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT, EVENTS.PULL_REQUEST_REVIEW]
 
   /**
    * @param {GithubService} github
@@ -232,7 +232,7 @@ export default class Approval extends Check {
 
     const approvals = (config.from || config.groups) ?
       await this.getCommentStatsForConfig(repository, potentialApprovalComments, config, token) :
-    {total: potentialApprovalComments.map(c => c.user)}
+      {total: potentialApprovalComments.map(c => c.user)}
 
 
     let vetos = []
@@ -493,6 +493,14 @@ export default class Approval extends Check {
         }
         info(`${repository.full_name}#${issue.number}: Comment added`)
         await this.fetchApprovalsAndSetStatus(repository, pr, dbPR.last_push, config, token, frozenComments)
+      } else if (event === EVENTS.PULL_REQUEST_REVIEW) {
+        // native pr review was submitted
+        const {review} = hookPayload
+        if (action !== 'submitted') {
+          //TODO log something?
+          return
+        }
+
       }
     }
     catch (e) {
