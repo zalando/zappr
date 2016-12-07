@@ -1,3 +1,4 @@
+import Sequelize from 'sequelize'
 import CheckHandlerError, { CHECK_NOT_FOUND, CHECK_EXISTS, DATABASE_ERROR } from './CheckHandlerError'
 import { Check } from '../model'
 import { githubService } from '../service/GithubService'
@@ -21,7 +22,7 @@ function findHookEventsFor(types) {
               .filter((evt, i, arr) => i === arr.lastIndexOf(evt)) // deduplicate
 }
 
-class CheckHandler {
+export class CheckHandler {
   constructor(github = githubService) {
     this.github = github
   }
@@ -139,8 +140,38 @@ class CheckHandler {
     const evts = findHookEventsFor(types)
 
     await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
-    await checkHandler.onDeleteCheck(repo.id, type)
+    await this.onDeleteCheck(repo.id, type)
     info(`${repo.full_name}: disabled check ${type}`)
+  }
+
+  onExecutionStart(repoId, type, delay) {
+    // set last_execution_ts to now
+    // set last execution delay
+    return Check.update({
+      last_execution_ts: Sequelize.fn('NOW'),
+      last_execution_delay: delay,
+      last_execution_successful: null,
+      last_execution_ms: null
+    }, {
+      where: {
+        repositoryId: repoId,
+        type
+      }
+    })
+  }
+
+  onExecutionEnd(repoId, type, executionTime, executionSuccess) {
+    // set last execution ms
+    // set last execution success = true
+    return Check.update({
+      last_execution_successful: executionSuccess,
+      last_execution_ms: executionTime
+    }, {
+      where: {
+        repositoryId: repoId,
+        type
+      }
+    })
   }
 }
 
