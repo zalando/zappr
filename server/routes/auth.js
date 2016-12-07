@@ -38,7 +38,6 @@ export async function ensureModeMiddleware(ctx, next) {
       ctx.redirect(`/change-access-level?level=${access_level}`)
     }
   }
-  info(`ensureMode end`)
   // for some reason only works with await
   await next()
 }
