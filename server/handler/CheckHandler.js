@@ -149,7 +149,7 @@ export class CheckHandler {
     // set last execution delay
     return Check.update({
       last_execution_ts: Sequelize.fn('NOW'),
-      last_execution_delay: delay,
+      last_execution_delay_ms: delay,
       last_execution_successful: null,
       last_execution_ms: null
     }, {
