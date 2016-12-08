@@ -145,6 +145,30 @@ describe('CheckRunner', () => {
     })
   })
   describe('#handleGithubWebhook', () => {
+
+    it('sets execution success to false if check.execute throws', async(done) => {
+      try {
+        // using autobranch because it's triggered by an event that isn't used by other checks
+        sinon.stub(checkRunner.autobranch, 'execute').throws()
+        const event = Autobranch.HOOK_EVENTS[0]
+        const config = {}
+        const payload = {}
+        const dbRepoId = 1
+        await checkRunner.handleGithubWebhook(DB_REPO, {event, config, payload, dbRepoId})
+        expect(checkRunner.autobranch.execute.calledOnce, 'execute fn').to.be.true
+        expect(checkHandler.onExecutionStart.calledOnce, 'execution start').to.be.true
+        expect(checkHandler.onExecutionEnd.calledOnce, 'execution end').to.be.true
+        // repoId, type, executionTime, executionSuccess
+        expect(checkHandler.onExecutionEnd.args[0][0]).to.equal(dbRepoId)
+        expect(checkHandler.onExecutionEnd.args[0][1]).to.equal('autobranch')
+        expect(checkHandler.onExecutionEnd.args[0][3]).to.equal(false)
+
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
     CHECK_TYPES.forEach(type => {
       it(`[${type}] merges token into provided args and calls execute`, async(done) => {
         console.log(type)
