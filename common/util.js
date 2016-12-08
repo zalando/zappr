@@ -96,6 +96,17 @@ export function setIn(obj, path, value) {
   return obj
 }
 
+function findDeepInObjImpl(obj, fn, result = []) {
+  if (typeof obj === 'object' && obj != null) {
+    for (const key of Object.keys(obj)) {
+      if (fn(key)) {
+        result.push([key, obj[key]])
+      }
+      findDeepInObjImpl(obj[key], fn, result)
+    }
+  }
+  return result
+}
 
 /**
  * Returns an array of [key, val] for all
@@ -103,18 +114,9 @@ export function setIn(obj, path, value) {
  *
  * @param obj object to walk
  * @param fn will be passed key. is expected to return true iff key/ should be talken.
- * @param result don't use
  */
-export function findDeepInObj(obj, fn, result = []) {
-  if (typeof obj === 'object' && obj != null) {
-    for (const key of Object.keys(obj)) {
-      if (fn(key)) {
-        result.push([key, obj[key]])
-      }
-      findDeepInObj(obj[key], fn, result)
-    }
-  }
-  return result
+export function findDeepInObj(obj, fn) {
+  return findDeepInObjImpl(obj, fn, [])
 }
 
 export function encode(string, encoding = 'base64') {

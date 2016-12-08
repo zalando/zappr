@@ -171,7 +171,6 @@ describe('CheckRunner', () => {
 
     CHECK_TYPES.forEach(type => {
       it(`[${type}] merges token into provided args and calls execute`, async(done) => {
-        console.log(type)
         try {
           const CHECK_PROPS = {
             [Approval.TYPE]: 'approval',
