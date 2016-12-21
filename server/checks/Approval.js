@@ -368,7 +368,7 @@ export default class Approval extends Check {
    * @param dbRepoId The database ID of the affected repository
    */
   async execute(config, event, hookPayload, token, dbRepoId) {
-    const {action, repository, pull_request, number, issue} = hookPayload
+    const {action, repository, pull_request, number, issue, review} = hookPayload
     const repoName = repository.name
     const user = repository.owner.login
     const {minimum} = config.approvals
@@ -496,8 +496,12 @@ export default class Approval extends Check {
       } else if (event === EVENTS.PULL_REQUEST_REVIEW) {
         // native pr review was submitted
         const {review} = hookPayload
+        if (pull_request.state === 'closed') {
+          info(`${repository.full_name}: Ignoring review on a closed PR`)
+          return
+        }
         if (action !== 'submitted') {
-          //TODO log something?
+          info(`${repository.full_name}: Got review with action "${action}", nothing to do.`)
           return
         }
 
