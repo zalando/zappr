@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import {
   getIn,
   setIn,
+  findDeepInObj,
   encode,
   decode,
   setDifference,
@@ -182,6 +183,31 @@ describe('common/util', () => {
       setIn(obj, ['commit', 'repository', 'url'], 'https://github.com/zalando/zappr')
       expect(obj.commit.repository.url).to.equal('https://github.com/zalando/zappr')
       expect(obj.commit.committer).to.equal('hans')
+    })
+  })
+
+  describe('findDeepInObj', () => {
+    it('works on flat objects', () => {
+      const obj = {
+        a: 1,
+        b: 2,
+        cc: 3
+      }
+      const result = findDeepInObj(obj, key => /^[a-z]$/.test(key))
+      expect(result).to.deep.equal([['a', 1], ['b', 2]])
+    })
+
+    it('works on deep objects', () => {
+      const obj = {
+        a: {
+          b: {
+            cc: 3
+          }
+        },
+        dd: 4
+      }
+      const result = findDeepInObj(obj, key => /^[a-z]{2}$/.test(key))
+      expect(result).to.deep.equal([['cc', 3], ['dd', 4]])
     })
   })
 

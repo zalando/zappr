@@ -9,9 +9,10 @@ import {
 } from './index'
 import { getPayloadFn } from './Check'
 import createAuditService from '../service/AuditServiceCreator'
+import { checkHandler as defaultCheckHandler } from '../handler/CheckHandler'
 import { githubService as defaultGithubService } from '../service/GithubService'
 import { pullRequestHandler as defaultPullRequestHandler } from '../handler/PullRequestHandler'
-import merge from 'lodash/merge'
+import { findDeepInObj } from '../../common/util'
 import { logger } from '../../common/debug'
 const info = logger('checkrunner', 'info')
 const error = logger('checkrunner', 'error')
@@ -27,12 +28,36 @@ function getTokens(dbRepo) {
   return (dbRepo.checks || []).reduce((agg, check) => ({[check.type]: check.token, ...agg}), {})
 }
 
+/**
+ * Returns when this GH event was triggered based on payload.
+ *
+ * Necessary because there is no top-level timestamp in the payload for every event,
+ * we have to look into the event itself and check different properties. Not cool.
+ * So this naive implementation looks for properties /.+?_at/ with value /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/
+ * and parses them and returns the most current.
+ *
+ * This approach may now work well in 100% of the cases, but avoids that we forget to
+ * change it in the future when we support new events.
+ *
+ * @param payload
+ */
+export function getTriggeredAt(payload) {
+  const endsWithAt = /^.+?_at$/
+  const looksLikeDate = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/
+  return findDeepInObj(payload, key => endsWithAt.test(key))
+  .filter(([_, val]) => looksLikeDate.test(val))
+  .map(([_, val]) => Date.parse(val))
+  .reduce((mostCurrent, ts) => Math.max(mostCurrent, ts), 0)
+}
+
 export default class CheckRunner {
   constructor(githubService = defaultGithubService,
               pullRequestHandler = defaultPullRequestHandler,
+              checkHandler = defaultCheckHandler,
               auditService = createAuditService()) {
     this.githubService = githubService
     this.pullRequestHandler = pullRequestHandler
+    this.checkHandler = checkHandler
     this.approval = new Approval(this.githubService, this.pullRequestHandler, auditService)
     this.autobranch = new Autobranch(this.githubService)
     this.commitMessage = new CommitMessage(this.githubService)
@@ -109,40 +134,78 @@ export default class CheckRunner {
   }
 
   async handleGithubWebhook(dbRepo, checkArgs) {
-    const {event} = checkArgs
+    const {event, payload, config} = checkArgs
     const owner = dbRepo.json.owner.login
     const name = dbRepo.json.name
     const tokens = getTokens(dbRepo)
-    info(`${owner}/${name}: Handling Github event ${event}.${checkArgs.payload.action}`)
+    const start = Date.now()
+    const delay = start - getTriggeredAt(payload)
+    info(`${owner}/${name}: Handling Github event ${event}.${payload.action}`)
 
     if (PullRequestLabels.isTriggeredBy(event) && tokens[PullRequestLabels.TYPE]) {
       info(`${owner}/${name}: Executing check PullRequestLabels`)
-      await this.pullRequestLabels.execute(checkArgs.config, checkArgs.payload, tokens[PullRequestLabels.TYPE])
+      await this.checkHandler.onExecutionStart(dbRepo.id, PullRequestLabels.TYPE, delay)
+      try {
+        await this.pullRequestLabels.execute(config, payload, tokens[PullRequestLabels.TYPE])
+        await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestLabels.TYPE, Date.now() - start, true)
+      } catch (e) {
+        await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestLabels.TYPE, Date.now() - start, false)
+      }
     }
 
     if (Specification.isTriggeredBy(event) && tokens[Specification.TYPE]) {
       info(`${owner}/${name}: Executing check Specification`)
-      await this.specification.execute(checkArgs.config, checkArgs.payload, tokens[Specification.TYPE])
+      await this.checkHandler.onExecutionStart(dbRepo.id, Specification.TYPE, delay)
+      try {
+        await this.specification.execute(config, payload, tokens[Specification.TYPE])
+        await this.checkHandler.onExecutionEnd(dbRepo.id, Specification.TYPE, Date.now() - start, true)
+      } catch (e) {
+        await this.checkHandler.onExecutionEnd(dbRepo.id, Specification.TYPE, Date.now() - start, false)
+      }
     }
 
     if (Approval.isTriggeredBy(event) && tokens[Approval.TYPE]) {
       info(`${owner}/${name}: Executing check Approval`)
-      await this.approval.execute(checkArgs.config, event, checkArgs.payload, tokens[Approval.TYPE], dbRepo.id)
+      await this.checkHandler.onExecutionStart(dbRepo.id, Approval.TYPE, delay)
+      try {
+        await this.approval.execute(config, event, payload, tokens[Approval.TYPE], dbRepo.id)
+        await this.checkHandler.onExecutionEnd(dbRepo.id, Approval.TYPE, Date.now() - start, true)
+      } catch (e) {
+        await this.checkHandler.onExecutionEnd(dbRepo.id, Approval.TYPE, Date.now() - start, false)
+      }
     }
 
     if (Autobranch.isTriggeredBy(event) && tokens[Autobranch.TYPE]) {
       info(`${owner}/${name}: Executing check Autobranch`)
-      await this.autobranch.execute(checkArgs.config, checkArgs.payload, tokens[Autobranch.TYPE])
+      await this.checkHandler.onExecutionStart(dbRepo.id, Autobranch.TYPE, delay)
+      try {
+        await this.autobranch.execute(config, payload, tokens[Autobranch.TYPE])
+        await this.checkHandler.onExecutionEnd(dbRepo.id, Autobranch.TYPE, Date.now() - start, true)
+      } catch (e) {
+        await this.checkHandler.onExecutionEnd(dbRepo.id, Autobranch.TYPE, Date.now() - start, false)
+      }
     }
 
     if (CommitMessage.isTriggeredBy(event) && tokens[CommitMessage.TYPE]) {
       info(`${owner}/${name}: Executing check CommitMessage`)
-      await this.commitMessage.execute(checkArgs.config, checkArgs.payload, tokens[CommitMessage.TYPE])
+      await this.checkHandler.onExecutionStart(dbRepo.id, CommitMessage.TYPE, delay)
+      try {
+        await this.commitMessage.execute(config, payload, tokens[CommitMessage.TYPE])
+        await this.checkHandler.onExecutionEnd(dbRepo.id, CommitMessage.TYPE, Date.now() - start, true)
+      } catch (e) {
+        await this.checkHandler.onExecutionEnd(dbRepo.id, CommitMessage.TYPE, Date.now() - start, false)
+      }
     }
 
     if (PullRequestTasks.isTriggeredBy(event) && tokens[PullRequestTasks.TYPE]) {
       info(`${owner}/${name}: Executing check PullRequestTasks`)
-      await this.pullRequestTasks.execute(checkArgs.config, checkArgs.payload, tokens[PullRequestTasks.TYPE])
+      await this.checkHandler.onExecutionStart(dbRepo.id, PullRequestTasks.TYPE, delay)
+      try {
+        await this.pullRequestTasks.execute(config, payload, tokens[PullRequestTasks.TYPE])
+        await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestTasks.TYPE, Date.now() - start, true)
+      } catch (e) {
+        await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestTasks.TYPE, Date.now() - start, false)
+      }
     }
   }
 }

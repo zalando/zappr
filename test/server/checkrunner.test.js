@@ -2,7 +2,8 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import { GithubService } from '../../server/service/GithubService'
 import { PullRequestHandler } from '../../server/handler/PullRequestHandler'
-import CheckRunner from '../../server/checks/CheckRunner'
+import { CheckHandler } from '../../server/handler/CheckHandler'
+import { default as CheckRunner, getTriggeredAt } from '../../server/checks/CheckRunner'
 import {
   Approval,
   Autobranch,
@@ -45,14 +46,23 @@ const PULL_REQUEST = {
 }
 
 describe('CheckRunner', () => {
-  let checkRunner, github, pullRequestHandler
+  let checkRunner, github, pullRequestHandler, checkHandler
+
   beforeEach(() => {
     github = sinon.createStubInstance(GithubService)
     pullRequestHandler = sinon.createStubInstance(PullRequestHandler)
+    checkHandler = sinon.createStubInstance(CheckHandler)
 
     pullRequestHandler.onGetOne = sinon.stub().returns(DB_PR)
     github.getPullRequests = sinon.stub().returns([PULL_REQUEST])
-    checkRunner = new CheckRunner(github, pullRequestHandler)
+    checkRunner = new CheckRunner(github, pullRequestHandler, checkHandler)
+  })
+
+  describe('getTriggeredAt', () => {
+    it('returns most recent timestamp from payload', () => {
+      const hookPayload = require('../fixtures/github.hook.json')
+      expect(getTriggeredAt(hookPayload)).to.equal(Date.parse('2016-12-07T12:52:45Z'))
+    })
   })
 
   describe('#release', () => {
@@ -135,8 +145,32 @@ describe('CheckRunner', () => {
     })
   })
   describe('#handleGithubWebhook', () => {
+
+    it('sets execution success to false if check.execute throws', async(done) => {
+      try {
+        // using autobranch because it's triggered by an event that isn't used by other checks
+        sinon.stub(checkRunner.autobranch, 'execute').throws()
+        const event = Autobranch.HOOK_EVENTS[0]
+        const config = {}
+        const payload = {}
+        const dbRepoId = 1
+        await checkRunner.handleGithubWebhook(DB_REPO, {event, config, payload, dbRepoId})
+        expect(checkRunner.autobranch.execute.calledOnce, 'execute fn').to.be.true
+        expect(checkHandler.onExecutionStart.calledOnce, 'execution start').to.be.true
+        expect(checkHandler.onExecutionEnd.calledOnce, 'execution end').to.be.true
+        // repoId, type, executionTime, executionSuccess
+        expect(checkHandler.onExecutionEnd.args[0][0]).to.equal(dbRepoId)
+        expect(checkHandler.onExecutionEnd.args[0][1]).to.equal('autobranch')
+        expect(checkHandler.onExecutionEnd.args[0][3]).to.equal(false)
+
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
     CHECK_TYPES.forEach(type => {
-      it(`[${type}] merges token into provided args and calls execute`, async(done)=> {
+      it(`[${type}] merges token into provided args and calls execute`, async(done) => {
         try {
           const CHECK_PROPS = {
             [Approval.TYPE]: 'approval',
@@ -179,6 +213,14 @@ describe('CheckRunner', () => {
           await checkRunner.handleGithubWebhook(DB_REPO, {event, config, payload, dbRepoId})
 
           expect(fnExpectedToBeCalled.calledOnce).to.be.true
+          expect(checkHandler.onExecutionStart.called, 'executionStart called').to.be.true
+          expect(checkHandler.onExecutionEnd.called, 'executionEnd called').to.be.true
+          /*
+           * a single event might trigger multiple events, that's we test here only that
+           * executionStart/End were called and always with the correct repo id.
+           */
+          checkHandler.onExecutionStart.args.forEach(([repoId]) => expect(repoId).to.equal(dbRepoId))
+          checkHandler.onExecutionEnd.args.forEach(([repoId]) => expect(repoId).to.equal(dbRepoId))
 
           if (type === Approval.TYPE) {
             expect(fnExpectedToBeCalled.args[0]).to.deep.equal([
