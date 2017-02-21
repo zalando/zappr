@@ -473,7 +473,8 @@ export default class Approval extends Check {
         // read frozen comments and update if appropriate
         const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
         const commentId = hookPayload.comment.id
-        if (['edited', 'deleted'].indexOf(action) !== -1 && frozenComments.indexOf(commentId) === -1) {
+        const commentAlreadyFrozen = frozenComments.map(comment => comment.id).indexOf(commentId) !== -1
+        if (['edited', 'deleted'].indexOf(action) !== -1 && !commentAlreadyFrozen) {
           // check if it was edited by someone else than the original author
           const editor = hookPayload.sender.login
           const author = hookPayload.comment.user.login

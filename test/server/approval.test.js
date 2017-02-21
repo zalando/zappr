@@ -674,6 +674,35 @@ describe('Approval#execute', () => {
         done(e)
       }
     })
+
+    it(`should not try to freeze already frozen comments`, async(done) => {
+      try {
+        const payload = Object.assign({}, MALICIOUS_PAYLOAD, {action})
+        // frozen comments already contain the one edited
+        const frozen_comments = [{
+          id: payload.comment.id,
+          body: action === 'edited' ? payload.changes.body.from : payload.comment.body,
+          created_at: payload.comment.created_at,
+          user: payload.comment.user.login
+        }]
+        github.getPullRequest = sinon.stub()
+                                     .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, payload.issue.number, TOKEN)
+                                     .returns(PR_PAYLOAD.pull_request)
+        pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+                                                           .withArgs(DB_REPO_ID, payload.issue.number)
+                                                           .returns(DB_PR)
+        pullRequestHandler.onGetFrozenComments = sinon.stub()
+                                                      .withArgs(DB_PR.id, DB_PR.last_push)
+                                                      .returns(frozen_comments)
+        github.getComments = sinon.stub().returns([]) // does not matter for this test
+        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
+        expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
+        expect(pullRequestHandler.onAddFrozenComment.calledOnce).to.be.false
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
   })
 
   it('should not freeze newly created comments', async(done) => {
