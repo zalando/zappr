@@ -72,17 +72,6 @@ function getParameters(driver = nconf.get('DB_DRIVER')) {
     typeValidation: true
   }
   switch (driver) {
-    case 'sqlite':
-      return [
-        nconf.get('DB_NAME'),
-        null,
-        null,
-        {
-          dialect: driver,
-          storage: nconf.get('SQLITE_FILE'),
-          ...options
-        }
-      ]
     case 'postgres':
       return [
         nconf.get('DB_NAME'),
