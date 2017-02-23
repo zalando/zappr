@@ -8,12 +8,13 @@ services:
   - postgresql
 install:
   - npm install
-  - npm install postgres
+  - npm install pg
 before_script:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
   - export DB_PASSWORD=""
   - export DB_HOST=localhost
+  - psql -c 'create database zappr; \\connect zappr; create schema zappr_data; create schema zappr_meta;' -U postgres
 script:
   - npm test
   - npm run test-karma
