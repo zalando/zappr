@@ -60,7 +60,15 @@ export function repos(router) {
       const user = ctx.req.user
       const all = ctx.request.query.all == 'true'
       const repos = await repositoryHandler.onGetAll(user, all)
-      ctx.body = repos.map(repo => repo.toJSON())
+      ctx.body = repos.map(repo => {
+        try {
+          repo.toJSON()
+        } catch(e) {
+          console.log(repo)
+          console.log(e)
+        }
+        return repo.toJSON()
+      })
     } catch (e) {
       ctx.throw(503, e)
     }

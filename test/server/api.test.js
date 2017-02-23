@@ -331,7 +331,7 @@ describe('API', () => {
   })
 
   beforeEach(done => Promise.all([
-    Repository.truncate(),
+    Repository.truncate({cascade: true}),
     mountebank.reset(),
     request.get('/auth/github')
   ]).then(() => done()).catch(done))
@@ -455,25 +455,25 @@ describe('API', () => {
     it('should refresh github repos', async(done) => {
       try {
         const repos0 = (await request.get('/api/repos')).body
-        expect(repos0).to.have.property('length', 4)
+        expect(repos0, "repos0").to.have.property('length', 4)
 
         await Repository.destroy({where: {id: repos0[0].id}})
 
         const repos1 = (await request.get('/api/repos')).body
-        expect(repos1).to.have.property('length', 3)
+        expect(repos1, "repos1").to.have.property('length', 3)
 
         const repos2 = (await request.get('/api/repos?all=true')).body
-        expect(repos2).to.have.property('length', 4)
+        expect(repos2, "repos2").to.have.property('length', 4)
 
         // add fake repository
-        await Repository.upsert({id: 1, json: ''})
+        await Repository.upsert({id: 1, json: '{}'})
         await UserRepository.upsert({userId: testUser.id, repositoryId: 1})
         const repos3 = (await request.get('/api/repos')).body
-        expect(repos3).to.have.property('length', 5)
+        expect(repos3, "repos3").to.have.property('length', 5)
 
         // sync with api should remove it again (because not in api)
         const repos4 = (await request.get('/api/repos?all=true')).body
-        expect(repos4).to.have.property('length', 4)
+        expect(repos4, "repos4").to.have.property('length', 4)
 
         done()
       } catch (e) {

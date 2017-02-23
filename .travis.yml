@@ -4,12 +4,16 @@ node_js:
 cache:
   directories:
     - node_modules
+services:
+  - postgresql
 install:
   - npm install
-  - npm install sqlite3
+  - npm install postgres
 before_script:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
+  - export DB_PASSWORD=""
+  - export DB_HOST=localhost
 script:
   - npm test
   - npm run test-karma

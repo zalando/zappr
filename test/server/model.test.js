@@ -18,9 +18,9 @@ describe('Model', () => {
   before(done => db.createSchemas().then(db._sync).then(() => done()).catch(done))
 
   beforeEach(done => Promise.all([
-    User.truncate(),
-    Repository.truncate(),
-    UserRepository.truncate()
+    User.truncate({cascade: true}),
+    Repository.truncate({cascade: true}),
+    UserRepository.truncate({cascade: true})
   ]).then(() => done()).catch(done))
 
   describe('User', () => {
@@ -184,6 +184,10 @@ describe('Model', () => {
   })
 
   describe('Session', () => {
+    before((done) => {
+      Session.truncate({cascade: true})
+      done()
+    })
     it('should store the encrypted token and return the decrypted token', async(done) => {
       const json = {
         passport: {
@@ -196,8 +200,8 @@ describe('Model', () => {
       try {
         await Session.create({id, json})
         const dbSession = await Session.findById(id, {raw: true})
-        expect(JSON.parse(dbSession.json).passport.user.accessToken).to.be.a('string')
-                                                                    .and.equal('::dcba')
+        expect(dbSession.json.passport.user.accessToken).to.be.a('string')
+                                                        .and.equal('::dcba')
         const appSession = await Session.findById(id)
         expect(appSession.json.passport.user.accessToken).to.be.a('string')
                                                          .and.equal('abcd')
