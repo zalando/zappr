@@ -24,7 +24,7 @@ export default db.define('frozen_comment', {
         error(msg)
         throw new Error(msg)
       }
-      return value
+      this.setDataValue('id', value)
     }
   },
   user: {

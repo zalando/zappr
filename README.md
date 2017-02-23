@@ -18,20 +18,52 @@ Please refer to [our documentation](https://zappr.readthedocs.org/).
 
 ### Development
 
-Export your [Github credentials](https://github.com/settings/applications):
+Zappr needs a database during development and testing. For this reason there's a `docker-compose.yaml` 
+for your convenience:
 
-```
+~~~ shell
+# starts postgres docker container
+docker-compose up postgres
+# creates database and schemas, only needed one time
+./init_db.sh
+~~~
+
+The same database will be used for testing:
+
+~~~ shell
+export DB_HOST="$(docker-machine ip)"
+npm test
+~~~
+
+If you would like to run a complete Zappr locally, you can do it like this:
+
+1. Export your [Github credentials](https://github.com/settings/applications):
+~~~ shell
+export DM_IP="$(docker-machine ip)"
 export GITHUB_CLIENT_ID=<your-client-id>
 export GITHUB_CLIENT_SECRET=<your-client-secret>
-```
+~~~
 
-**Build and Run:**
+2. Start Zappr via docker compose or npm
+~~~ shell
+docker-compose up
+~~~
 
-```
+~~~ shell
 npm install
 npm run build
-npm start
-```
+npm run all
+~~~
+
+3. Install and run localtunnel to expose your localhost
+~~~ shell
+npm i -g localtunnel
+lt -s myzappr -p 3000
+~~~
+
+4. Set your OAuth application URLs to `http://$DM_IP:3000`
+
+5. Go to `http://$DM_IP:3000` and do things :)
 
 **Debug Client and Server:**
 
@@ -55,6 +87,8 @@ window.DEBUG.enable('zappr:*')
 ```
 
 **Test:**
+
+Don't forget to start your database (see above). Afterwards you can do:
 
 * `npm test` - run combined tests
 * `npm run test-client` - run only client tests

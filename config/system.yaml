@@ -37,7 +37,7 @@ STATIC_DIR: ./dist/client
 DB_DRIVER: postgres
 DB_NAME: zappr
 DB_USER: postgres
-DB_PASS: postgres
+DB_PASS: ""
 # DB_HOST: 192.168.99.100
 DB_PORT: 5432
 
