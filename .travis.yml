@@ -14,13 +14,15 @@ before_script:
   - sh -e /etc/init.d/xvfb start
   - export DB_PASSWORD=""
   - export DB_HOST=localhost
-  - psql -c 'create database zappr; \connect zappr; create schema zappr_data; create schema zappr_meta;' -U postgres
+  - psql -c 'create database zappr;' -U postgres
+  - psql -c 'create schema zappr_data; create schema zappr_meta;' -U postgres zappr
 script:
   - npm test
   - npm run test-karma
 env:
   - CXX=g++-4.8 KARMA_BROWSER=Firefox
 addons:
+  postgresql: "9.4"
   firefox: "latest-beta"
   apt:
     sources:
