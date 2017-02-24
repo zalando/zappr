@@ -38,7 +38,7 @@ Copy the folders `config`, `dist`, `migrations` and the `package.json` file to y
     # start zappr
     npm start
     
-You can also just build the Docker image with `docker build -f Dockerfile.external -t zappr .` and run it, providing your environment config via `-e DB_DRIVER=postgres` and so on. We don't yet provide ready-to-use images, but we will do so in the future.
+You can also just build the Docker image with `docker build -f Dockerfile.external -t zappr .` and run it, providing your environment config via `-e DB_NAME=zappr` and so on. We don't yet provide ready-to-use images, but we will do so in the future.
 
 ## Configuration options
 
@@ -62,11 +62,7 @@ Zappr provides a whole lot of configuration options for flexibility.
 * `STATIC_DIR`: Where to find static assets
 * `LOG_LEVEL`: Desired amount of logging, can be `info` or `debug`
 
-### Database
-
-* `DB_DRIVER`: `postgres` is the only possible value.
-
-#### Postgres
+### Database (Postgres)
  
 * `DB_HOST`: DNS/IP of database server
 * `DB_PORT`: Port where database server listens, usually `5432`

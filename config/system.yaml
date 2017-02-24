@@ -34,7 +34,6 @@ NODE_ENV: development
 STATIC_DIR: ./dist/client
 
 # Database configuration
-DB_DRIVER: postgres
 DB_NAME: zappr
 DB_USER: postgres
 DB_PASS: postgres
