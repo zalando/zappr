@@ -14,7 +14,7 @@ before_script:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
   # change postgres user password
-  - psql -c 'ALTER USER "postgres" WITH PASSWORD "postgres";' -U postgres
+  - psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" -U postgres
   # create database and schema
   - psql -c 'create database zappr;' -U postgres
   - psql -c 'create schema zappr_data; create schema zappr_meta;' -U postgres zappr
