@@ -19,25 +19,20 @@ Please refer to [our documentation](https://zappr.readthedocs.org/).
 ### Development
 
 Zappr needs a database during development and testing. For this reason there's a `docker-compose.yaml` 
-for your convenience:
+for your convenience, with which you can either start a database for development (`postgres-dev`):
 
 ~~~ shell
 # starts postgres docker container
-docker-compose up postgres
-# creates database and schemas, only needed one time
+docker-compose up postgres-dev
+# creates database and schemas, only needed first time
 ./init_db.sh
-~~~
-
-The same database will be used for testing:
-
-~~~ shell
 export DB_HOST="$(docker-machine ip)"
-npm test
+npm run all
 ~~~
 
 If you would like to run a complete Zappr locally, you can do it like this:
 
-1. Export your [Github credentials](https://github.com/settings/applications):
+1. Export your [Github credentials](https://github.com/settings/applications) and docker-machine IP:
 ~~~ shell
 export DM_IP="$(docker-machine ip)"
 export GITHUB_CLIENT_ID=<your-client-id>
@@ -61,9 +56,9 @@ npm i -g localtunnel
 lt -s myzappr -p 3000
 ~~~
 
-4. Set your OAuth application URLs to `http://$DM_IP:3000`
+4. Set your OAuth application URLs to `https://myzappr.localtunnel.me` in the GitHub settings
 
-5. Go to `http://$DM_IP:3000` and do things :)
+5. Go to `https://myzappr.localtunnel.me` and do things :)
 
 **Debug Client and Server:**
 
@@ -88,7 +83,16 @@ window.DEBUG.enable('zappr:*')
 
 **Test:**
 
-Don't forget to start your database (see above). Afterwards you can do:
+First start the testing database:
+
+~~~ shell
+export DB_HOST="$(docker-machine ip)"
+docker-compose up postgres-test
+# creates database and schemas, only needed first time
+./init_db.sh
+~~~
+
+Then you can do:
 
 * `npm test` - run combined tests
 * `npm run test-client` - run only client tests
