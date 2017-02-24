@@ -82,13 +82,9 @@ export default db.define('repository', {
       return this.scope({method: ['userId', user.id]})
     },
     findAllSorted: function (options) {
-      const order = {
-        sqlite: ['id', 'ASC'],
-        postgres: ['id', 'ASC'] // FIXME: [Sequelize.json('json.full_name'), 'ASC']
-      }
       return this.findAll({
         ...options,
-        order: [order[db.getDialect()]]
+        order: [['id', 'ASC']]
       })
     }
   },
