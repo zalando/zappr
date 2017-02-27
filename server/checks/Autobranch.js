@@ -67,16 +67,12 @@ export default class Autobranch extends Check {
       info(`${repository.full_name}: Ignore issue #${issue.number}. Action was "${action}" instead of "opened".`)
       return
     }
-    try {
-      const owner = repository.owner.login
-      const repo = repository.name
-      const {sha} = await this.github.getHead(owner, repo, repository.default_branch, token)
-      // branch could exist already
-      await this.github.createBranch(owner, repo, branchName, sha, token)
-      info(`Created branch ${branchName} for ${sha} in ${repository.full_name}`)
-    } catch (e) {
-      // but we don't care
-      error(`Could not create branch ${branchName} for ${sha} in ${repository.full_name}`, e)
-    }
+
+    const owner = repository.owner.login
+    const repo = repository.name
+    const {sha} = await this.github.getHead(owner, repo, repository.default_branch, token)
+    // branch could exist already
+    await this.github.createBranch(owner, repo, branchName, sha, token)
+    info(`Created branch ${branchName} for ${sha} in ${repository.full_name}`)
   }
 }

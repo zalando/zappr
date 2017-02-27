@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  postgres-dev:
+    image: "postgres:9.4"
+    ports:
+      - "5432:5432"
+    container_name: zappr-postgres-dev
+  postgres-test:
+    image: "postgres:9.4"
+    ports:
+      - "5432:5432"
+    container_name: zappr-postgres-test
+  zappr:
+    build: .
+    container_name: zappr-app
+    depends_on:
+      - postgres-dev
+    links:
+      - "postgres-dev:database"
+    ports:
+      - "3000:3000"
+      - "3003:3003"
+    environment:
+      - LOG_LEVEL=debug
+      - DB_HOST=database
+      - NODE_ENV=development
+      - HOST_ADDR=http://$DM_IP:3000
+      - GITHUB_CLIENT_ID
+      - GITHUB_CLIENT_SECRET

@@ -1,6 +1,15 @@
 import { expect } from 'chai'
 import Approval from '../../server/checks/Approval'
-import { db, User, Repository, UserRepository, Check, Session } from '../../server/model'
+import {
+  db,
+  User,
+  Repository,
+  UserRepository,
+  Check,
+  Session,
+  FrozenComment,
+  PullRequest
+} from '../../server/model'
 
 const users = {
   a: {
@@ -18,12 +27,33 @@ describe('Model', () => {
   before(done => db.createSchemas().then(db._sync).then(() => done()).catch(done))
 
   beforeEach(done => Promise.all([
-    User.truncate(),
-    Repository.truncate(),
-    UserRepository.truncate()
+    User.truncate({cascade: true}),
+    Repository.truncate({cascade: true}),
+    UserRepository.truncate({cascade: true}),
+    FrozenComment.truncate({cascade: true})
   ]).then(() => done()).catch(done))
 
   describe('User', () => {
+    it("does not store unsafe comment IDs", async(done) => {
+      try {
+        await User.create({id: Number.MAX_SAFE_INTEGER + 1, json: '{}'})
+        done("Unsafe ID created without error")
+      } catch (e) {
+        done()
+      }
+    })
+
+    it("does store safe comment IDs", async(done) => {
+      try {
+        await User.create({id: Number.MAX_SAFE_INTEGER, json: '{}'})
+        const user = await User.findById(Number.MAX_SAFE_INTEGER)
+        expect(user).to.have.property("id").that.is.a("number")
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
     it('should return the "json" property as an object', async(done) => {
       const user = users.a.data
       const userId = user.id
@@ -78,6 +108,26 @@ describe('Model', () => {
   })
 
   describe('Repository', () => {
+    it("does not store unsafe comment IDs", async(done) => {
+      try {
+        await Repository.create({id: Number.MAX_SAFE_INTEGER + 1, json: '{}'})
+        done("Unsafe ID created without error")
+      } catch (e) {
+        done()
+      }
+    })
+
+    it("does store safe comment IDs", async(done) => {
+      try {
+        await Repository.create({id: Number.MAX_SAFE_INTEGER, json: '{}'})
+        const repo = await Repository.findById(Number.MAX_SAFE_INTEGER)
+        expect(repo).to.have.property("id").that.is.a("number")
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
     it('should return the "json" property as an object', async(done) => {
       const user = users.a.data
       const userId = user.id
@@ -184,6 +234,10 @@ describe('Model', () => {
   })
 
   describe('Session', () => {
+    before((done) => {
+      Session.truncate({cascade: true})
+      done()
+    })
     it('should store the encrypted token and return the decrypted token', async(done) => {
       const json = {
         passport: {
@@ -196,8 +250,8 @@ describe('Model', () => {
       try {
         await Session.create({id, json})
         const dbSession = await Session.findById(id, {raw: true})
-        expect(JSON.parse(dbSession.json).passport.user.accessToken).to.be.a('string')
-                                                                    .and.equal('::dcba')
+        expect(dbSession.json.passport.user.accessToken).to.be.a('string')
+                                                        .and.equal('::dcba')
         const appSession = await Session.findById(id)
         expect(appSession.json.passport.user.accessToken).to.be.a('string')
                                                          .and.equal('abcd')
@@ -245,6 +299,46 @@ describe('Model', () => {
         const dbCheck = await Check.findById(checkId, {raw: true})
         expect(dbCheck.token).to.be.a('string')
                              .and.equal('::dcba')
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
+
+  describe('FrozenComment', () => {
+    it("does not store unsafe comment IDs", async(done) => {
+      try {
+        await Repository.create({id: 1, json: '{}'})
+        const pr = await PullRequest.create({number: 1, repositoryId: 1})
+        await FrozenComment.create({
+          id: Number.MAX_SAFE_INTEGER + 1,
+          json: '{}',
+          pullRequestId: pr.id,
+          user: "test",
+          created_at: new Date(),
+          body: "ha-ha"
+        })
+        done("Unsafe ID created without error")
+      } catch (e) {
+        done()
+      }
+    })
+
+    it("does store safe comment IDs", async(done) => {
+      try {
+        await Repository.create({id: 1, json: '{}'})
+        const pr = await PullRequest.create({number: 1, repositoryId: 1})
+        await FrozenComment.create({
+          id: Number.MAX_SAFE_INTEGER,
+          json: '{}',
+          pullRequestId: pr.id,
+          user: "test",
+          created_at: new Date(),
+          body: "ha-ha"
+        })
+        const comment = await FrozenComment.findById(Number.MAX_SAFE_INTEGER)
+        expect(comment).to.have.property("id").that.is.a("number")
         done()
       } catch (e) {
         done(e)

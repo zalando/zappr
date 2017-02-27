@@ -51,9 +51,9 @@ describe('Pull Request Labels', () => {
 
     const TOKEN = 'token'
     const PAYLOAD = {
-      number: 1,
       action: 'labeled',
       pull_request: {
+        number: 1,
         state: 'open',
         head: {
           sha: 'commit-id'
@@ -74,8 +74,8 @@ describe('Pull Request Labels', () => {
         }
       }
     }
-    const REACT_ON = ['labeled', 'unlabeled', 'opened', 'reopened']
-    const IGNORE = ['synchronize', 'assigned', 'unassigned', 'closed', 'edited']
+    const REACT_ON = ['labeled', 'unlabeled', 'opened', 'reopened', 'synchronize']
+    const IGNORE = ['assigned', 'unassigned', 'closed', 'edited']
     const ALL = [...REACT_ON, ...IGNORE]
     ALL.forEach(action =>
       it(`ignores everything with state = closed`, async(done) => {

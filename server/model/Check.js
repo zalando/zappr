@@ -31,6 +31,22 @@ export default db.define('check', {
     type: Sequelize.TEXT,
     allowNull: true
   },
+  last_execution_delay_ms: {
+    type: Sequelize.INTEGER,
+    allowNull: true
+  },
+  last_execution_ts: {
+    type: Sequelize.DATE,
+    allowNull: true
+  },
+  last_execution_ms: {
+    type: Sequelize.INTEGER,
+    allowNull: true
+  },
+  last_execution_successful: {
+    type: Sequelize.BOOLEAN,
+    allowNull: true
+  },
   createdAt: {
     type: Sequelize.DATE,
     allowNull: false,

@@ -62,44 +62,6 @@ async function decryptTokenHook(thing) {
   return thing
 }
 
-function getParameters(driver = nconf.get('DB_DRIVER')) {
-  const options = {
-    logging: log,
-    benchmark: true,
-    hooks: {
-      afterFind: decryptTokenHook
-    },
-    typeValidation: true
-  }
-  switch (driver) {
-    case 'sqlite':
-      return [
-        nconf.get('DB_NAME'),
-        null,
-        null,
-        {
-          dialect: driver,
-          storage: nconf.get('SQLITE_FILE'),
-          ...options
-        }
-      ]
-    case 'postgres':
-      return [
-        nconf.get('DB_NAME'),
-        nconf.get('DB_USER'),
-        nconf.get('DB_PASS'),
-        {
-          dialect: driver,
-          host: nconf.get('DB_HOST'),
-          port: nconf.get('DB_PORT'),
-          ...options
-        }
-      ]
-    default:
-      throw new Error(`unsupported database driver ${driver}`)
-  }
-}
-
 class Database extends Sequelize {
   constructor(...args) {
     super(...args)
@@ -149,4 +111,18 @@ class Database extends Sequelize {
   }
 }
 
-export const db = new Database(...getParameters())
+export const db = new Database(
+  nconf.get('DB_NAME'),
+  nconf.get('DB_USER'),
+  nconf.get('DB_PASS'),
+  {
+    dialect: "postgres",
+    host: nconf.get('DB_HOST'),
+    port: nconf.get('DB_PORT'),
+    logging: log,
+    benchmark: true,
+    hooks: {
+      afterFind: decryptTokenHook
+    },
+    typeValidation: true
+  });

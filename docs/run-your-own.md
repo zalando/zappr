@@ -3,7 +3,7 @@
 So, you want to run your own Zappr because you too have GitHub Enterprise—or you just don't want to use [Zappr Opensource](https://zappr.opensource.zalan.do) for whatever reason. That's fine. Here's what you need (**M**andatory/**R**ecommended/**O**ptional):
 
 * **(M)** A GitHub. This might be a GitHub Enterprise instance, or you can use the public GitHub.
-* **(M)** A PostgreSQL database. You can use SQLite out of the box too, but we don't recommend it for production. 🙃 Zappr uses [sequelize](http://docs.sequelizejs.com/en/latest/) as an ORM. You could possibly use just a different database driver, but this is at your own risk as an ORM can never *completely* abstract database details away.
+* **(M)** A PostgreSQL database.
 * **(M)** Servers on which you can run Docker containers or JavaScript.
 * **(R)** A proper/not self-signed certificate, so that GitHub can verify the SSL connection.
 * **(O)** A load balancer, if you want to run Zappr on multiple nodes.
@@ -38,7 +38,7 @@ Copy the folders `config`, `dist`, `migrations` and the `package.json` file to y
     # start zappr
     npm start
     
-You can also just build the Docker image with `docker build -f Dockerfile.external -t zappr .` and run it, providing your environment config via `-e DB_DRIVER=postgres` and so on. We don't yet provide ready-to-use images, but we will do so in the future.
+You can also just build the Docker image with `docker build -f Dockerfile.external -t zappr .` and run it, providing your environment config via `-e DB_NAME=zappr` and so on. We don't yet provide ready-to-use images, but we will do so in the future.
 
 ## Configuration options
 
@@ -62,15 +62,7 @@ Zappr provides a whole lot of configuration options for flexibility.
 * `STATIC_DIR`: Where to find static assets
 * `LOG_LEVEL`: Desired amount of logging, can be `info` or `debug`
 
-### Database
-
-* `DB_DRIVER`: Which database to use, either `sqlite` or `postgres`
-
-#### SQLite
-
-* `SQLITE_FILE`: Path to SQLite file
-
-#### Postgres
+### Database (Postgres)
  
 * `DB_HOST`: DNS/IP of database server
 * `DB_PORT`: Port where database server listens, usually `5432`

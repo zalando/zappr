@@ -1,5 +1,8 @@
 import Sequelize from 'sequelize'
 import { db } from './Database'
+import { logger } from '../../common/debug'
+
+const error = logger("FrozenComment", "error")
 
 export default db.define('frozen_comment', {
   id: {
@@ -7,7 +10,22 @@ export default db.define('frozen_comment', {
     primaryKey: true,
     unique: true,
     allowNull: false,
-    autoIncrement: false
+    autoIncrement: false,
+    get: function() {
+      // Sequelize converts BIGINTs to strings to avoid precision loss
+      const id = this.getDataValue('id')
+      // Since we prevent too large numbers to be stored, we can safely
+      // parse them again.
+      return parseInt(id, 10)
+    },
+    set: function(value) {
+      if (!Number.isSafeInteger(value)) {
+        const msg = `Trying to store a number that cannot safely be represented in Javascript!`
+        error(msg)
+        throw new Error(msg)
+      }
+      this.setDataValue('id', value)
+    }
   },
   user: {
     type: Sequelize.TEXT,

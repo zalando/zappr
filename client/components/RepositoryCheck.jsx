@@ -1,14 +1,12 @@
 import React, { Component, PropTypes } from 'react'
 import Time from 'react-time'
-import { Alert, Panel, Well } from 'react-bootstrap'
+import { Alert, Panel } from 'react-bootstrap'
 
 import Toggle from './Toggle.jsx'
 
 const INFO_TEXT = {
   approval: <p>The approval feature (<a href='https://zappr.readthedocs.io/en/latest/setup/#approvals'>docs</a>) blocks
-    a pull request (if you
-    enabled <a href='https://github.com/blog/2051-protected-branches-and-required-status-checks'>protected branches</a>)
-    until it has the required amount of approvals.
+    a pull request until it has the required amount of approvals.
   </p>,
   autobranch: <p>When enabling automatic branch creation (<a
     href='https://zappr.readthedocs.io/en/latest/setup/#autobranch'>docs</a>), Zappr will automatically
@@ -21,8 +19,12 @@ const INFO_TEXT = {
   specification: <p>The specification check (<a
     href='https://zappr.readthedocs.io/en/latest/setup/#specification'>docs</a>) will verify that a pull request's title
     and body conform to the length and content requirements.</p>,
-  pullrequestlabels: <p>The pull request labels check will verify that an open pull request has (or does not have)
+  pullrequestlabels: <p>The pull request labels check (<a
+    href='https://zappr.readthedocs.io/en/latest/setup/#pull-request-labels'>docs</a>) will verify that an open pull request has (or does not have)
     labels you defined before it can be merged. (Examples could be <code>Work in progress</code> or <code>Review needed</code>.)
+  </p>,
+  pullrequesttasks: <p>The pull request tasks check (<a
+    href='https://zappr.readthedocs.io/en/latest/setup/#pull-request-tasks'>docs</a>) will block pull requests that have open tasks.
   </p>
 }
 

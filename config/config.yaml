@@ -34,14 +34,11 @@ NODE_ENV: development
 STATIC_DIR: ./dist/client
 
 # Database configuration
-# sqlite or postgres
-DB_DRIVER: sqlite
-#DB_NAME: postgres
-#DB_USER: postgres
-#DB_PASS: postgres
-#DB_HOST: 192.168.99.100
-#DB_PORT: 5432
-SQLITE_FILE: ./zappr.sqlite
+DB_NAME: zappr
+DB_USER: postgres
+DB_PASS: postgres
+# DB_HOST: 192.168.99.100
+DB_PORT: 5432
 
 # Token encryption
 # Options: [~, fake, kms]
@@ -153,7 +150,8 @@ ZAPPR_WELCOME_TEXT: |
 
   ## Pull Request guidelines
 
-    * Block a PR until it has the required set of labels (e.g. `reviewed`).
+    * Block a PR until it has the required set of labels (e.g. `reviewed`)
+    * Block a PR as long as it has unfinished tasks
 
   ## Specification guidelines
 
