@@ -14,6 +14,9 @@ VALID_PR_TEMPLATE_PATHS:
 IGNORE_USER_CONFIG:
   - "approvals.pattern"
   - "approvals.veto"
+  - "approvals.minimum"
+  - "approvals.groups"
+  - "approvals.ignore"
   - "specification"
 ZAPPR_DEFAULT_CONFIG:
   autobranch:
