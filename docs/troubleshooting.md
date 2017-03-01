@@ -14,7 +14,7 @@ You don't have admin access for this repository. Either become an admin yourself
  
 ## I updated my Zapprfile in a PR, but it's not picked up.
 
-Zappr reads your Zapprfile from the repository's default branch (if you're not sure it's `master`). Changes on a feature branch are ignored.
+Zappr reads your Zapprfile from the repository's default branch (it's `master` by default). Changes on a feature branch are ignored.
 
 ## I enabled Zappr, but approvals don't seem to count
 
@@ -50,6 +50,6 @@ The person who enabled the Zappr check does not have access to the repository an
 
 ### The case that happened only once
 
-There a limit of 1000 status updates per combination of context (like `zappr`, `zappr/pr/specification`...) and commit ID. If there are A LOT of comments in a PR, this limit might be exceeded.
+There is a limit of 1000 status updates per combination of context (like `zappr`, `zappr/pr/specification`...) and commit ID. If there are A LOT of comments in a PR, this limit might be exceeded.
 
 **Solution**: Add an additional commit to the PR.
