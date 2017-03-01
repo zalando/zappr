@@ -1,0 +1,55 @@
+# Troubleshooting Zappr
+
+This page tries to explain common sources of error and give instructions how to fix them.
+
+Terminology:
+
+* Zapprfile: A file named `.zappr.yaml` located in the root directory of your repository.
+
+## I can't enable or disable checks for my repository
+
+![A Github 404 API error is visible](img/troubleshooting/no-enable-disable.png)
+
+You don't have admin access for this repository. Either become an admin yourself or ask one to toggle this check.
+ 
+## I updated my Zapprfile in a PR, but it's not picked up.
+
+Zappr reads your Zapprfile from the repository's default branch (if you're not sure it's `master`). Changes on a feature branch are ignored.
+
+## I enabled Zappr, but approvals don't seem to count
+
+If you have the option `approvals.from` configured, which can look like this in your Zapprfile:
+ 
+~~~ yaml
+approvals:
+  from:
+    orgs:
+      - zalando
+~~~
+
+And Zappr's status looks like this:
+
+![Zappr reports pending status with zero approvals](img/troubleshooting/no-approval-counted.png)
+
+Then you need to make sure that
+
+* This organization exists in the GitHub instance (github.com or your GHE)
+* Everybody who is supposed to approve is a **public** member of this organization
+
+## I enabled Zappr, but it hangs with status "pending"
+
+![GitHub says "Waiting for status to be reported"](img/troubleshooting/no-success-status.png)
+
+Until now there were two reasons why this happened:
+
+### The 99% case
+
+The person who enabled the Zappr check does not have access to the repository anymore, for whatever reason. Since Zappr stores a personal access token for every check (to communicate with GitHub during check execution), it's a problem if the permissions of this token change.
+ 
+**Solution**: Disable and enable the Zappr check to replace the stored token.
+
+### The case that happened only once
+
+There a limit of 1000 status updates per combination of context (like `zappr`, `zappr/pr/specification`...) and commit ID. If there are A LOT of comments in a PR, this limit might be exceeded.
+
+**Solution**: Add an additional commit to the PR.
