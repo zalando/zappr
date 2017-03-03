@@ -15,6 +15,11 @@ IGNORE_USER_CONFIG:
   - "approvals.pattern"
   - "approvals.veto"
   - "specification"
+# quick hack due to internal needs, should be replaced with a more
+# general rule framework.
+IGNORE_USER_CONFIG_NOT_IN_ORGS:
+  - "kohle"
+  - "payments"
 ZAPPR_DEFAULT_CONFIG:
   autobranch:
     pattern: "{number}-{title}"
