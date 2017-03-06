@@ -25,7 +25,7 @@ class HookHandler {
       const dbRepo = await this.repositoryHandler.onGetOne(id, null, true)
       if (dbRepo.checks.length) {
         const zapprFileContent = await this.githubService.readZapprFile(owner.login, name, dbRepo.checks[0].token)
-        const zapprfile = new ZapprConfiguration(zapprFileContent)
+        const zapprfile = new ZapprConfiguration(zapprFileContent, dbRepo)
         const config = zapprfile.getConfiguration()
         this.checkRunner.handleGithubWebhook(dbRepo, {event, payload, config})
       }
