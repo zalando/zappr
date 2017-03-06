@@ -18,7 +18,7 @@ IGNORE_USER_CONFIG:
 # quick hack due to internal needs,
 # should be replaced with a more
 # general rule framework.
-IGNORE_USER_CONFIG_NOT_IN_ORGS:
+APPLY_USER_CONFIG_IF_OWNED_BY:
   - "kohle"
   - "zaster"
   - "schotter"

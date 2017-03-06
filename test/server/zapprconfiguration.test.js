@@ -11,7 +11,7 @@ const DEFAULT_CONFIG = {
 
 const REPO = {
   json: {
-    organization: {
+    owner: {
       login: 'zalando'
     }
   }
