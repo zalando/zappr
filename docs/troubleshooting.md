@@ -36,6 +36,10 @@ Then you need to make sure that
 * This organization exists in the GitHub instance (github.com or your GHE)
 * Everybody who is supposed to approve is a **public** member of this organization
 
+You can change and verify the membership visibility at `<GITHUB INSTANCE>/orgs/<YOUR ORG>/people` (e.g. [github.com/orgs/zalando/people](https://github.com/orgs/zalando/people)).
+
+![Column between 2FA and role must show "Public"](img/troubleshooting/org-membership.png)
+
 ## I enabled Zappr, but it hangs with status "pending"
 
 ![GitHub says "Waiting for status to be reported"](img/troubleshooting/no-success-status.png)
