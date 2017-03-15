@@ -134,7 +134,7 @@ commit:
 
 ### Specification
 
-The specification check lets you verify that proper specification was provided along with a pull request. This is based on heuristics you define.
+The specification check lets you verify that proper specification was provided along with a pull request. This is based on heuristics you define. Please take the default values from the YAML snippet below.
 
 It is configured by putting your config under `specification` and supports the following options:
 

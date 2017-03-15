@@ -92,7 +92,7 @@ export function repo(router) {
       ctx.throw(404, e)
     }
     const zapprFileContent = await githubService.readZapprFile(repo.json.owner.login, repo.json.name, user.accessToken)
-    const config = new ZapprConfiguration(zapprFileContent)
+    const config = new ZapprConfiguration(zapprFileContent, repo)
 
     const message = zapprFileContent === '' ?
       'No Zapprfile found, using default config' :
@@ -135,7 +135,7 @@ export function repo(router) {
       const checkContext = getCheckByType(type).CONTEXT
       if (checkContext) {
         // autobranch doesn't have a context
-        const config = new ZapprConfiguration(zapprFile)
+        const config = new ZapprConfiguration(zapprFile, repo)
         if (NODE_ENV !== PROD_ENV) {
           // blocking in dev and tests
           await githubService.protectBranch(owner, name, defaultBranch, checkContext, token)

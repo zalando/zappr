@@ -5,3 +5,9 @@
         display: block;
     }
 }
+
+.wy-menu[role="navigation"]:after {
+    content: url("img/banner_tiny.png");
+    position: relative;
+    left: 10px;
+}

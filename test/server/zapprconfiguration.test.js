@@ -9,6 +9,14 @@ const DEFAULT_CONFIG = {
   }
 }
 
+const REPO = {
+  json: {
+    owner: {
+      login: 'zalando'
+    }
+  }
+}
+
 describe('ZapprConfiguration', () => {
 
   [true, false, 0, -1, 7, Infinity, NaN, undefined, null, []].forEach(throws => {
@@ -17,24 +25,54 @@ describe('ZapprConfiguration', () => {
     })
   })
 
-  it('should ignore top-level paths', () => {
-    const config = new Configuration({
-        foo: 'bar',
-        baz: 'qux',
-        pattern: 'plus one'
-      }, {
-        baz: 'foo',
-        pattern: 'thumbs up'
-      },
-      ['baz', 'pattern'])
-    expect(config.getConfiguration()).to.deep.equal({
+  it('should NOT ignore user config for some orgs', () => {
+    const userConfig = {
       foo: 'bar',
+      baz: 'qux',
+      pattern: 'plus one'
+    }
+    const defaultConfig = {
       baz: 'foo',
       pattern: 'thumbs up'
+    }
+    const ignorePaths = ['baz', 'pattern']
+    const notIgnoreWhenRepoInTheseOrgs = ['zalando']
+    const config = new Configuration(
+      userConfig,
+      REPO,
+      defaultConfig,
+      ignorePaths,
+      notIgnoreWhenRepoInTheseOrgs)
+    expect(config.getConfiguration()).to.deep.equal(userConfig)
+  })
+
+  it('should ignore top-level paths', () => {
+    const userConfig = {
+      foo: 'bar',
+      baz: 'qux',
+      pattern: 'plus one'
+    }
+    const defaultConfig = {
+      baz: 'foo',
+      pattern: 'thumbs up'
+    }
+    const ignorePaths = ['baz', 'pattern']
+    const notIgnoreWhenRepoInTheseOrgs = []
+    const config = new Configuration(
+      userConfig,
+      REPO,
+      defaultConfig,
+      ignorePaths,
+      notIgnoreWhenRepoInTheseOrgs)
+    expect(config.getConfiguration()).to.deep.equal({
+      foo: userConfig.foo,
+      baz: defaultConfig.baz,
+      pattern: defaultConfig.pattern
     })
   })
 
   it('should ignore nested paths', () => {
+    const ignorePaths = ['commit.message', 'approvals.pattern']
     const config = new Configuration({
         approvals: {
           pattern: 'lgtm'
@@ -49,14 +87,15 @@ describe('ZapprConfiguration', () => {
           }
         }
       },
+      REPO,
       DEFAULT_CONFIG,
-      ['commit.message', 'approvals.pattern'])
+      ignorePaths)
     expect(config.getConfiguration()).to.deep.equal(Object.assign({approvals: {}}, DEFAULT_CONFIG))
   })
 
   it('should overwrite arrays correctly', () => {
     const content = 'commit:\n  message:\n    patterns:\n      - baz\n'
-    const config = new Configuration(content, DEFAULT_CONFIG)
+    const config = new Configuration(content, REPO, DEFAULT_CONFIG)
     expect(config.isValid()).to.be.true
     const effective = config.getConfiguration()
     expect(effective).to.have.deep.property('commit.message.patterns')
@@ -68,13 +107,13 @@ describe('ZapprConfiguration', () => {
   it('should yield validity correctly', () => {
     const valid = 'foo: "bar"'
     const invalid = 'foo\n  bar:\n    baz'
-    expect(new Configuration(valid, {}).isValid()).to.be.true
-    expect(new Configuration(invalid, {}).isValid()).to.be.false
+    expect(new Configuration(valid, REPO, {}).isValid()).to.be.true
+    expect(new Configuration(invalid, REPO, {}).isValid()).to.be.false
   })
 
   it('should hold error message in case of error', () => {
     const invalid = 'foo\n  bar:\n    baz'
-    const config = new Configuration(invalid, {})
+    const config = new Configuration(invalid, REPO, {})
     const err = config.getParseError()
     expect(err).to.be.defined
     expect(err).to.be.a.string
