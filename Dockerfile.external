@@ -1,22 +1,3 @@
-FROM node:5-wheezy
+FROM registry.opensource.zalan.do/opensource/zappr:latest
 
-ARG APP_PORT=3000
-ENV ZAPPR_HOME /opt/zappr
-
-RUN mkdir -p $ZAPPR_HOME
-
-WORKDIR $ZAPPR_HOME
-
-COPY package.json $ZAPPR_HOME
-
-RUN npm install --production && \
-    npm install pg source-map
-
-COPY dist/ $ZAPPR_HOME/dist
-COPY config $ZAPPR_HOME/config
-COPY migrations/ $ZAPPR_HOME/migrations
-
-EXPOSE ${APP_PORT}
-
-ENTRYPOINT ["npm"]
-CMD ["start"]
+COPY your-config.yaml $ZAPPR_CONFIG

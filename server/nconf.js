@@ -43,10 +43,7 @@ function readYamlFile(file) {
 export default nconf.use('memory')
                     .argv()
                     .env()
-                    .add('system', {type: 'literal', store: readYamlFile('./config/system.yaml')})
-                    .add('app', {
-                      type: 'literal', store: readYamlFile([
-                        './config/app.yaml',           // Configured at build-time.
-                        './config/app-opensource.yaml' // Default fallback for development.
-                      ])
+                    .add('config', {
+                      type: 'literal',
+                      store: readYamlFile('./config/config.yaml')
                     })

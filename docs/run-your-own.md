@@ -13,32 +13,11 @@ So, you want to run your own Zappr because you too have GitHub Enterprise—or y
 
 We need to build the code!
 
-The configuration is split into two parts: 
+All configuration is contained in a single file `config/config.yaml`. Put the necessary configuration options in there, 
+they are explained in the next section. Remember you can override them with environment variables as you wish.
 
-- `config/system.yaml` holds system configuration, such as the session secret to use, GitHub URLs, the database driver, and connection settings etc.
-- `config/app.yaml` (not in the repo, because we create that on build time) contains the default Zappr config that will be used when Zapprfiles are missing config options. Example configuration can be found e.g. in `config/app-enterprise.yaml`.
-
-Usually you will enter your desired Zappr default configuration in `config/app.yaml` and leave the system configuration as-is, overriding it via environment variables.
-
-So, you have your configuration in place. Great! Now we build everything with:
-
-    # on local machine
-    # install dev dependencies
-    npm install
-    # build zappr code
-    npm run dist
-
-Copy the folders `config`, `dist`, `migrations` and the `package.json` file to your server. Then do this:
-
-    # on server
-    # install dependencies
-    npm install --production && npm install pg source-map
-    # export all configuration environment variables
-    export DB_DRIVER=postgres
-    # start zappr
-    npm start
-    
-You can also just build the Docker image with `docker build -f Dockerfile.external -t zappr .` and run it, providing your environment config via `-e DB_NAME=zappr` and so on. We don't yet provide ready-to-use images, but we will do so in the future.
+We host a Zappr base image at `registry.opensource.zalan.do/opensource/zappr`, for which you only need to add your configuration.
+See `Dockerfile.external` in the repository as an example.
 
 ## Configuration options
 
