@@ -5,7 +5,6 @@ import { githubService } from '../service/GithubService'
 import { getCheckByType } from '../checks'
 import { logger } from "../../common/debug"
 
-const info = logger('check-handler', 'info')
 const debug = logger('check-handler')
 
 /**
@@ -123,7 +122,7 @@ export class CheckHandler {
 
     await this.github.updateWebhookFor(repo.owner.login, repo.name, events, user.accessToken)
     const check = await checkHandler.onCreateCheck(repo.id, type, user.json.login, user.accessToken)
-    info(`${repo.full_name}: enabled check ${type}`)
+    debug(`${repo.full_name}: enabled check ${type}`)
     return check
   }
 
@@ -141,7 +140,7 @@ export class CheckHandler {
 
     await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
     await this.onDeleteCheck(repo.id, type)
-    info(`${repo.full_name}: disabled check ${type}`)
+    debug(`${repo.full_name}: disabled check ${type}`)
   }
 
   onExecutionStart(repoId, type, delay) {

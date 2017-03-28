@@ -62,6 +62,7 @@ export default class PullRequestTasks extends Check {
     }
 
     await this.github.setCommitStatus(owner.login, name, pull_request.head.sha, status, token);
+    info(`${fullName}#${number}: Set status to ${status.state}.`)
   }
 
   async execute(config, hookPayload, token) {

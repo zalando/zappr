@@ -24,7 +24,8 @@ import { GITHUB_ERROR_TYPE } from './service/GithubServiceError'
 import { CHECK_ERROR_TYPE } from './handler/CheckHandlerError'
 import { REPO_ERROR_TYPE } from './handler/RepositoryHandlerError'
 
-const log = logger('app', 'info')
+const info = logger('app', 'info')
+const error = logger('app', 'error')
 const app = new Koa()
 app.name = 'zappr'
 
@@ -133,18 +134,18 @@ async function start(port = nconf.get('APP_PORT'), opts = {
   // apply migrations
   await umzug.up({from: nconf.get('DB_UMZUG_FROM') || null})
   init().listen(port)
-  log(`listening on port ${port}`)
+  info(`listening on port ${port}`)
   if (opts.metricsEnabled) {
     const actualMetricsPort = opts.metricsPort || 3003
     initMetrics().listen(actualMetricsPort)
-    log(`metrics available on port ${actualMetricsPort}`)
+    info(`metrics available on port ${actualMetricsPort}`)
   }
 }
 
 if (require.main === module) {
   start()
   .catch(err => {
-    log(err)
+    error(err)
     process.exit(1)
   })
 }

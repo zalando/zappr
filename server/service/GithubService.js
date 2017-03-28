@@ -65,10 +65,15 @@ export class GithubService {
     CallCounter.inc({type: 'total'}, 1)
     // 300 codes are for github membership checks
     if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
-      error(`${statusCode} ${method} ${path}`, response.body)
       if (statusCode >= 400 && statusCode <= 499) {
+        if (statusCode !== 404) {
+          // only log 4xx if not 404 (happens often during zappr.yaml file check
+          error(`${statusCode} ${method} ${path}`, response.body)
+        }
         CallCounter.inc({type: '4xx'}, 1)
       } else if (statusCode >= 500 && statusCode <= 599) {
+        // always log 5xx
+        error(`${statusCode} ${method} ${path}`, response.body)
         CallCounter.inc({type: '5xx'}, 1)
       }
       throw new GithubServiceError(response)
@@ -104,7 +109,7 @@ export class GithubService {
       const pages = await Promise.all(
         pageDefs.map(
           page => this._fetchPage(urlTemplate.replace('${page}', page), token)))
-      info(`Fetched ${pageDefs.length + 1} pages for ${urlTemplate}`)
+      debug(`Fetched ${pageDefs.length + 1} pages for ${urlTemplate}`)
       return pages.reduce((all, page) => [...all, ...page.body], firstPage.body)
     }
     return firstPage.body
@@ -244,14 +249,14 @@ export class GithubService {
       path += `/${existing.id}`
       if (payload.events.length) {
         await this.fetchPath('PATCH', path, payload, accessToken)
-        info(`${user}/${repo}: updated existing webhook ${existing.id}`)
+        debug(`${user}/${repo}: updated existing webhook ${existing.id}`)
       } else {
         await this.fetchPath('DELETE', path, null, accessToken)
-        info(`${user}/${repo}: deleted existing webhook ${existing.id}`)
+        debug(`${user}/${repo}: deleted existing webhook ${existing.id}`)
       }
     } else {
       await this.fetchPath('POST', path, payload, accessToken)
-      info(`${user}/${repo}: created new webhook`)
+      debug(`${user}/${repo}: created new webhook`)
     }
   }
 
@@ -330,7 +335,7 @@ export class GithubService {
     .map(filename => path.join(repoUrl, filename))
     .map(url => this.fetchPath('GET', url, null, accessToken))
     ).then(({content, encoding, name}) => {
-      info(`${user}/${repo}: Found ${name}.`)
+      debug(`${user}/${repo}: Found ${name}.`)
       return name ? decode(content, encoding) : ''
     })
   }
@@ -399,7 +404,7 @@ export class GithubService {
         "include_admins": true,
         "contexts": [...requiredChecks, check]
       }
-      info(`${user}/${repo}: Adding status check ${check}`)
+      debug(`${user}/${repo}: Adding status check ${check}`)
       await this.fetchPath('PATCH', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
     }
   }
