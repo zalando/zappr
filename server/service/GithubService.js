@@ -66,8 +66,8 @@ export class GithubService {
     // 300 codes are for github membership checks
     if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
       if (statusCode >= 400 && statusCode <= 499) {
-        if (statusCode !== 404) {
-          // only log 4xx if not 404 (happens often during zappr.yaml file check
+        if (method !== 'GET' || statusCode !== 404) {
+          // only log 4xx if not GET 404 (happens often during zappr.yaml file check
           error(`${statusCode} ${method} ${path}`, response.body)
         }
         CallCounter.inc({type: '4xx'}, 1)
