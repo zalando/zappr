@@ -213,7 +213,9 @@ export default class Approval extends Check {
     const potentialApprovalComments = comments.filter(comment => {
                                                 const login = comment.user
                                                 const include = ignore.indexOf(login) === -1
-                                                if (!include) info('%s: Ignoring user: %s.', fullName, login)
+                                                if (!include) {
+                                                  info('%s: Ignoring user: %s.', fullName, login)
+                                                }
                                                 return include
                                               })
                                               // get comments that match specified approval pattern
@@ -222,7 +224,7 @@ export default class Approval extends Check {
                                                 const text = comment.body.trim()
                                                 const include = (new RegExp(approvalPattern)).test(text)
                                                 if (!include) {
-                                                  info('%s: Comment "%s" does not match pattern "%s".', fullName, text, approvalPattern)
+                                                  info('%s: %s\'s comment "%s" does not match pattern "%s".', fullName, comment.user, text.substring(0, 16), approvalPattern)
                                                 }
                                                 return include
                                               })
@@ -342,7 +344,7 @@ export default class Approval extends Check {
                                                                             issue_number: pull_request.number,
                                                                             repository
                                                                           }))
-    info(`${repository.full_name}#${pull_request.number}: Set state to ${status.state} (${approvals.total.length}/${config.approvals.minimum} - ${vetos} vetos)`)
+    info(`${repository.full_name}#${pull_request.number}: Set state to ${status.state} (${approvals.total.length}/${config.approvals.minimum} approvals, ${vetos.length ? 'vetos: ' + vetos : '0 vetos'})`)
   }
 
 
@@ -492,7 +494,7 @@ export default class Approval extends Check {
             info(`${repository.full_name}#${issue.number}: ${editor} ${action} ${author}'s comment ${commentId}, it's now frozen.`)
           }
         }
-        info(`${repository.full_name}#${issue.number}: Comment added`)
+        debug(`${repository.full_name}#${issue.number}: Comment added`)
         await this.fetchApprovalsAndSetStatus(repository, pr, dbPR.last_push, config, token, frozenComments)
       }
     }

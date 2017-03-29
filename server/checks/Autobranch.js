@@ -2,6 +2,7 @@ import Check from './Check'
 import { logger } from '../../common/debug'
 import * as EVENTS from '../model/GithubEvents'
 
+const debug = logger('autobranch')
 const info = logger('autobranch', 'info')
 const error = logger('autobranch', 'error')
 
@@ -64,7 +65,7 @@ export default class Autobranch extends Check {
     const branchName = Autobranch.createBranchNameFromIssue(issue, config.autobranch)
     // only interested in open events right now
     if (action !== 'opened') {
-      info(`${repository.full_name}: Ignore issue #${issue.number}. Action was "${action}" instead of "opened".`)
+      debug(`${repository.full_name}: Ignore issue #${issue.number}. Action was "${action}" instead of "opened".`)
       return
     }
 

@@ -14,6 +14,7 @@ const [MINIMUM_LENGTH, CONTAINS_URL, CONTAINS_ISSUE_NUMBER, TEMPLATE_DIFFERS_FRO
   ['minimum-length', 'contains-url', 'contains-issue-number',
     'differs-from-body']
 
+const debug = logger(CHECK_TYPE)
 const info = logger(CHECK_TYPE, 'info')
 const error = logger(CHECK_TYPE, 'error')
 
@@ -47,7 +48,7 @@ export default class Specification extends Check {
     const {action, pull_request: pr, repository: repo} = hookPayload
 
     if (ACTIONS.indexOf(action) === -1 || !pr || 'open' !== pr.state) {
-      info(`${repo.full_name}#${pr.number}: Nothing to do, action was "${action}" with state "${pr.state}".`)
+      debug(`${repo.full_name}#${pr.number}: Nothing to do, action was "${action}" with state "${pr.state}".`)
       return
     }
 
