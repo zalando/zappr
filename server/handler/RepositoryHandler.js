@@ -4,7 +4,6 @@ import { db, Repository, UserRepository, Check } from '../model'
 import { logger } from '../../common/debug'
 import { setDifference } from '../../common/util'
 
-const info = logger('repo-handler', 'info')
 const debug = logger('repo-handler')
 
 class RepositoryHandler {
@@ -155,7 +154,7 @@ class RepositoryHandler {
 
     repos = await this.github.fetchRepos(user.accessToken, loadAll)
     await this.updateRepos(db, user, repos)
-    info(`Loaded ${loadAll ? 'all' : 'some'} repos for user ${user.json.username} from Github`)
+    debug(`Loaded ${loadAll ? 'all' : 'some'} repos for user ${user.json.username} from Github`)
 
     // The previously merged repos are not sorted correctly
     // so we need to load them from the database again.
