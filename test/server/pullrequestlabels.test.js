@@ -114,6 +114,7 @@ describe('Pull Request Labels', () => {
       try {
         await prLabels.execute({}, PAYLOAD, TOKEN)
         expect(github.getIssueLabels.called).to.be.false
+        expect(github.setCommitStatus.called).to.be.true
         done()
       } catch (e) {
         done(e)

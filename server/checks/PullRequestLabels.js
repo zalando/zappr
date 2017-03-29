@@ -49,15 +49,16 @@ export default class PullRequestLabels extends Check {
     const fullName = repository.full_name
     const number = pull_request.number
 
-    if (required.length === 0) {
-      // there is nothing to check against
-      info(`${fullName}#${number}: Configuration is empty, nothing to do.`)
-      return
+    let status = createStatePayload('No required labels are configured.')
+    if (required.length > 0) {
+      const labels = await this.github.getIssueLabels(repoOwner, repoName, number, token)
+      status = generateStatus(labels, {required, additional})
+      await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
+      info(`${fullName}#${number}: Set status to ${status.state} (labels: ${labels}, required: ${required}, additional: ${additional})`)
+    } else {
+      await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
+      info(`${fullName}#${number}: Set status to ${status.state} (no labels configured)`)
     }
-    const labels = await this.github.getIssueLabels(repoOwner, repoName, number, token)
-    const status = generateStatus(labels, {required, additional})
-    await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
-    info(`${fullName}#${number}: Set status to ${status.state} (labels: ${labels}, required: ${required}, additional: ${additional})`)
   }
 
   async execute(config, hookPayload, token) {
