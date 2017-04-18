@@ -109,7 +109,7 @@
     "koa-etag": "3.0.0",
     "koa-generic-session": "1.11.1",
     "koa-morgan": "1.0.1",
-    "koa-passport": "2.1.0",
+    "koa-passport": "2.1.1",
     "koa-router": "7.0.1",
     "koa-static": "3.0.0",
     "lodash": "4.13.1",
