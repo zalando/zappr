@@ -3,6 +3,7 @@
 **Approval checks for GitHub pull requests.**
 
 [![Build Status](https://travis-ci.org/zalando/zappr.svg?branch=master)](https://travis-ci.org/zalando/zappr)
+[![CircleCI](https://circleci.com/gh/zalando/zappr/tree/master.svg?style=svg)](https://circleci.com/gh/zalando/zappr/tree/master)
 [![Code Climate](https://codeclimate.com/github/zalando/zappr/badges/gpa.svg)](https://codeclimate.com/github/zalando/zappr)
 [![Dependencies](https://david-dm.org/zalando/zappr.svg)](https://david-dm.org/zalando/zappr)
 [![Gitter](https://badges.gitter.im/zalando/zappr.svg)](https://gitter.im/zalando/zappr)
