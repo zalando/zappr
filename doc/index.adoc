@@ -1,0 +1,14 @@
+// http://asciidoctor.org/docs/user-manual
+
+:idprefix:
+:idseparator: -
+ifdef::env-github[:outfilesuffix: .adoc]
+
+= Zappr
+
+Github pull request approvals documentation.
+
+* <<models#,Models>>
+* <<api#,API>>
+* <<events#,Events>>
+* <<style#,Coding style>>
