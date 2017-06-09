@@ -220,7 +220,8 @@ describe('The Github service', () => {
                 strict: false,
                 contexts: [CHECK]
               },
-              restrictions: null
+              restrictions: null,
+              enforce_admins: true
             },
             TOKEN,
             HEADER]
