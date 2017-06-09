@@ -738,7 +738,8 @@ describe('API', () => {
             strict: false,
             contexts: ['zappr']
           },
-          restrictions: null
+          restrictions: null,
+          enforce_admins: true
         })
 
         // patch call should contain hook secret

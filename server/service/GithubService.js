@@ -450,7 +450,8 @@ export class GithubService {
           "strict": false,
           "contexts": statusCheck ? [statusCheck] : []
         },
-        restrictions: null
+        restrictions: null,
+        enforce_admins: true
       }
       debug(`${user}/${repo}: Protecting branch ${branch} with status check ${statusCheck}`)
       await this.fetchPath('PUT', url, payload, accessToken, {'Accept': BRANCH_PREVIEW_HEADER})
