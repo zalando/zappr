@@ -8,7 +8,6 @@ const ACTIONS = ['opened', 'edited', 'reopened', 'synchronize']
 
 const DEFAULT_REQUIRED_LENGTH = 8
 const ISSUE_PATTERN = /^(?:[-\w]+\/[-\w]+)?#\d+$/
-// Grubber's pattern
 const URL_PATTERN = /\bhttps?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/i
 const [MINIMUM_LENGTH, CONTAINS_URL, CONTAINS_ISSUE_NUMBER, TEMPLATE_DIFFERS_FROM_BODY] =
   ['minimum-length', 'contains-url', 'contains-issue-number',
