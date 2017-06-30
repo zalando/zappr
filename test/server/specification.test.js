@@ -151,7 +151,7 @@ describe('Specification', () => {
 
       ['#4', 'Fix #4', 'user/repo#42', 'closes user/repo#42',
         'some-org/repo#42', 'http://tracker.com', 'https://tracker.com',
-        'www.issues.example.com', 'Fix for http://some.tracker.com/issues/42'
+        'Fix for http://some.tracker.com/issues/42'
       ].forEach(body => {
         it(`[action: '${action}'] should set status to 'success' for body '${body}'`, async (done) => {
           try {
