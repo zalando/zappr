@@ -15,7 +15,6 @@ RUN npm install --production && \
 COPY dist/ $ZAPPR_HOME/dist
 COPY config/config.yaml $ZAPPR_CONFIG
 COPY migrations/ $ZAPPR_HOME/migrations
-COPY scm-source.json /scm-source.json
 
 ENV NODE_ENV production
 ENV APP_PORT 3000
