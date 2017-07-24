@@ -1,0 +1,10 @@
+build_steps:
+  - desc: Build
+    cmd: |
+      function npm {
+        docker run -i --rm registry.opensource.zalan.do/stups/node:latest -v "$(pwd):/workspace" -w /workspace "$@"
+      }
+
+      npm install --no-optional
+      npm run scm
+      npm run dist
