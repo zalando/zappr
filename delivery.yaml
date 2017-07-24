@@ -1,0 +1,24 @@
+build_steps:
+  - desc: Prepare
+    cmd: |
+      curl -o /tmp/ensure-docker -f https://delivery.cloud.zalando.com/utils/ensure-docker
+      chmod +x /tmp/ensure-docker
+      /tmp/ensure-docker
+
+  - desc: Build
+    cmd: |
+      function npm {
+        docker run -i --rm -v "$(pwd):/workspace" -w /workspace registry.opensource.zalan.do/stups/node:latest npm "$@"
+      }
+
+      npm install --no-optional
+      npm run dist
+
+  - desc: Publish Docker image
+    cmd: |
+      COMMIT_ID="$(git log --format='%H' -n 1 | cut -c 1-7)"
+      IMAGE_NAME="registry-write.opensource.zalan.do/opensource/zappr:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
+      docker build -t "${IMAGE_NAME}" .
+      if [[ "${CDP_TARGET_BRANCH}" = "master" && -z "${CDP_PULL_REQUEST_NUMBER}" ]]; then
+        docker push "$IMAGE"
+      fi
