@@ -20,5 +20,5 @@ build_steps:
       IMAGE_NAME="registry-write.opensource.zalan.do/opensource/zappr:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
       docker build -t "${IMAGE_NAME}" .
       if [[ "${CDP_TARGET_BRANCH}" = "master" && -z "${CDP_PULL_REQUEST_NUMBER}" ]]; then
-        docker push "$IMAGE"
+        docker push "${IMAGE_NAME}"
       fi

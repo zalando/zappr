@@ -53,14 +53,7 @@ MORGAN_THRESH: 0
 # Logging level
 LOG_LEVEL: debug
 
-# Zappr application configuration: opensource
-
-AUDIT_RELEVANT_ORGS:
-  - zalando
-  - zalando-zmon
-  - zalando-stups
-  - zalando-incubator
-  - zalando-nakadi
+AUDIT_RELEVANT_ORGS: []
 
 # path to zapprfile in repository
 VALID_ZAPPR_FILE_PATHS:
