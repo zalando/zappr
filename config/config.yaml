@@ -60,6 +60,7 @@ AUDIT_RELEVANT_ORGS:
   - zalando-zmon
   - zalando-stups
   - zalando-incubator
+  - zalando-nakadi
 
 # path to zapprfile in repository
 VALID_ZAPPR_FILE_PATHS:
@@ -79,7 +80,7 @@ ZAPPR_DEFAULT_CONFIG:
   commit:
     message:
       patterns:
-        - "^#[0-9]+"
+        - "#[0-9]+"
   approvals:
     minimum: 2
     ignore: none
@@ -100,7 +101,7 @@ ZAPPR_DEFAULT_CONFIG:
       contains-issue-number: true
     template:
       differs-from-body: true
-  pull-reqest:
+  pull-request:
     labels:
       additional: true
 
