@@ -137,6 +137,17 @@ describe('API', () => {
                 .response()
                   .setStatusCode(200)
                   .setHeader('Content-Type', 'application/json')
+                  .setBody(fixtures.repo)
+                .add()
+                .predicate()
+                  .setPath(`/repositories/${fixtures.repo.id}`)
+                  .setMethod('GET')
+                .add()
+              .add()
+              .stub()
+                .response()
+                  .setStatusCode(200)
+                  .setHeader('Content-Type', 'application/json')
                   .setBody(fixtures.user)
                 .add()
                 .predicate()
@@ -479,6 +490,41 @@ describe('API', () => {
       } catch (e) {
         return done(e)
       }
+    })
+  })
+
+  describe('GET /api/repos/:id', () => {
+    it('should not fetch repo from GitHub when missing and autoSync == false', done => {
+      request
+      .get(`/api/repos/${fixtures.repo.id}`)
+      .set('Authorization', 'token 123 foo bar')
+      .set('Accept', 'application/json')
+      .expect(404)
+      .end(done)
+    })
+
+    it('should fetch repo from GitHub when missing and autoSync == true', async(done) => {
+      try {
+        await request
+          .get(`/api/repos/${fixtures.repo.id}?autoSync=true`)
+          .set('Authorization', 'token 123 foo bar')
+          .set('Accept', 'application/json')
+          .expect(200)
+          .expect('Content-Type', /json/)
+          .expect(({body}) => {
+            expect(body).to.be.an('object')
+            expect(body).to.have.deep.property('id').that.is.a('number')
+          })
+
+        const repo = await Repository.findById(fixtures.repo.id, {include: [Check]})
+        expect(repo).to.be.an('object')
+        expect(repo).to.have.deep.property('id', fixtures.repo.id)
+        done()
+      }
+      catch (e) {
+        done(e)
+      }
+
     })
   })
 

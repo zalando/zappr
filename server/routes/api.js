@@ -1,4 +1,6 @@
 import crypto from 'crypto'
+import url from 'url'
+import qs from 'qs'
 import nconf from '../nconf'
 import { githubService } from '../service/GithubService'
 import { requireAuth } from './auth'
@@ -74,9 +76,11 @@ export function repo(router) {
   return router
   .get('/api/repos/:id', requireAuth, async(ctx) => {
     try {
+      const query = qs.parse(url.parse(ctx.req.url).query)
       const user = ctx.req.user
       const id = parseInt(ctx.params.id)
-      const repo = await repositoryHandler.onGetOne(id, user)
+      const autoSync = query.autoSync === 'true'
+      const repo = await repositoryHandler.onGetOne(id, user, false, autoSync)
       ctx.body = repo
     } catch (e) {
       ctx.throw(404, e)
