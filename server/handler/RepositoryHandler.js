@@ -18,6 +18,7 @@ class RepositoryHandler {
 
   /**
    * Load one repository of a user if it exists in the local database.
+   * If autoSync is true, then fetch the repo from GitHub and update the database.
    *
    * @param {Number} id - Id of the repository
    * @param {Object} user - Current user object
@@ -25,8 +26,8 @@ class RepositoryHandler {
    * @returns {Promise.<Object|null>}
    * @throws RepositoryHandlerError
    */
-  async onGetOne(id, user = null, includeToken = false) {
-    debug(`get Repository ${id}`)
+  async onGetOne(id, user = null, includeToken = false, autoSync = false) {
+    debug(`get Repository ${id}, autoSync ${autoSync}`)
     let repository
     try {
       if (user) {
@@ -36,6 +37,11 @@ class RepositoryHandler {
             attributes: {exclude: includeToken ? [] : ['token']}
           }]
         })
+        if (!repository && autoSync) {
+          repository = await this.github.fetchRepoById(user.accessToken, id)
+          if (repository)
+            await db.transaction(t => this.upsertRepos(t, user.id, [repository]))
+        }
       } else {
         repository = await Repository.findById(id, {
           include: [{

@@ -38,7 +38,8 @@ const API_URL_TEMPLATES = {
   PULL_REQUESTS: '/repos/${owner}/${repo}/pulls',
   BRANCH: '/repos/${owner}/${repo}/branches/${branch}',
   COMMITS: '/repos/${owner}/${repo}/git/commits',
-  REPOS: '/user/repos?page=${page}&visibility=all'
+  REPOS: '/user/repos?page=${page}&visibility=all',
+  REPO_BY_ID: '/repositories/${id}'
 }
 
 export class GithubService {
@@ -274,6 +275,18 @@ export class GithubService {
                    links[matches[2]] = parseInt(matches[1], 10)
                    return links
                  }, {})
+  }
+
+  /**
+   * Retrieves the repository with the specified id.
+   *
+   * @param {String} accessToken - User's Github access token
+   * @param {Boolean} repoId - Repository id
+   * @returns {Array.<Object>}
+   */
+  fetchRepoById(accessToken, repoId) {
+    const url = API_URL_TEMPLATES.REPO_BY_ID.replace('${id}', repoId)
+    return this.fetchPath('GET', url, null, accessToken)
   }
 
   /**
