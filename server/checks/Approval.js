@@ -508,7 +508,9 @@ export default class Approval extends Check {
               created_at: comment.created_at
             }
             await this.pullRequestHandler.onAddFrozenComment(dbPR.id, frozenComment)
-            frozenComments.push(frozenComment)
+            if (new Date(comment.created_at) > dbPR.last_push) {
+              frozenComments.push(frozenComment)
+            }
             info(`${repository.full_name}#${issue.number}: ${editor} ${action} ${author}'s comment ${commentId}, it's now frozen.`)
           }
         }
