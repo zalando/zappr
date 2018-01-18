@@ -463,6 +463,7 @@ export class GithubService {
           "strict": false,
           "contexts": statusCheck ? [statusCheck] : []
         },
+        required_pull_request_reviews: null,
         restrictions: null,
         enforce_admins: true
       }

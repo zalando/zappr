@@ -220,6 +220,7 @@ describe('The Github service', () => {
                 strict: false,
                 contexts: [CHECK]
               },
+              required_pull_request_reviews: null,
               restrictions: null,
               enforce_admins: true
             },
