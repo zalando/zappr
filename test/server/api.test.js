@@ -784,6 +784,7 @@ describe('API', () => {
             strict: false,
             contexts: ['zappr']
           },
+          required_pull_request_reviews: null,
           restrictions: null,
           enforce_admins: true
         })
