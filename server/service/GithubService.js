@@ -619,6 +619,24 @@ export class GithubService {
     const issue = await this.fetchPath('GET', url, null, token)
     return issue.labels.map(l => l.name)
   }
+
+  /**
+   * Returns milestone present on an issue/pull request.
+   *
+   * @param user
+   * @param repo
+   * @param number
+   * @param token
+   * @returns {string}
+   */
+  async getIssueMilestone(user, repo, number, token) {
+    const url = API_URL_TEMPLATES.ISSUE
+                                 .replace('${owner}', user)
+                                 .replace('${repo}', repo)
+                                 .replace('${number}', number)
+    const issue = await this.fetchPath('GET', url, null, token)
+    return (issue.milestone == null) ? null : issue.milestone.title
+  }
 }
 
 export const githubService = new GithubService()

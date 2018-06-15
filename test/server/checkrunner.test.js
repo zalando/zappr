@@ -10,6 +10,7 @@ import {
   CommitMessage,
   Specification,
   PullRequestLabels,
+  PullRequestMilestone,
   PullRequestTasks,
   CHECK_TYPES
 } from '../../server/checks'
@@ -18,6 +19,7 @@ const PR_TYPES = [
   Approval.TYPE,
   Specification.TYPE,
   PullRequestLabels.TYPE,
+  PullRequestMilestone.TYPE,
   PullRequestTasks.TYPE,
   CommitMessage.TYPE,
 ]
@@ -104,6 +106,7 @@ describe('CheckRunner', () => {
           checkRunner.approval.fetchApprovalsAndSetStatus = sinon.stub()
           checkRunner.specification.validate = sinon.stub()
           checkRunner.pullRequestLabels.fetchLabelsAndSetStatus = sinon.stub()
+          checkRunner.pullRequestMilestone.fetchMilestoneAndSetStatus = sinon.stub()
           checkRunner.pullRequestTasks.countTasksAndSetStatus = sinon.stub()
           checkRunner.commitMessage.fetchCommitsAndSetStatus = sinon.stub()
 
@@ -126,6 +129,9 @@ describe('CheckRunner', () => {
               break
             case PullRequestLabels.TYPE:
               expect(checkRunner.pullRequestLabels.fetchLabelsAndSetStatus.calledOnce).to.be.true
+              break
+            case PullRequestMilestone.TYPE:
+              expect(checkRunner.pullRequestMilestone.fetchMilestoneAndSetStatus.calledOnce).to.be.true
               break
             case PullRequestTasks.TYPE:
               expect(checkRunner.pullRequestTasks.countTasksAndSetStatus.calledOnce).to.be.true
@@ -177,6 +183,7 @@ describe('CheckRunner', () => {
             [Autobranch.TYPE]: 'autobranch',
             [Specification.TYPE]: 'specification',
             [PullRequestLabels.TYPE]: 'pullRequestLabels',
+            [PullRequestMilestone.TYPE]: 'pullRequestMilestone',
             [PullRequestTasks.TYPE]: 'pullRequestTasks',
             [CommitMessage.TYPE]: 'commitMessage',
           }
@@ -197,6 +204,9 @@ describe('CheckRunner', () => {
               break;
             case PullRequestLabels.TYPE:
               event = PullRequestLabels.HOOK_EVENTS[0]
+              break;
+            case PullRequestMilestone.TYPE:
+              event = PullRequestMilestone.HOOK_EVENTS[0]
               break;
             case PullRequestTasks.TYPE:
               event = PullRequestTasks.HOOK_EVENTS[0]
