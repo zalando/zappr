@@ -467,6 +467,11 @@ export default class Approval extends Check {
           debug(`${repository.full_name}#${issue.number}: Ignoring comment, not a PR`)
           return
         }
+        const author = hookPayload.comment.user.login
+        if (author.endsWith('-robot') {
+          debug(`${repository.full_name}#${issue.number}: Ignoring comment, it was created by a robot user.`)
+          return
+        }
         sha = pr.head.sha
         // set status to pending first
         await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
@@ -479,7 +484,6 @@ export default class Approval extends Check {
         if (['edited', 'deleted'].indexOf(action) !== -1 && !commentAlreadyFrozen) {
           // check if it was edited by someone else than the original author
           const editor = hookPayload.sender.login
-          const author = hookPayload.comment.user.login
           if (editor !== author) {
             // OMFG
             const comment = toGenericComment(hookPayload.comment)
