@@ -468,7 +468,7 @@ export default class Approval extends Check {
           return
         }
         const author = hookPayload.comment.user.login
-        if (author.endsWith('-robot') {
+        if (author.endsWith('-robot')) {
           debug(`${repository.full_name}#${issue.number}: Ignoring comment, it was created by a robot user.`)
           return
         }
