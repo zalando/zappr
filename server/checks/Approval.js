@@ -1,5 +1,4 @@
 import Check from './Check'
-import nconf from '../nconf'
 import AuditEvent from '../service/audit/AuditEvent'
 import { logger, formatDate } from '../../common/debug'
 import { promiseReduce, getIn, toGenericComment } from '../../common/util'
@@ -7,7 +6,7 @@ import * as EVENTS from '../model/GithubEvents'
 import * as AUDIT_EVENTS from '../service/audit/AuditEventTypes'
 import * as _ from 'lodash'
 
-const IGNORE_LOGIN_RE = nconf.get('IGNORE_LOGIN_RE') || [/-robot^/]
+const IGNORE_LOGIN_RE =[/-robot^/]
 
 const context = 'zappr'
 const info = logger('approval', 'info')
