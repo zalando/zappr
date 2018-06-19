@@ -20,7 +20,11 @@ const ISSUE_PAYLOAD = {
   issue: {
     number: 2
   },
-  comment: {}
+  comment: {
+    user: {
+      login: 'mickeymouse'
+    }
+  }
 }
 const CLOSED_PR = {
   number: 3,
