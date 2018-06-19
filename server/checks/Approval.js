@@ -212,7 +212,7 @@ export default class Approval extends Check {
     // filter ignored users
     const potentialApprovalComments = comments.filter(comment => {
                                                 const login = comment.user
-                                                const include = ignore.indexOf(login) === -1
+                                                const include = (ignore.indexOf(login) === -1 && !login.endsWith('-robot'));
                                                 if (!include) {
                                                   info('%s: Ignoring user: %s.', fullName, login)
                                                 }
