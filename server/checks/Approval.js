@@ -1,4 +1,5 @@
 import Check from './Check'
+import nconf from '../nconf'
 import AuditEvent from '../service/audit/AuditEvent'
 import { logger, formatDate } from '../../common/debug'
 import { promiseReduce, getIn, toGenericComment } from '../../common/util'
@@ -6,10 +7,23 @@ import * as EVENTS from '../model/GithubEvents'
 import * as AUDIT_EVENTS from '../service/audit/AuditEventTypes'
 import * as _ from 'lodash'
 
+const IGNORE_LOGIN_RE = nconf.get('IGNORE_LOGIN_RE') || [/-robot^/]
+
 const context = 'zappr'
 const info = logger('approval', 'info')
 const debug = logger('approval')
 const error = logger('approval', 'error')
+
+  /**
+   * Checks if login approvals shouldn't be ignored
+   *
+   * @param login Github login of the commente
+   * @returns {Boolean} `true` if the approval should be counted
+   */
+function commenterIsNotIgnored (login) {
+  return IGNORE_LOGIN_RE.reduce((accumulator, currentValue) => accumulator && !RegExp(currentValue).test(login), true)
+}
+
 
 export default class Approval extends Check {
 
@@ -212,7 +226,8 @@ export default class Approval extends Check {
     // filter ignored users
     const potentialApprovalComments = comments.filter(comment => {
                                                 const login = comment.user
-                                                const include = (ignore.indexOf(login) === -1 && !login.endsWith('-robot'));
+                                                // comment is ignored if login is in ignored list or matches a global ignored regex array
+                                                const include = (ignore.indexOf(login) === -1 && commenterIsNotIgnored(login));
                                                 if (!include) {
                                                   info('%s: Ignoring user: %s.', fullName, login)
                                                 }
@@ -468,7 +483,7 @@ export default class Approval extends Check {
           return
         }
         const author = hookPayload.comment.user.login
-        if (author.endsWith('-robot')) {
+        if (!commenterIsNotIgnored(author)) {
           debug(`${repository.full_name}#${issue.number}: Ignoring comment, it was created by a robot user.`)
           return
         }
