@@ -20,7 +20,11 @@ const ISSUE_PAYLOAD = {
   issue: {
     number: 2
   },
-  comment: {}
+  comment: {
+    user: {
+      login: 'mickeymouse'
+    }
+  }
 }
 const CLOSED_PR = {
   number: 3,
@@ -502,6 +506,60 @@ describe('Approval#execute', () => {
         'hello-world',
         'abcd1234',
         SUCCESS_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should set ignore robot users comments', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'bar',
+      id: 1
+    },  {
+      body: ':+1:',
+      user: 'bar-robot',
+      id: 3
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    try {
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getComments.callCount).to.equal(1)
+      expect(github.getPullRequest.callCount).to.equal(1)
+      expect(github.isMemberOfOrg.callCount).to.equal(0)
+      expect(auditService.log.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      const commentCallArgs = github.getComments.args[0]
+      const prCallArgs = github.getPullRequest.args[0]
+
+      expect(prCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        2,
+        TOKEN
+      ])
+      expect(commentCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        1,
+        formatDate(DB_PR.last_push),
+        TOKEN
+      ])
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        {
+          "context": "zappr",
+          "description": "This PR needs 1 more approvals (1/2 given).",
+          "state": "pending",
+        },
         TOKEN
       ])
       done()

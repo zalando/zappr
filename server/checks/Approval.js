@@ -6,10 +6,23 @@ import * as EVENTS from '../model/GithubEvents'
 import * as AUDIT_EVENTS from '../service/audit/AuditEventTypes'
 import * as _ from 'lodash'
 
+const IGNORE_LOGIN_RE =[/-robot$/]
+
 const context = 'zappr'
 const info = logger('approval', 'info')
 const debug = logger('approval')
 const error = logger('approval', 'error')
+
+  /**
+   * Checks if login approvals shouldn't be ignored
+   *
+   * @param login Github login of the commente
+   * @returns {Boolean} `true` if the approval should be counted
+   */
+function commenterIsNotIgnored (login) {
+  return IGNORE_LOGIN_RE.reduce((accumulator, currentValue) => accumulator && !RegExp(currentValue).test(login), true);
+}
+
 
 export default class Approval extends Check {
 
@@ -212,7 +225,8 @@ export default class Approval extends Check {
     // filter ignored users
     const potentialApprovalComments = comments.filter(comment => {
                                                 const login = comment.user
-                                                const include = ignore.indexOf(login) === -1
+                                                // comment is ignored if login is in ignored list or matches a global ignored regex array
+                                                const include = (ignore.indexOf(login) === -1 && commenterIsNotIgnored(login));
                                                 if (!include) {
                                                   info('%s: Ignoring user: %s.', fullName, login)
                                                 }
@@ -467,6 +481,11 @@ export default class Approval extends Check {
           debug(`${repository.full_name}#${issue.number}: Ignoring comment, not a PR`)
           return
         }
+        const author = hookPayload.comment.user.login
+        if (!commenterIsNotIgnored(author)) {
+          debug(`${repository.full_name}#${issue.number}: Ignoring comment, it was created by a robot user.`)
+          return
+        }
         sha = pr.head.sha
         // set status to pending first
         await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
@@ -479,7 +498,6 @@ export default class Approval extends Check {
         if (['edited', 'deleted'].indexOf(action) !== -1 && !commentAlreadyFrozen) {
           // check if it was edited by someone else than the original author
           const editor = hookPayload.sender.login
-          const author = hookPayload.comment.user.login
           if (editor !== author) {
             // OMFG
             const comment = toGenericComment(hookPayload.comment)
