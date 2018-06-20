@@ -6,7 +6,7 @@ import * as EVENTS from '../model/GithubEvents'
 import * as AUDIT_EVENTS from '../service/audit/AuditEventTypes'
 import * as _ from 'lodash'
 
-const IGNORE_LOGIN_RE =[/-robot^/]
+const IGNORE_LOGIN_RE =[/-robot$/]
 
 const context = 'zappr'
 const info = logger('approval', 'info')
@@ -20,7 +20,7 @@ const error = logger('approval', 'error')
    * @returns {Boolean} `true` if the approval should be counted
    */
 function commenterIsNotIgnored (login) {
-  return IGNORE_LOGIN_RE.reduce((accumulator, currentValue) => accumulator && !RegExp(currentValue).test(login), true)
+  return IGNORE_LOGIN_RE.reduce((accumulator, currentValue) => accumulator && !RegExp(currentValue).test(login), true);
 }
 
 
