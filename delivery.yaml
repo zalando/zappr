@@ -17,8 +17,10 @@ build_steps:
   - desc: Publish Docker image
     cmd: |
       COMMIT_ID="$(git log --format='%H' -n 1 | cut -c 1-7)"
-      IMAGE_NAME="registry-write.opensource.zalan.do/opensource/zappr:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
-      docker build -t "${IMAGE_NAME}" .
       if [[ "${CDP_TARGET_BRANCH}" = "master" && -z "${CDP_PULL_REQUEST_NUMBER}" ]]; then
-        docker push "${IMAGE_NAME}"
+        IMAGE_NAME="registry-write.opensource.zalan.do/opensource/zappr:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
+      else
+        IMAGE_NAME="registry-write.opensource.zalan.do/opensource/zappr-pr-test:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
       fi
+      docker build -t "${IMAGE_NAME}" .
+      docker push "${IMAGE_NAME}"
