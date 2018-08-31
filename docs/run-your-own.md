@@ -28,7 +28,7 @@ Zappr provides a whole lot of configuration options for flexibility.
 * `GITHUB_CLIENT_ID`: Client ID of your OAuth application in Github
 * `GITHUB_CLIENT_SECRET`: Client secret of your OAuth application in Github
 * `GITHUB_HOOK_SECRET`: Secret value used to verify only Github calls Zappr
-* `GITHUB_UI`: URL to Github web user interface
+* `GITHUB_UI_URL`: URL to Github web user interface
 * `GITHUB_API_URL`: URL to Github API
 
 ### Server
