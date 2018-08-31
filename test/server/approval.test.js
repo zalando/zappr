@@ -20,7 +20,11 @@ const ISSUE_PAYLOAD = {
   issue: {
     number: 2
   },
-  comment: {}
+  comment: {
+    user: {
+      login: 'mickeymouse'
+    }
+  }
 }
 const CLOSED_PR = {
   number: 3,
@@ -510,6 +514,60 @@ describe('Approval#execute', () => {
     }
   })
 
+  it('should set ignore robot users comments', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'bar',
+      id: 1
+    },  {
+      body: ':+1:',
+      user: 'bar-robot',
+      id: 3
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    try {
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getComments.callCount).to.equal(1)
+      expect(github.getPullRequest.callCount).to.equal(1)
+      expect(github.isMemberOfOrg.callCount).to.equal(0)
+      expect(auditService.log.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      const commentCallArgs = github.getComments.args[0]
+      const prCallArgs = github.getPullRequest.args[0]
+
+      expect(prCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        2,
+        TOKEN
+      ])
+      expect(commentCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        1,
+        formatDate(DB_PR.last_push),
+        TOKEN
+      ])
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        {
+          "context": "zappr",
+          "description": "This PR needs 1 more approvals (1/2 given).",
+          "state": "pending",
+        },
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
   it('should do nothing on comment on non-open pull_request', async(done) => {
     github.getPullRequest = sinon.stub().returns(CLOSED_PR)
     await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
@@ -698,6 +756,152 @@ describe('Approval#execute', () => {
         await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, payload, TOKEN, DB_REPO_ID)
         expect(pullRequestHandler.onRemoveFrozenComments.called).to.be.false
         expect(pullRequestHandler.onAddFrozenComment.calledOnce).to.be.false
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it(`should not take into account ${action} by another user outdated comment`, async(done) => {
+      try {
+        const pullRequestNumber = 123
+
+        const pullRequest = {
+          number: pullRequestNumber,
+          updated_at: '2016-03-02T13:37:00Z',
+          state: 'open',
+          user: {
+            login: 'stranger'
+          },
+          head: {
+            sha: 'abcd1234'
+          }
+        }
+
+        const openPullRequestWebhook = {
+          action: 'opened',
+          number: pullRequestNumber,
+          repository: DEFAULT_REPO,
+          pull_request: {
+            number: pullRequestNumber,
+            updated_at: '2016-03-02T13:37:00Z',
+            state: 'open',
+            user: {
+              login: 'stranger'
+            },
+            head: {
+              sha: 'abcd1234'
+            }
+          }
+        }
+
+        const synchronizePullRequestWebhook = Object.assign({}, openPullRequestWebhook, {
+          action: 'synchronize'
+        })
+
+        const commentWebhook = {
+          action: 'created',
+          repository: DEFAULT_REPO,
+          issue: {
+            number: pullRequestNumber
+          },
+          comment: {
+            id: 1,
+            user: {
+              login: 'bar'
+            }
+          }
+        }
+
+        const commentModificationWebhook = {
+          action: action,
+          repository: DEFAULT_REPO,
+          issue: {
+            number: pullRequestNumber
+          },
+          changes: {
+            body: {
+              from: ':+1:'
+            }
+          },
+          comment: {
+            id: 1,
+            body: ':+1: :+1:',
+            created_at: '2016-08-15T13:03:28Z',
+            user: {
+              login: 'bar'
+            }
+          },
+          sender: {
+            login: 'foo'
+          }
+        }
+
+        github.getPullRequest = sinon.stub()
+          .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, pullRequestNumber, TOKEN)
+          .returns(pullRequest)
+        pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
+          .withArgs(DB_REPO_ID, pullRequestNumber)
+          .returns(DB_PR)
+
+        await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, openPullRequestWebhook, TOKEN, DB_REPO_ID)
+        expect(github.setCommitStatus.callCount).to.equal(2)
+        expect(github.setCommitStatus.args[1][3].state).to.equal('pending')
+        expect(github.setCommitStatus.args[1][3].description).to.equal('This PR needs 2 more approvals (0/2 given).')
+
+        github.setCommitStatus = sinon.spy()
+
+        github.getComments = sinon.stub()
+          .returns([{
+            id: 1,
+            body: ':+1:',
+            user: 'bar'
+          }])
+
+        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, commentWebhook, TOKEN, DB_REPO_ID)
+
+        expect(github.setCommitStatus.callCount).to.equal(2)
+        expect(github.setCommitStatus.args[1][3].state).to.equal('pending')
+        expect(github.setCommitStatus.args[1][3].description).to.equal('This PR needs 1 more approvals (1/2 given).')
+
+        github.setCommitStatus = sinon.spy()
+
+        await approval.execute(DEFAULT_CONFIG, EVENTS.PULL_REQUEST, synchronizePullRequestWebhook, TOKEN, DB_REPO_ID)
+
+        expect(github.setCommitStatus.callCount).to.equal(1)
+        expect(github.setCommitStatus.args[0][3].state).to.equal('pending')
+        expect(github.setCommitStatus.args[0][3].description).to.equal('This PR needs 2 more approvals (0/2 given).')
+
+        github.setCommitStatus = sinon.spy()
+
+        github.getComments = sinon.stub()
+          .returns([{
+            id: 2,
+            body: ':+1:',
+            user: 'foo'
+          }])
+
+        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, commentWebhook, TOKEN, DB_REPO_ID)
+
+        expect(github.setCommitStatus.callCount).to.equal(2)
+        expect(github.setCommitStatus.args[1][3].state).to.equal('pending')
+        expect(github.setCommitStatus.args[1][3].description).to.equal('This PR needs 1 more approvals (1/2 given).')
+
+        github.setCommitStatus = sinon.spy()
+
+        github.getComments = sinon.stub()
+          .returns([{
+            id: 2,
+            body: ':+1:',
+            user: 'foo'
+          }])
+
+        await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, commentModificationWebhook, TOKEN, DB_REPO_ID)
+
+        expect(github.setCommitStatus.callCount).to.equal(2)
+        expect(github.setCommitStatus.args[1][3].state).to.equal('pending')
+        expect(github.setCommitStatus.args[1][3].description).to.equal('This PR needs 1 more approvals (1/2 given).')
+
         done()
       } catch (e) {
         done(e)

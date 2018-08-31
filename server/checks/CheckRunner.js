@@ -3,6 +3,7 @@ import {
   Autobranch,
   CommitMessage,
   Specification,
+  PullRequestMilestone,
   PullRequestLabels,
   PullRequestTasks,
   getCheckByType
@@ -62,6 +63,7 @@ export default class CheckRunner {
     this.autobranch = new Autobranch(this.githubService)
     this.commitMessage = new CommitMessage(this.githubService)
     this.specification = new Specification(this.githubService)
+    this.pullRequestMilestone = new PullRequestMilestone(this.githubService)
     this.pullRequestLabels = new PullRequestLabels(this.githubService)
     this.pullRequestTasks = new PullRequestTasks(this.githubService)
   }
@@ -82,6 +84,7 @@ export default class CheckRunner {
     const PR_TYPES = [
       Approval.TYPE,
       Specification.TYPE,
+      PullRequestMilestone.TYPE,
       PullRequestLabels.TYPE,
       PullRequestTasks.TYPE,
       CommitMessage.TYPE,
@@ -106,6 +109,12 @@ export default class CheckRunner {
             )
           case Specification.TYPE:
             return this.specification.validate(config, pullRequest, repository, token)
+          case PullRequestMilestone.TYPE:
+            return this.pullRequestMilestone.fetchMilestoneAndSetStatus({
+              pull_request: pullRequest,
+              repository,
+              token
+            })
           case PullRequestLabels.TYPE:
             return this.pullRequestLabels.fetchLabelsAndSetStatus({
               config,
@@ -141,6 +150,17 @@ export default class CheckRunner {
     const start = Date.now()
     const delay = start - getTriggeredAt(payload)
     info(`${owner}/${name}: Handling Github event ${event}.${payload.action}`)
+
+    if (PullRequestMilestone.isTriggeredBy(event) && tokens[PullRequestMilestone.TYPE]) {
+      info(`${owner}/${name}: Executing check PullRequestMilestone`)
+      await this.checkHandler.onExecutionStart(dbRepo.id, PullRequestMilestone.TYPE, delay)
+      try {
+        await this.pullRequestMilestone.execute(config, payload, tokens[PullRequestMilestone.TYPE])
+        await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestMilestone.TYPE, Date.now() - start, true)
+      } catch (e) {
+        await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestMilestone.TYPE, Date.now() - start, false)
+      }
+    }
 
     if (PullRequestLabels.isTriggeredBy(event) && tokens[PullRequestLabels.TYPE]) {
       info(`${owner}/${name}: Executing check PullRequestLabels`)
