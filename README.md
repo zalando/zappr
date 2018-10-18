@@ -22,8 +22,9 @@ Zappr needs a database during development and testing. For this reason there's a
 for your convenience, with which you can either start a database for development (`postgres-dev`):
 
 ~~~ shell
-# starts postgres docker container
+# starts 2 postgres docker containers, one for test and one for development purposes
 docker-compose up postgres-dev
+docker-compose up postgres-test
 # creates database and schemas, only needed first time
 ./init_db.sh
 export DB_HOST="$(docker-machine ip)"
