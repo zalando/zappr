@@ -4,6 +4,7 @@ import CommitMessage from './CommitMessage'
 import Specification from './Specification'
 import PullRequestMilestone from './PullRequestMilestone'
 import PullRequestLabels from './PullRequestLabels'
+import PullRequestMergeCommit from './PullRequestMergeCommit'
 import PullRequestTasks from './PullRequestTasks'
 
 const CHECKS = {
@@ -13,6 +14,7 @@ const CHECKS = {
   [Specification.TYPE]: Specification,
   [PullRequestMilestone.TYPE]: PullRequestMilestone,
   [PullRequestLabels.TYPE]: PullRequestLabels,
+  [PullRequestMergeCommit.TYPE]: PullRequestMergeCommit,
   [PullRequestTasks.TYPE]: PullRequestTasks
 }
 
@@ -23,6 +25,7 @@ export const CHECK_NAMES = {
   [Specification.TYPE]: Specification.NAME,
   [PullRequestMilestone.TYPE]: PullRequestMilestone.NAME,
   [PullRequestLabels.TYPE]: PullRequestLabels.NAME,
+  [PullRequestMergeCommit.TYPE]: PullRequestMergeCommit.NAME,
   [PullRequestTasks.TYPE]: PullRequestTasks.NAME
 }
 
@@ -32,4 +35,4 @@ export function getCheckByType(type) {
   return CHECKS[type]
 }
 
-export { Approval, Autobranch, CommitMessage, Specification, PullRequestMilestone, PullRequestLabels, PullRequestTasks }
+export { Approval, Autobranch, CommitMessage, Specification, PullRequestMilestone, PullRequestLabels, PullRequestMergeCommit, PullRequestTasks }
