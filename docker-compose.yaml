@@ -9,7 +9,7 @@ services:
   postgres-test:
     image: "postgres:9.4"
     ports:
-      - "5432:5432"
+      - "5433:5432"
     container_name: zappr-postgres-test
   zappr:
     build: .

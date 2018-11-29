@@ -3,6 +3,7 @@ const path = require('path')
 const nconf = require('nconf')
 const yaml = require('js-yaml')
 const webpack = require('webpack')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
@@ -45,7 +46,14 @@ module.exports = {
       'process.env.NODE_ENV': JSON.stringify(nconf.get('NODE_ENV')),
       'process.env.LOG_LEVEL': JSON.stringify(nconf.get('LOG_LEVEL')),
       'HOST_ADDR': "''" // always use the the relative server path
-    })
+    }),
+    new HtmlWebpackPlugin(
+      {
+        title: 'Custom template',
+        template: './client/index.html',
+        
+      } 
+    )
   ],
   devServer: {
     proxy: {

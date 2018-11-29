@@ -33,6 +33,7 @@ npm run all
 If you would like to run a complete Zappr locally, you can do it like this:
 
 1. Export your [Github credentials](https://github.com/settings/applications) and docker-machine IP:
+https://auth0.com/docs/connections/social/github
 ~~~ shell
 export DM_IP="$(docker-machine ip)"
 export GITHUB_CLIENT_ID=<your-client-id>

@@ -5,18 +5,10 @@
     <meta httpEquiv="x-ua-compatible" content="ie=edge">
     <meta name="description" content="Approvals for Github pull requests">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Zappr</title>
-    {% for (var css in o.htmlWebpackPlugin.files.css) { %}
-    <link href="/{%=o.htmlWebpackPlugin.files.css[css] %}" rel="stylesheet">
-    {% } %}
-    {% if (o.htmlWebpackPlugin.files.favicon) { %}
-    <link rel="shortcut icon" href="/{%=o.htmlWebpackPlugin.files.favicon%}">
-    {% } %}
+    <title><%= htmlWebpackPlugin.options.title %></title>
+
 </head>
 <body>
 <main id="main"></main>
-{% for (var chunk in o.htmlWebpackPlugin.files.chunks) { %}
-<script src="/{%=o.htmlWebpackPlugin.files.chunks[chunk].entry %}"></script>
-{% } %}
 </body>
 </html>
