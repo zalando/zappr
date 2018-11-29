@@ -1,5 +1,6 @@
 site_name: Zappr
 site_favicon: img/favicon.ico
+theme: readthedocs
 repo_url: https://github.com/zalando/zappr
 docs_dir: docs
 pages:
