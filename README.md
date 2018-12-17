@@ -21,45 +21,54 @@ Please refer to [our documentation](https://zappr.readthedocs.org/).
 Zappr needs a database during development and testing. For this reason there's a `docker-compose.yaml` 
 for your convenience, with which you can either start a database for development (`postgres-dev`):
 
-~~~ shell
-# starts 2 postgres docker containers, one for test and one for development purposes
-docker-compose up postgres-dev
-docker-compose up postgres-test
-# creates database and schemas, only needed first time
-./init_db.sh
-export DB_HOST="$(docker-machine ip)"
-npm run all
-~~~
-
 If you would like to run a complete Zappr locally, you can do it like this:
 
-1. Export your [Github credentials](https://github.com/settings/applications) and docker-machine IP:
+1. Register a new OAuth application for Zappr in your GitHub [settings](https://github.com/settings/applications)
+  
+  - Set your OAuth application URLs to `https://myzappr.localtunnel.me`
+
+2. Make sure your docker machine host is running:
+~~~ shell
+docker-machine start
+~~~
+
+3. Start database and schemas
+~~~ shell
+# Creates database and schemas (only needed the first time)
+./init_db.sh
+
+# Starts the postgres docker container for development purposes
+docker-compose up postgres-dev
+~~~
+
+4. Export your [Github credentials](https://github.com/settings/applications) for that application and the docker-machine IP:
 ~~~ shell
 export DM_IP="$(docker-machine ip)"
 export GITHUB_CLIENT_ID=<your-client-id>
 export GITHUB_CLIENT_SECRET=<your-client-secret>
 ~~~
 
-2. Start Zappr via docker compose or npm
-~~~ shell
-docker-compose up
-~~~
+5. Start Zappr with any of the following alternatives:
 
-~~~ shell
-npm install
-npm run build
-npm run all
-~~~
+  - Using npm
+  ~~~ shell
+  npm install
+  npm run build
+  npm run all
+  ~~~
+  
+  - Using docker compose 
+  ~~~ shell
+  docker-compose up
+  ~~~
 
-3. Install and run localtunnel to expose your localhost
+6. Install and run localtunnel to expose your localhost
 ~~~ shell
 npm i -g localtunnel
 lt -s myzappr -p 3000
 ~~~
 
-4. Set your OAuth application URLs to `https://myzappr.localtunnel.me` in the GitHub settings
-
-5. Go to `https://myzappr.localtunnel.me` and do things :)
+7. Go to `https://myzappr.localtunnel.me` to see the application running
 
 **Debug Client and Server:**
 
@@ -88,9 +97,12 @@ First start the testing database:
 
 ~~~ shell
 export DB_HOST="$(docker-machine ip)"
-docker-compose up postgres-test
+
 # creates database and schemas, only needed first time
 ./init_db.sh
+
+# start postgres docker container
+docker-compose up postgres-test
 ~~~
 
 Then you can do:
