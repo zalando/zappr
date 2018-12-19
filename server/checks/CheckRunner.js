@@ -5,6 +5,7 @@ import {
   Specification,
   PullRequestMilestone,
   PullRequestLabels,
+  PullRequestMergeCommit,
   PullRequestTasks,
   getCheckByType
 } from './index'
@@ -65,6 +66,7 @@ export default class CheckRunner {
     this.specification = new Specification(this.githubService)
     this.pullRequestMilestone = new PullRequestMilestone(this.githubService)
     this.pullRequestLabels = new PullRequestLabels(this.githubService)
+    this.pullRequestMergeCommit = new PullRequestMergeCommit(this.githubService)
     this.pullRequestTasks = new PullRequestTasks(this.githubService)
   }
 
@@ -86,6 +88,7 @@ export default class CheckRunner {
       Specification.TYPE,
       PullRequestMilestone.TYPE,
       PullRequestLabels.TYPE,
+      PullRequestMergeCommit.TYPE,
       PullRequestTasks.TYPE,
       CommitMessage.TYPE,
     ]
@@ -118,6 +121,12 @@ export default class CheckRunner {
           case PullRequestLabels.TYPE:
             return this.pullRequestLabels.fetchLabelsAndSetStatus({
               config,
+              pull_request: pullRequest,
+              repository,
+              token
+            })
+          case PullRequestMergeCommit.TYPE:
+            return this.pullRequestMergeCommit.fetchMilestoneAndSetStatus({
               pull_request: pullRequest,
               repository,
               token
@@ -170,6 +179,17 @@ export default class CheckRunner {
         await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestLabels.TYPE, Date.now() - start, true)
       } catch (e) {
         await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestLabels.TYPE, Date.now() - start, false)
+      }
+    }
+
+    if (PullRequestMergeCommit.isTriggeredBy(event) && tokens[PullRequestMergeCommit.TYPE]) {
+      info(`${owner}/${name}: Executing check PullRequestMergeCommit`)
+      await this.checkHandler.onExecutionStart(dbRepo.id, PullRequestMergeCommit.TYPE, delay)
+      try {
+        await this.pullRequestMergeCommit.execute(config, payload, tokens[PullRequestMergeCommit.TYPE])
+        await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestMergeCommit.TYPE, Date.now() - start, true)
+      } catch (e) {
+        await this.checkHandler.onExecutionEnd(dbRepo.id, PullRequestMergeCommit.TYPE, Date.now() - start, false)
       }
     }
 

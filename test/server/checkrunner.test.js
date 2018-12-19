@@ -10,6 +10,7 @@ import {
   CommitMessage,
   Specification,
   PullRequestLabels,
+  PullRequestMergeCommit,
   PullRequestMilestone,
   PullRequestTasks,
   CHECK_TYPES
@@ -19,6 +20,7 @@ const PR_TYPES = [
   Approval.TYPE,
   Specification.TYPE,
   PullRequestLabels.TYPE,
+  PullRequestMergeCommit.TYPE,
   PullRequestMilestone.TYPE,
   PullRequestTasks.TYPE,
   CommitMessage.TYPE,
@@ -107,6 +109,7 @@ describe('CheckRunner', () => {
           checkRunner.specification.validate = sinon.stub()
           checkRunner.pullRequestLabels.fetchLabelsAndSetStatus = sinon.stub()
           checkRunner.pullRequestMilestone.fetchMilestoneAndSetStatus = sinon.stub()
+          checkRunner.pullRequestMergeCommit.fetchMilestoneAndSetStatus = sinon.stub()
           checkRunner.pullRequestTasks.countTasksAndSetStatus = sinon.stub()
           checkRunner.commitMessage.fetchCommitsAndSetStatus = sinon.stub()
 
@@ -129,6 +132,9 @@ describe('CheckRunner', () => {
               break
             case PullRequestLabels.TYPE:
               expect(checkRunner.pullRequestLabels.fetchLabelsAndSetStatus.calledOnce).to.be.true
+              break
+            case PullRequestMergeCommit.TYPE:
+              expect(checkRunner.pullRequestMergeCommit.fetchMilestoneAndSetStatus.calledOnce).to.be.true
               break
             case PullRequestMilestone.TYPE:
               expect(checkRunner.pullRequestMilestone.fetchMilestoneAndSetStatus.calledOnce).to.be.true
@@ -183,6 +189,7 @@ describe('CheckRunner', () => {
             [Autobranch.TYPE]: 'autobranch',
             [Specification.TYPE]: 'specification',
             [PullRequestLabels.TYPE]: 'pullRequestLabels',
+            [PullRequestMergeCommit.TYPE]: 'pullRequestMergeCommit',
             [PullRequestMilestone.TYPE]: 'pullRequestMilestone',
             [PullRequestTasks.TYPE]: 'pullRequestTasks',
             [CommitMessage.TYPE]: 'commitMessage',
@@ -204,6 +211,9 @@ describe('CheckRunner', () => {
               break;
             case PullRequestLabels.TYPE:
               event = PullRequestLabels.HOOK_EVENTS[0]
+              break;
+            case PullRequestMergeCommit.TYPE:
+              event = PullRequestMergeCommit.HOOK_EVENTS[0]
               break;
             case PullRequestMilestone.TYPE:
               event = PullRequestMilestone.HOOK_EVENTS[0]
