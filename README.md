@@ -49,7 +49,6 @@ Make sure your docker machine host is running:
 Start database and schemas:
 ~~~ shell
 export DB_HOST="$(docker-machine ip)"
-
 # creates database and schemas, only needed first time
 ./init_db.sh
 
