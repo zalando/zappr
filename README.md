@@ -20,7 +20,7 @@ Please refer to [our documentation](https://zappr.readthedocs.org/).
   
 We assume you want to set up the development environment first. If you want to test your application, check the Test section below.  
 In the end you will have three different processes running:
-- Your local Postgress database
+- Your local PostgreSQL database
 - Your local Zappr application
 - a VPN tunnel (e.g.: localtunnel) exposing your localhost  
 
@@ -34,7 +34,7 @@ You will need
 from your registered application later.  
 In case you use localtunnel as your VPN, set the `Authorization callback URL` in your GitHub settings to `https://<your-app-name>.localtunnel.me`.
 
-### Database Setup
+#### Database Setup
 Zappr needs a database during development and testing. For this reason there's a `docker-compose.yaml` 
 for your convenience, with which you can either start a database for development (`postgres-dev`) **or** testing: (`postgres-test`).  
 Since dev and test database share the same port, you should either change the port of one of the databases or comment out in the `docker-compose.yaml` 
@@ -48,7 +48,8 @@ Make sure your docker machine host is running:
 
 Start database and schemas:
 ~~~ shell
-export DB_HOST="$(docker-machine ip)"
+export DB_HOST="$(docker-machine ip)"  
+
 # creates database and schemas, only needed first time
 ./init_db.sh
 
@@ -57,7 +58,7 @@ docker-compose up postgres-dev
 ~~~
 To get your docker-machine ip you can also run `docker-machine ip` in the shell and copy the address.  
 
-### Zappr Setup
+#### Zappr Setup
 
 To get your `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` copy it from your Github `Settings/ Developer Settings/ OAuth Apps` or 
 create them new following these [instructions](https://auth0.com/docs/connections/social/github). 
@@ -86,7 +87,7 @@ You can also set the `GITHUB_CLIENT_ID`, the `GITHUB_CLIENT_SECRET` and the `HOS
 to the package.json script.
 However we do not advise it since you could end up pushing your ID and Secret to GitHub.  
 
-### VPN Setup
+#### VPN Setup
 Install and run localtunnel to expose your localhost
 ~~~ shell
 npm i -g localtunnel
@@ -97,7 +98,7 @@ Double check that your Authorization callback URL is set to `https://<your-app-n
 
 Go to `https://<your-app-name>.localtunnel.me` and do things :)
 
-**Debug Client and Server:**
+#### Debug Client and Server:
 
 ```
 npm run build
@@ -118,8 +119,9 @@ export DEBUG="zappr:*"
 window.DEBUG.enable('zappr:*')
 ```
 
-**Test:**  
-_Note:_ If you want to run tests with local setup please change the local running port of your test database in `docker-compose.yaml`. 
+#### Test:  
+_Note:_ If you want to run tests with local setup please change the local running port of your test database in `docker-compose.yaml`.  
+
 First start the testing database:
 
 ~~~ shell
@@ -139,7 +141,7 @@ Then you can do:
 * `npm run test-server` - run only server tests
 * `npm run test-karma` - run Karma (UI) tests
 
-**Docker Image:**
+#### Docker Image:
 
 1. Check out `master` and clean up your `git status`
 2. Run the build script:
