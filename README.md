@@ -118,8 +118,8 @@ export DEBUG="zappr:*"
 window.DEBUG.enable('zappr:*')
 ```
 
-**Test:**
-
+**Test:**  
+_Note:_ If you want to run tests with local setup please change the local running port of your test database in `docker-compose.yaml`. 
 First start the testing database:
 
 ~~~ shell
