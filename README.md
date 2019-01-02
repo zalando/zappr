@@ -151,6 +151,39 @@ Then you can do:
 * `NPM_BUILD_INSIDE_CONTAINER` "true" to build inside a container
 * `DOCKER_ARTIFACT_FILE` file to store docker artifact name in
 
+#### Trouble shooting:
+
+##### No default docker machine
+Error:
+```
+$ docker-machine start
+Error: No machine name(s) specified and no "default" machine exists
+```
+
+Workaround:
+```
+# docker-machine create -d "[driver]" [label]
+# e.g.
+docker-machine create -d "virtualbox" default
+```
+
+##### Can't connect to docker deamon
+Error:
+```
+$ ./init_db.sh
+Set up dev database
+Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+...
+Set up test database
+Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+...
+```
+
+Workaround:
+```
+eval "$(docker-machine env default)"
+```
+
 
 ## Contributing to Zappr
 Please read our [contributor guidelines](https://github.com/zalando/zappr/blob/master/CONTRIBUTING.md) for more details.
