@@ -79,7 +79,7 @@ export GITHUB_CLIENT_SECRET=<your-client-secret>
 Start Zappr with any of the following alternatives  
 ##### Using NPM:
  - Precondition VPN Setup
-    Install and run localtunnel to expose your localhost
+    Install and run localtunnel to expose your localhost in a separate terminal window
     ~~~ shell
     npm i -g localtunnel
     lt -s <your-app-name> -p 3000
