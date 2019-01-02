@@ -51,10 +51,13 @@ Start database and schemas:
 export DB_HOST="$(docker-machine ip)"  
 
 # Starts the postgres docker container for development & test purposes
+# run either
 docker-compose up postgres-dev
+# or
 docker-compose up postgres-test 
 
 # creates database and schemas, only needed first time
+# run it database command in additional terminal session
 ./init_db.sh
 
 
@@ -158,21 +161,21 @@ Then you can do:
 
 ##### No default docker machine
 Error:
-```
+~~~ shell
 $ docker-machine start
 Error: No machine name(s) specified and no "default" machine exists
-```
+~~~
 
 Workaround:
-```
+~~~ shell
 # docker-machine create -d "[driver]" [label]
 # e.g.
 docker-machine create -d "virtualbox" default
-```
+~~~
 
 ##### Can't connect to docker deamon
 Error:
-```
+~~~ shell
 $ ./init_db.sh
 Set up dev database
 Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
@@ -180,30 +183,50 @@ Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docke
 Set up test database
 Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
 ...
-```
+~~~
 
 Workaround:
-```
+~~~ shell
 eval "$(docker-machine env default)"
-```
+~~~
 
 ##### Container zappr-postgres-dev or zappr-postgres-test missing
 Error:
-```
+~~~ shell
 $ ./init_db.sh
 ...
 Error: No such container: zappr-postgres-dev
 ...
 Error: No such container: zappr-postgres-test
-```
+~~~
 
 Workaround:
 run one of:
-```
+~~~ shell
 docker-compose up postgres-dev
 docker-compose up postgres-test
-```
+~~~
 to create the missing container
+
+##### Can not start zappr-postgres-dev or zappr-postgres-test service
+Error:
+~~~ shell
+$ docker-compose up postgres-dev|test
+ERROR: for zappr-postgres-dev  Cannot start service postgres-dev|test: driver failed
+...
+~~~
+
+Workaround:
+do run **either**
+~~~ shell
+docker-compose up postgres-dev
+~~~
+**or**
+~~~ shell
+docker-compose up postgres-test
+~~~
+at the same time in different terminal sessions.
+
 
 ## Contributing to Zappr
 Please read our [contributor guidelines](https://github.com/zalando/zappr/blob/master/CONTRIBUTING.md) for more details.
