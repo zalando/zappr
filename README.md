@@ -228,6 +228,21 @@ docker-compose up postgres-test
 ~~~
 at the same time in different terminal sessions.
 
+##### Docker compose up - COPY failes with missing dist directory
+Error:
+~~~ shell
+$ docker-compose up
+...
+Step 9/15 : COPY dist/ $ZAPPR_HOME/dist
+ERROR: Service 'zappr' failed to build: COPY failed: stat /mnt/sda1/var/lib/docker/tmp/docker-builder700929514/dist: no such file or directory
+~~~
+
+Workaround:
+run
+~~~ shell
+npm run build
+~~~
+to create a _dist_ directory the [Dockerfile](https://github.com/zalando/zappr/blob/master/Dockerfile#L17) is expecting
 
 ## Contributing to Zappr
 Please read our [contributor guidelines](https://github.com/zalando/zappr/blob/master/CONTRIBUTING.md) for more details.
