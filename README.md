@@ -77,32 +77,33 @@ export GITHUB_CLIENT_SECRET=<your-client-secret>
 ~~~
 
 Start Zappr with any of the following alternatives  
-- Using NPM:  
-~~~ shell
-npm install
-npm run build
-GITHUB_CLIENT_ID=<your-client-id> GITHUB_CLIENT_SECRET=<your-client-secret> HOST_ADDR=https://<your-app-name>.localtunnel.me/ npm run all
-~~~
+- Using NPM:
+   - Precondition VPN Setup
+      Install and run localtunnel to expose your localhost
+      ~~~ shell
+      npm i -g localtunnel
+      lt -s <your-app-name> -p 3000
+      ~~~
+      Double check that your Authorization callback URL is set to `https://<your-app-name>.localtunnel.me` in the GitHub settings.
+
+  ~~~ shell
+  npm install
+  npm run build
+  GITHUB_CLIENT_ID=<your-client-id> GITHUB_CLIENT_SECRET=<your-client-secret> HOST_ADDR=https://<your-app-name>.localtunnel.me/ npm run all
+  ~~~
+
+  Go to `https://<your-app-name>.localtunnel.me` and do things :)
+
 - Using docker compose:    
-~~~ shell
-docker-compose up
-~~~
+  ~~~ shell
+  docker-compose up
+  ~~~
+  @TOOO: how to access the local zappr installation
 
+  You can also set the `GITHUB_CLIENT_ID`, the `GITHUB_CLIENT_SECRET` and the `HOST_ADDR` in your `config/config.yaml` or add it 
+  to the package.json script.
+  However we do not advise it since you could end up pushing your ID and Secret to GitHub.  
 
-You can also set the `GITHUB_CLIENT_ID`, the `GITHUB_CLIENT_SECRET` and the `HOST_ADDR` in your `config/config.yaml` or add it 
-to the package.json script.
-However we do not advise it since you could end up pushing your ID and Secret to GitHub.  
-
-#### VPN Setup
-Install and run localtunnel to expose your localhost
-~~~ shell
-npm i -g localtunnel
-lt -s <your-app-name> -p 3000
-~~~
-
-Double check that your Authorization callback URL is set to `https://<your-app-name>.localtunnel.me` in the GitHub settings.
-
-Go to `https://<your-app-name>.localtunnel.me` and do things :)
 
 #### Debug Client and Server:
 
