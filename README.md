@@ -50,11 +50,14 @@ Start database and schemas:
 ~~~ shell
 export DB_HOST="$(docker-machine ip)"  
 
+# Starts the postgres docker container for development & test purposes
+docker-compose up postgres-dev
+docker-compose up postgres-test 
+
 # creates database and schemas, only needed first time
 ./init_db.sh
 
-# Starts the postgres docker container for development purposes
-docker-compose up postgres-dev 
+
 ~~~
 To get your docker-machine ip you can also run `docker-machine ip` in the shell and copy the address.  
 
