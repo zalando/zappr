@@ -187,6 +187,23 @@ Workaround:
 eval "$(docker-machine env default)"
 ```
 
+##### Container zappr-postgres-dev or zappr-postgres-test missing
+Error:
+```
+$ ./init_db.sh
+...
+Error: No such container: zappr-postgres-dev
+...
+Error: No such container: zappr-postgres-test
+```
+
+Workaround:
+run one of:
+```
+docker-compose up postgres-dev
+docker-compose up postgres-test
+```
+to create the missing container
 
 ## Contributing to Zappr
 Please read our [contributor guidelines](https://github.com/zalando/zappr/blob/master/CONTRIBUTING.md) for more details.
