@@ -76,7 +76,7 @@ Make sure your docker machine host is running:
 
 Start database and schemas:
 ~~~ shell
-export DB_HOST="$(docker-machine ip)"  
+export DM_IP="$(docker-machine ip)"  
 
 # Starts the postgres docker container for development & test purposes
 # run either
@@ -99,12 +99,13 @@ create them new following these [instructions](https://auth0.com/docs/connection
 Export your [Github credentials](https://github.com/settings/applications) and docker-machine IP:
 
 ~~~ shell
-export DM_IP="$(docker-machine ip)"
+export DB_HOST="$(docker-machine ip)"
 export GITHUB_CLIENT_ID=<your-client-id>
 export GITHUB_CLIENT_SECRET=<your-client-secret>
 ~~~
 
-Start Zappr with any of the following alternatives  
+Start Zappr with any of the following alternatives
+
 ##### Using NPM:
  - Precondition VPN Setup
     Install and run localtunnel to expose your localhost in a separate terminal window
@@ -117,28 +118,38 @@ Start Zappr with any of the following alternatives
 ~~~ shell
 npm install
 npm run build
-GITHUB_CLIENT_ID=<your-client-id> GITHUB_CLIENT_SECRET=<your-client-secret> HOST_ADDR=https://<your-app-name>.localtunnel.me/ npm run all
+GITHUB_CLIENT_ID=<your-client-id> 
+GITHUB_CLIENT_SECRET=<your-client-secret>
+HOST_ADDR=https://<your-app-name>.localtunnel.me/ 
+npm run all
+
 # you may ommit GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET if exported to regarding shell environment variables earlier
 ~~~
 
 Go to `https://<your-app-name>.localtunnel.me` and do things :)
 
-##### Using docker compose:    
+##### Using docker compose:
+
+Currently, there is an issue with using just docker-compose. Generally, once you have configured your shell environment with all the necessary `GLOBALS` described before, you should just run `docker-compose up zappr`. This will run the zappr application and 
+
   ~~~ shell
-  docker-compose up
+  npm run build
+  docker-compose up zappr
   ~~~
   @TOOO: how to access the local zappr installation
 
   You can also set the `GITHUB_CLIENT_ID`, the `GITHUB_CLIENT_SECRET` and the `HOST_ADDR` in your `config/config.yaml` or add it 
   to the package.json script.
-  However we do not advise it since you could end up pushing your ID and Secret to GitHub.  
-
+  However we do not advise it since you could end up pushing your ID and Secret to GitHub.
 
 #### Debug Client and Server:
 
 ```
 npm run build
-GITHUB_CLIENT_ID=<your-client-id> GITHUB_CLIENT_SECRET=<your-client-secret> HOST_ADDR=https://<your-app-name>.localtunnel.me/ npm run all
+GITHUB_CLIENT_ID=<your-client-id>
+GITHUB_CLIENT_SECRET=<your-client-secret>
+HOST_ADDR=https://<your-app-name>.localtunnel.me/
+npm run all
 ```
 
 Enable debug logs...
@@ -203,7 +214,8 @@ Workaround:
 docker-machine create -d "virtualbox" default
 ~~~
 
-##### Can't connect to docker deamon
+##### Can't connect to docker deamon 
+
 Error:
 ~~~ shell
 $ ./init_db.sh
@@ -219,6 +231,25 @@ Workaround:
 ~~~ shell
 eval "$(docker-machine env default)"
 ~~~
+
+##### App crashed immediately after running `npm run all `
+
+This happened during Hack Week when docker was not configured correctly. This is most likely related to docker configuration. 
+
+Error:
+~~~ shell
+[nodemon] restarting due to changes...
+[nodemon] starting `node dist/server/server.min.js`
+[nodemon] app crashed - waiting for file changes before starting...
+~~~ 
+
+Workaround:
+~~~ shell
+eval "$(docker-machine env default)"
+docker-compuse up postgres-dev
+~~~
+
+In the CLI tab where you are running the database. `docker-compose` seems to not configured properly in these cases (happens when you're using Mac OS X with Docker Toolbox). 
 
 ##### Container zappr-postgres-dev or zappr-postgres-test missing
 Error:
