@@ -37,8 +37,36 @@ In case you use localtunnel as your VPN, set the `Authorization callback URL` in
 #### Database Setup
 Zappr needs a database during development and testing. For this reason there's a `docker-compose.yaml` 
 for your convenience, with which you can either start a database for development (`postgres-dev`) **or** testing: (`postgres-test`).  
-Since dev and test database share the same port, you should either change the port of one of the databases or comment out in the `docker-compose.yaml` 
-the database you currently don't need.  
+Since dev and test database share the same port, you should either change the port of one of the databases in the `docker-compose.yaml`.  
+Example:
+```yaml
+  ...
+ postgres-dev:
+    image: "postgres:9.4"
+    ports:
+      - "5432:5432"
+    container_name: zappr-postgres-dev
+  postgres-test:
+    image: "postgres:9.4"
+    ports:
+      - "5433:5432"
+    container_name: zappr-postgres-test
+  ...
+```
+Or comment out in `init_db.sh` the database you currently don't need.  
+Example:
+~~~ shell
+echo "Set up dev database"
+docker exec -it zappr-postgres-dev sh -c "exec psql -c 'create database zappr;' -U postgres"
+docker exec -it zappr-postgres-dev sh -c "exec psql -c 'create schema zappr_data;' -U postgres zappr"
+docker exec -it zappr-postgres-dev sh -c "exec psql -c 'create schema zappr_meta;' -U postgres zappr"
+
+# echo "Set up test database"
+# docker exec -it zappr-postgres-test sh -c "exec psql -c 'create database zappr;' -U postgres"
+# docker exec -it zappr-postgres-test sh -c "exec psql -c 'create schema zappr_data;' -U postgres zappr"
+# docker exec -it zappr-postgres-test sh -c "exec psql -c 'create schema zappr_meta;' -U postgres zappr"
+~~~
+If you need both databases, you can run `init_db.sh` after you uncommented your changes.  
 
 Make sure your docker machine host is running:
 
