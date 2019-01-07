@@ -105,12 +105,13 @@ Go to `https://<your-app-name>.localtunnel.me` and do things :)
 Currently, there is an issue with using just docker-compose. Generally, once you have configured your shell environment with all the necessary `GLOBALS` described before, you should just run `docker-compose up zappr`. This will run the zappr application and 
 
   ~~~ shell
-  npm run build
+  export DM_IP=$(docker-machine ip)
   docker-compose up zappr
   ~~~
-  @TOOO: how to access the local zappr installation
 
-  You can also set the `GITHUB_CLIENT_ID`, the `GITHUB_CLIENT_SECRET` and the `HOST_ADDR` in your `config/config.yaml` or add it 
+You should be able now to access your local Zappr installation at `http://localhost:3000`. 
+
+  You can also set the `GITHUB_CLIENT_ID`, the `GITHUB_CLIENT_SECRET` and the `HOST_ADDR` in your `config/config.yaml` or add it
   to the package.json script.
   However we do not advise it since you could end up pushing your ID and Secret to GitHub.
 
