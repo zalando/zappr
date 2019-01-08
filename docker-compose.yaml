@@ -26,5 +26,5 @@ services:
       - DB_HOST=database
       - NODE_ENV=development
       - HOST_ADDR=http://$DM_IP:3000
-      - GITHUB_CLIENT_ID
-      - GITHUB_CLIENT_SECRET
+      - GITHUB_CLIENT_ID=72b6d96339bf1c5d5257
+      - GITHUB_CLIENT_SECRET=b754189140f9c0e17a9c44e9feaf1d0764ed9a06

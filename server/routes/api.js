@@ -86,6 +86,18 @@ export function repo(router) {
       ctx.throw(404, e)
     }
   })
+  .post('/api/repos/:id/refreshTokens', requireAuth, async(ctx) => { 
+    try{
+      const user = ctx.req.user;
+      const token = user.accessToken
+      const id = parseInt(ctx.params.id)
+      const updatedTokens = await checkHandler.onRefreshTokens(id, token, user);
+      ctx.body = updatedTokens;
+      ctx.response.status = 204;
+    } catch(e) {
+      ctx.throw(404, e)
+    }
+  })
   .get('/api/repos/:id/zapprfile', requireAuth, async(ctx) => {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id, 10)

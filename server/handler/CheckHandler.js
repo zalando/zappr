@@ -50,10 +50,15 @@ export class CheckHandler {
     }
   }
 
-  onRefreshTokens(repoIds, token) {
-    // noop for now
-    // implement this when we fucked up
-    return Promise.resolve()
+  async onRefreshTokens(repoIds, token, user) {
+    debug(`refreshing token for all checks for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'} by user ${user} `)
+    return await Check.update({ token: token },
+      {
+        where: {
+          repositoryId: repoId,
+        },
+        returning: true
+      });
   }
 
   /**
@@ -71,7 +76,7 @@ export class CheckHandler {
           repositoryId: repoId,
           type
         }
-      })
+      });
     } catch (e) {
       throw new CheckHandlerError(DATABASE_ERROR, {type, repository: repoId})
     }

@@ -35,9 +35,13 @@ class RepositoryDetail extends Component {
     this.props.requestConfigValidation(repo)
   }
 
+  shouldRefreshToken() {
+    console.log("refresh Token");
+    // this.props.requestNewToken();
+  }
+
   render() {
     if (!this.props.repository.full_name) return null
-
     const {repository, checks, validations} = this.props
     const header = (<h2>{repository.full_name}</h2>)
 
@@ -60,7 +64,8 @@ class RepositoryDetail extends Component {
           <Col md={12}>
             <ConfigValidation
               validation={validations[repository.full_name]}
-              onValidate={this.onValidateConfig.bind(this, repository)}/>
+              onValidate={this.onValidateConfig.bind(this, repository)}
+              refreshToken={this.shouldRefreshToken()}/>
           </Col>
           <Col md={12}>
             {CHECK_TYPES

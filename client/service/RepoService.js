@@ -32,4 +32,26 @@ export default class RepoService extends Service {
       })
     })
   }
+
+  static refreshTokens(repoId) {
+    return fetch(Service.url(`/api/repos/${repoId}/refreshTokens`), {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      credentials: 'same-origin',
+      body: {}
+    }).then(response => {
+      return new Promise((resolve, reject) => {
+        return response.json().then(json => {
+          if(response.ok) {
+            resolve(json)
+          } else {
+            reject(json)
+          }
+        })
+      });
+    })
+  }
 }
