@@ -215,7 +215,7 @@ Workaround:
 docker-machine create -d "virtualbox" default
 ~~~
 
-##### Can't connect to docker deamon
+##### Can't connect to docker daemon
 
 Error:
 ~~~ shell
