@@ -85,7 +85,7 @@ docker-compose up postgres-dev
 docker-compose up postgres-test
 
 # creates database and schemas, only needed first time
-# run it database command in additional terminal session
+# run database command in additional terminal session
 ./init_db.sh
 
 
@@ -123,7 +123,7 @@ GITHUB_CLIENT_SECRET=<your-client-secret>
 HOST_ADDR=https://<your-app-name>.localtunnel.me/
 npm run all
 
-# you may ommit GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET if exported to regarding shell environment variables earlier
+# you may omit GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET if exported to regarding shell environment variables earlier
 ~~~
 
 Go to `https://<your-app-name>.localtunnel.me` and do things :)
