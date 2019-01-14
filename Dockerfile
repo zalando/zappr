@@ -10,9 +10,9 @@ RUN mkdir -p $ZAPPR_HOME
 WORKDIR $ZAPPR_HOME
 
 COPY package.json $ZAPPR_HOME
-
-RUN npm install --production && \
-    npm install pg source-map
+RUN npm -v
+RUN npm install --production
+RUN npm install pg@4.5.6 source-map-support
 
 COPY dist/ $ZAPPR_HOME/dist
 COPY config/config.yaml $ZAPPR_CONFIG
