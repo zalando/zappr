@@ -23,7 +23,7 @@ services:
       - "3003:3003"
     environment:
       - LOG_LEVEL=debug
-      - DB_HOST=database
+      - DB_HOST=$DM_IP
       - NODE_ENV=development
       - HOST_ADDR=http://$DM_IP:3000
       - GITHUB_CLIENT_ID
