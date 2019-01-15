@@ -100,19 +100,21 @@ You need **3** separate Terminals to start zappr using this approach.
 $ ./run-zappr-local-terminal01.sh
 ~~~
 The script starts a docker machine and a developer database.
+Stop the script is blocking - stop it with CTRL-C.
 
 - In Terminal 2
 ~~~ bash
 $ ./run-zappr-local-terminal02.sh
 ~~~
 The script populates database data and runs the starts zappr using NPM.
+Stop the script is blocking - stop it with CTRL-C.
 
 - In Terminal 3
 ~~~ bash
 $ ./run-zappr-local-terminal03.sh
 ~~~
 The script sets up the tunnel using _localtunnel.me_ .
-
+Stop the script is blocking - stop it with CTRL-C.
 
 ### NPM
  - Precondition VPN Setup
