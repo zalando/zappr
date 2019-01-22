@@ -172,15 +172,24 @@ export function repo(router) {
             await checkRunner.release(repo, type, user.accessToken)
             await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
           } catch (e) {
+            // error handling needs to address a 403 protected branch case
+            // => BugFix machinery/zappr-deploy/issues/14
             ctx.throw(503, e)
             error(`${repo.json.full_name}: Could not not remove status check. ${e.detail}`)
           }
         } else {
+          // BugFix machinery/zappr-deploy/issues/14
           // not block when in prod
-          checkRunner.release(repo, type, user.accessToken)
-                     .catch(e => error(`${repo.json.full_name} [${type}]: Could not release pull requests. ${e.message}`))
-          await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
-                       .catch(e => error(`${repo.json.full_name}: Could not not remove status check. ${e.message}`))
+          try {
+            checkRunner.release(repo, type, user.accessToken)
+              .catch(e => error(`${repo.json.full_name} [${type}]: Could not release pull requests. ${e.message}`))
+            await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
+          } catch (e) {
+            // error handling needs to address a 403 protected branch case
+            // => BugFix machinery/zappr-deploy/issues/14
+            ctx.throw(503, e)
+            error(`${repo.json.full_name}: Could not not remove status check. ${e.detail}`)
+          }
         }
       }
       await checkHandler.onDisableCheck(user, repo, type)
