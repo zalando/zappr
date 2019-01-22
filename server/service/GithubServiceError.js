@@ -13,6 +13,7 @@ function messageFrom(response) {
 
 export const GITHUB_ERROR_TYPE = Symbol('github error')
 
+
 /**
  * Thrown when an error occurs while accessing the Github API.
  */
@@ -27,4 +28,13 @@ export default class GithubServiceError extends Error {
   }
 }
 
-
+export class GithubBranchProtectedError extends Error {
+  /**
+   * @param {Object} response - HTTP response
+   */
+  constructor(response) {
+    super('Github API Branch Protection Error')
+    this.detail = messageFrom(response)
+    this.type = GITHUB_ERROR_TYPE
+  }
+}

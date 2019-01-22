@@ -26,7 +26,7 @@ GITHUB_API_URL: https://api.github.com
 
 # Address of the web application host
 # that ZAPPR is going to run on.
-HOST_ADDR: http://localhost:8080
+#HOST_ADDR: https://de4c6cf9.ngrok.io
 APP_PORT: 3000
 METRICS_PORT: 3003
 METRICS_ENABLED: true

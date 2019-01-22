@@ -1,7 +1,7 @@
 import path from 'path'
 import nconf from '../nconf'
 import { Counter } from 'prom-client'
-import GithubServiceError from './GithubServiceError'
+import GithubServiceError, { GithubBranchProtectedError } from './GithubServiceError'
 import { joinURL, promiseFirst, decode, encode, getIn, toGenericComment } from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
@@ -61,8 +61,7 @@ export class GithubService {
   async fetchPath(method, path, payload, accessToken, headers = {}) {
     const options = this.getOptions(method, path, payload, accessToken, headers)
     const [response, body] = await request(options)
-    const {statusCode} = response || {}
-
+    const {statusCode} = response || {statusCode: 0}
     CallCounter.inc({type: 'total'}, 1)
     // 300 codes are for github membership checks
     if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
@@ -70,6 +69,10 @@ export class GithubService {
         if (method !== 'GET' || statusCode !== 404) {
           // only log 4xx if not GET 404 (happens often during zappr.yaml file check
           error(`${statusCode} ${method} ${path}`, response.body)
+          if (statusCode === 403) {
+            CallCounter.inc({type: '4xx'}, 1)
+            throw new GithubBranchProtectedError(response);
+          }
         }
         CallCounter.inc({type: '4xx'}, 1)
       } else if (statusCode >= 500 && statusCode <= 599) {
@@ -246,13 +249,15 @@ export class GithubService {
     // check if it's there already
     let hooks = await this.fetchPath('GET', path, null, accessToken)
     let existing = hooks.find(h => h.config.url === hook_url)
+    //TODO: AM I allowed? 
+    // MIssing CHECKS
     if (!!existing) {
       path += `/${existing.id}`
       if (payload.events.length) {
         await this.fetchPath('PATCH', path, payload, accessToken)
         debug(`${user}/${repo}: updated existing webhook ${existing.id}`)
       } else {
-        await this.fetchPath('DELETE', path, null, accessToken)
+        const deleteHook = await this.fetchPath('DELETE', path, null, accessToken)
         debug(`${user}/${repo}: deleted existing webhook ${existing.id}`)
       }
     } else {
@@ -385,6 +390,7 @@ export class GithubService {
                                  .replace('${repo}', repo)
                                  .replace('${branch}', branch)
     const settings = await this.getRequiredStatusChecks(user, repo, branch, accessToken)
+    debugger;
     const requiredChecks = getIn(settings, 'contexts', [])
     if (requiredChecks.indexOf(check) !== -1) {
       const payload = {

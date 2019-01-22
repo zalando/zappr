@@ -137,8 +137,7 @@ export class CheckHandler {
     const repo = repository.get('json')
     const types = repository.checks.map(c => c.type).filter(t => t !== type)
     const evts = findHookEventsFor(types)
-
-    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken)
+    await this.github.updateWebhookFor(repo.owner.login, repo.name, evts, user.accessToken);
     await this.onDeleteCheck(repo.id, type)
     debug(`${repo.full_name}: disabled check ${type}`)
   }
