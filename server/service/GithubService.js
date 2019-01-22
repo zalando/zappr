@@ -390,7 +390,6 @@ export class GithubService {
                                  .replace('${repo}', repo)
                                  .replace('${branch}', branch)
     const settings = await this.getRequiredStatusChecks(user, repo, branch, accessToken)
-    debugger;
     const requiredChecks = getIn(settings, 'contexts', [])
     if (requiredChecks.indexOf(check) !== -1) {
       const payload = {
