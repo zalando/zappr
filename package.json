@@ -14,7 +14,7 @@
     "dist": "export NODE_ENV='production' && export LOG_LEVEL='info' && npm run clean && npm run build-client -- -p && npm run build-server",
     "build": "run-p 'build-client -- -d' build-server",
     "build-client": "webpack --config webpack.client.js",
-    "build-server": "webpack --config webpack.new.server.js",
+    "build-server": "webpack --config webpack.server.js",
     "clean": "rm -rf dist",
     "all": "run-p client 'build-server -- -dw' server",
     "client": "webpack-dev-server -d -w --history-api-fallback --inline --no-info --config webpack.client.js --content-base dist/client",
