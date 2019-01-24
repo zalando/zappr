@@ -61,7 +61,7 @@ export class GithubService {
   async fetchPath(method, path, payload, accessToken, headers = {}) {
     const options = this.getOptions(method, path, payload, accessToken, headers)
     const [response, body] = await request(options)
-    const {statusCode} = response || {statusCode: 0}
+    const {statusCode} = response || {}
     CallCounter.inc({type: 'total'}, 1)
     // 300 codes are for github membership checks
     if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
@@ -249,7 +249,6 @@ export class GithubService {
     // check if it's there already
     let hooks = await this.fetchPath('GET', path, null, accessToken)
     let existing = hooks.find(h => h.config.url === hook_url)
-    //TODO: AM I allowed? 
     // MIssing CHECKS
     if (!!existing) {
       path += `/${existing.id}`
@@ -257,7 +256,7 @@ export class GithubService {
         await this.fetchPath('PATCH', path, payload, accessToken)
         debug(`${user}/${repo}: updated existing webhook ${existing.id}`)
       } else {
-        const deleteHook = await this.fetchPath('DELETE', path, null, accessToken)
+        await this.fetchPath('DELETE', path, null, accessToken)
         debug(`${user}/${repo}: deleted existing webhook ${existing.id}`)
       }
     } else {

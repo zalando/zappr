@@ -20,9 +20,7 @@
     "client": "webpack-dev-server -d -w --history-api-fallback --inline --no-info --config webpack.client.js --content-base dist/client",
     "server": "nodemon dist/server/server.min.js --watch  dist/server",
     "start": "node dist/server/server.min.js",
-    "scm": "scm-source > scm-source.json",
-    "migrate-webpack:server": "webpack-cli migrate webpack.server.js webpack.new.server.js",
-    "migrate-webpack:client": "webpack-cli migrate webpack.client.js"
+    "scm": "scm-source > scm-source.json"
   },
   "engines": {
     "node": ">=5.0"
