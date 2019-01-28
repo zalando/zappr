@@ -22,25 +22,25 @@ module.exports = {
     filename: '1-client.min.js'
   },
   module: {
-    loaders: [{
-      test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel', query: {
+    rules: [{
+      test: /\.jsx?$/, exclude: /node_modules/, loader: 'babel-loader', query: {
         presets: ['es2015', 'stage-1', 'react']
       }
     }, {
-      test: /\.css$/, loader: ExtractTextPlugin.extract('style-loader', 'css?minimize!postcss')
+      test: /\.css$/, loader: ExtractTextPlugin.extract({fallback:'style-loader', use:'css-loader'})
     }, {
-      test: /\.(otf|eot|svg|ttf|woff2?)/, loader: 'file'
+      test: /\.(otf|eot|svg|ttf|woff2?)/, loader: 'file-loader'
     }, {
       test: /\.png$/, loader: 'url-loader?mimetype=image/png'
-    }]
+    },
+      {
+        test: /\.css$/,
+        loader:"postcss-loader"
+      }]
   },
-  postcss: [
-    require('postcss-nested'),
-    require('postcss-css-variables')
-  ],
   plugins: [
     new ExtractTextPlugin('styles.min.css'),
-    new CommonsChunkPlugin('vendor', '0-vendor.min.js'),
+    new CommonsChunkPlugin({name:'vendor', filename:'0-vendor.min.js'}),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(nconf.get('NODE_ENV')),
       'process.env.LOG_LEVEL': JSON.stringify(nconf.get('LOG_LEVEL')),

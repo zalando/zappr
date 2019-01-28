@@ -25,11 +25,11 @@ module.exports = {
   },
   module: {
     loaders: [{
-      test: /\.jsx$/, exclude: /node_modules/, loader: 'babel', query: {
+      test: /\.jsx$/, exclude: /node_modules/, loader: 'babel-loader', query: {
         presets: ['es2015-node5', 'stage-1', 'react']
       }
     }, {
-      test: /\.js$/, exclude: /node_modules/, loader: 'babel', query: {
+      test: /\.js$/, exclude: /node_modules/, loader: 'babel-loader', query: {
         presets: ['es2015-node5', 'stage-1']
       }
     }, {
@@ -37,7 +37,7 @@ module.exports = {
     }, {
       test: /\.png$/, loader: 'url-loader?mimetype=image/png'
     }, {
-      test: /\.svg$/, loader: 'file'
+      test: /\.svg$/, loader: 'file-loader'
     }]
   },
   externals: nodeModules()

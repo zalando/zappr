@@ -13,7 +13,7 @@ import 'bootstrap-toggle/css/bootstrap2-toggle.css'
 import './css/main.css'
 import './css/frontpage.css'
 // Webpack copies the favicon file to the output directory.
-import 'file?name=[name].[ext]!./img/favicon.ico'
+import 'file-loader?name=[name].[ext]!./img/favicon.ico'
 
 // Get the initial state from a global injected by the server
 const initialState = window.__INITIAL_STATE__
