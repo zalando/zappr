@@ -249,7 +249,6 @@ export class GithubService {
     // check if it's there already
     let hooks = await this.fetchPath('GET', path, null, accessToken)
     let existing = hooks.find(h => h.config.url === hook_url)
-    // MIssing CHECKS
     if (!!existing) {
       path += `/${existing.id}`
       if (payload.events.length) {

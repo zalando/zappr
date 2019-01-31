@@ -356,6 +356,7 @@ describe('API', () => {
         await request.get('/api/repos')
                      .set('Authorization', 'token 123')
                      .set('Accept', 'application/json')
+                     .set('Content-Type', 'application/json')
                      .expect(200)
         done()
       } catch (e) {
@@ -664,6 +665,7 @@ describe('API', () => {
         done(e)
       }
     })
+
   })
 
   describe('PUT /api/repos/:id/:type', () => {

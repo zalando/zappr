@@ -3,6 +3,7 @@ import nconf from '../../server/nconf'
 import { expect } from 'chai'
 import { GithubService } from '../../server/service/GithubService'
 import { toGenericComment } from '../../common/util'
+import { GithubBranchProtectedError } from '../../server/service/GithubServiceError'
 
 describe('The Github service', () => {
   let github
@@ -144,7 +145,7 @@ describe('The Github service', () => {
       }
     })
 
-    it('removeRequiredStatusCheck', async(done) => {
+    it('removeRequiredStatusCheck removes branch protection ', async(done) => {
       try {
         github.fetchPath = sinon.stub().returns({contexts: [CHECK, 'foo']})
         await github.removeRequiredStatusCheck(USER, REPO, BRANCH, CHECK, TOKEN)
@@ -163,6 +164,35 @@ describe('The Github service', () => {
         ])
         done()
       } catch (e) {
+        done(e)
+      }
+    })
+
+    it('removeRequiredStatusCheck returns 403 when branch protection exists', async(done) => {
+        //GIVEN
+        const errorConfig = {
+          statusCode: 403,
+          body: {
+            message: 'Branch protected'
+          },
+          request: {
+            uri: {
+              href: `/repos/${USER}/${REPO}/branches/${BRANCH}/protection/required_status_checks`,
+            },
+            method: 'PATCH'
+          }
+        };
+        const errorObject = new GithubBranchProtectedError(errorConfig)
+        github.fetchPath = sinon.stub().throws(errorObject);
+      try {
+        //WHEN
+        github.removeRequiredStatusCheck(USER, REPO, BRANCH, CHECK, TOKEN)
+          .catch(e => {
+            expect(e.detail).to.equal(errorObject.detail);
+            done()
+          })
+      } catch (e) {
+        //THEN
         done(e)
       }
     })
