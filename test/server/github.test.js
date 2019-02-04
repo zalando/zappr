@@ -168,7 +168,7 @@ describe('The Github service', () => {
       }
     })
 
-    it('removeRequiredStatusCheck returns 403 when changing branch protection is disabled', async(done) => {
+    it('removeRequiredStatusCheck returns 403 when changing Branch Protection Settings is Disabled', async(done) => {
         //GIVEN
         const errorConfig = {
           statusCode: 403,
