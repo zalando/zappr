@@ -173,7 +173,7 @@ export function repo(router) {
             await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
           } catch (e) {
             ctx.throw(503, e)
-            error(`${repo.json.full_name}: Could not not remove status check. ${e.detail}`)
+            error(`${repo.json.full_name}: Could not remove status check. ${e.detail}`)
           }
         } else {
           // BugFix machinery/zappr-deploy/issues/14 (Zalando internal reference)
