@@ -7,8 +7,8 @@ SESSION_SECRET: secret
 
 # Override Github client id and secret with your
 # own values as defined in your Github account.
-GITHUB_CLIENT_ID: 72b6d96339bf1c5d5257
-GITHUB_CLIENT_SECRET: b754189140f9c0e17a9c44e9feaf1d0764ed9a06
+GITHUB_CLIENT_ID: clientId
+GITHUB_CLIENT_SECRET: clientSecret
 GITHUB_HOOK_SECRET: captainHook
 GITHUB_ACCESS_LEVELS:
   minimal:
@@ -26,7 +26,7 @@ GITHUB_API_URL: https://api.github.com
 
 # Address of the web application host
 # that ZAPPR is going to run on.
-#HOST_ADDR: http://localhost:8080
+HOST_ADDR: http://localhost:8080
 APP_PORT: 3000
 METRICS_PORT: 3003
 METRICS_ENABLED: true
