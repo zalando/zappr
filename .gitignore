@@ -92,6 +92,9 @@ node_modules
 # IntelliJ
 /out/
 
+# Code
+.vscode
+
 # mpeltonen/sbt-idea plugin
 .idea_modules/
 

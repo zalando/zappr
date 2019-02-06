@@ -33,7 +33,7 @@ export class GithubBranchProtectedError extends Error {
    * @param {Object} response - HTTP response
    */
   constructor(response) {
-    super('Github API Branch Protection Error')
+    super('Github API Error: changing Branch Protection Settings is Disabled')
     this.detail = messageFrom(response)
     this.type = GITHUB_ERROR_TYPE
   }
