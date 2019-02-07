@@ -80,7 +80,7 @@ class Result extends React.Component {
   }
 }
 
-export default function RepositoryConfigValidation({validation, onValidate, refreshingToken = true, refreshToken}) {
+export default function RepositoryConfigValidation({validation, onValidate, refreshingToken = false, refreshToken}) {
   const placeholder = <div style={{marginTop: '1em'}} />
   let result = placeholder
   if (validationFinished(validation.status)) {
@@ -99,10 +99,6 @@ export default function RepositoryConfigValidation({validation, onValidate, refr
       })}/>
         Validate Zappr configuration
     </Button>
-    <Button onClick={refreshToken}>
-    <span className={classes('fa', 'fa-fw', 'fa-refresh')}></span>
-      Refresh OAuth Token
-    </Button>
     {result}
   </div>);
 }
@@ -114,5 +110,6 @@ RepositoryConfigValidation.propTypes = {
     message: PropTypes.string,
     config: PropTypes.object
   }).isRequired,
-  onValidate: PropTypes.func.isRequired
+  onValidate: PropTypes.func.isRequired,
+
 }

@@ -20,6 +20,15 @@ function deleteCheck(status, payload = null) {
   }
 }
 
+function refreshToken(status, payload = null) {
+  return {
+    type: REFRESH_TOKEN,
+    status,
+    payload
+  }
+}
+
+
 function enableCheck(check) {
   return (dispatch) => {
     dispatch(putCheck(PENDING, check))
@@ -38,6 +47,15 @@ function disableCheck(check) {
   }
 }
 
+function updateTokenForChecks(repo){
+  return (dispatch) => {
+    dispatch(refreshToken(PENDING, {}))
+    CheckService.refreshTokens(repo.id)
+                .then(() => dispatch(refreshToken(SUCCESS, check)))
+                .catch(err => dispatch(refreshToken(ERROR, err)))
+  }
+}
+
 /**
  * Enable or disable a check for a particular repo.
  *
@@ -48,5 +66,13 @@ export function toggleCheck(check) {
     return enableCheck(check)
   } else {
     return disableCheck(check)
+  }
+}
+
+export function updateToken(repo) {
+  if(repo) {
+    return updateTokenForChecks(repo)
+  } else {
+    return {}
   }
 }

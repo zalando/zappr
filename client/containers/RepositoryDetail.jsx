@@ -5,7 +5,9 @@ import DocumentTitle from 'react-document-title'
 
 import RepositoryCheck from './../components/RepositoryCheck.jsx'
 import ConfigValidation from './../components/RepositoryConfigValidation.jsx'
-import { toggleCheck } from '../actions/checks'
+import RefreshTokenButton from './../components/RefreshTokenButton.jsx'
+
+import { toggleCheck, updateToken } from '../actions/checks'
 import { requestConfigValidation } from '../actions/validate'
 
 import { checkId } from '../model/schema'
@@ -35,9 +37,9 @@ class RepositoryDetail extends Component {
     this.props.requestConfigValidation(repo)
   }
 
-  shouldRefreshToken() {
+  shouldRefreshToken(repo) {
     console.log("refresh Token");
-    // this.props.requestNewToken();
+    this.props.updateToken(repo);
   }
 
   render() {
@@ -65,7 +67,8 @@ class RepositoryDetail extends Component {
             <ConfigValidation
               validation={validations[repository.full_name]}
               onValidate={this.onValidateConfig.bind(this, repository)}
-              refreshToken={this.shouldRefreshToken()}/>
+              refreshToken={this.shouldRefreshToken()} />
+            <RefreshTokenButton onClick={this.shouldRefreshToken.bind(this, repository)} />
           </Col>
           <Col md={12}>
             {CHECK_TYPES
@@ -90,4 +93,4 @@ class RepositoryDetail extends Component {
   }
 }
 
-export default connect(mapStateToProps, {toggleCheck, requestConfigValidation})(RepositoryDetail)
+export default connect(mapStateToProps, {toggleCheck, updateToken, requestConfigValidation})(RepositoryDetail)
