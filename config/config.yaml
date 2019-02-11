@@ -66,6 +66,11 @@ VALID_PR_TEMPLATE_PATHS:
   - "/PULL_REQUEST_TEMPLATE"
   - "/PULL_REQUEST_TEMPLATE.txt"
   - "/PULL_REQUEST_TEMPLATE.md"
+
+# Explicit webhook url to use for receiving webhooks from Github
+# If this is commented out, Zappr uses "<HOST_ADDR config value>/api/hook' as the webhook url
+# HOOK_URL: http://mywebhookdomain/zappr/api/hook
+
 ZAPPR_DEFAULT_CONFIG:
   autobranch:
     pattern: "{number}-{title}"
