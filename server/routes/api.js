@@ -163,6 +163,7 @@ export function repo(router) {
       const repo = await repositoryHandler.onGetOne(id, user)
       const type = ctx.params.type
       const checkContext = getCheckByType(type).CONTEXT
+      // check first if user has permissions 
       if (checkContext) {
         if (NODE_ENV !== PROD_ENV) {
           try {
@@ -171,15 +172,21 @@ export function repo(router) {
             await checkRunner.release(repo, type, user.accessToken)
             await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
           } catch (e) {
-            // did not work, who cares
-            error(`${repo.json.full_name}: Could not not remove status check. ${e.message}`)
+            ctx.throw(503, e)
+            error(`${repo.json.full_name}: Could not remove status check. ${e.detail}`)
           }
         } else {
+          // BugFix machinery/zappr-deploy/issues/14 (Zalando internal reference)
+          // https://github.com/zalando/zappr/pull/560/
           // not block when in prod
-          checkRunner.release(repo, type, user.accessToken)
-                     .catch(e => error(`${repo.json.full_name} [${type}]: Could release pull requests. ${e.message}`))
-          githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
-                       .catch(e => error(`${repo.json.full_name}: Could not not remove status check. ${e.message}`))
+          try {
+            checkRunner.release(repo, type, user.accessToken)
+              .catch(e => error(`${repo.json.full_name} [${type}]: Could not release pull requests. ${e.message}`))
+            await githubService.removeRequiredStatusCheck(repo.json.owner.login, repo.json.name, repo.json.default_branch, checkContext, user.accessToken)
+          } catch (e) {
+            ctx.throw(503, e)
+            error(`${repo.json.full_name}: Could not remove status check. ${e.detail}`)
+          }
         }
       }
       await checkHandler.onDisableCheck(user, repo, type)

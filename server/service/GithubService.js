@@ -1,7 +1,7 @@
 import path from 'path'
 import nconf from '../nconf'
 import { Counter } from 'prom-client'
-import GithubServiceError from './GithubServiceError'
+import GithubServiceError, { GithubBranchProtectedError } from './GithubServiceError'
 import { joinURL, promiseFirst, decode, encode, getIn, toGenericComment } from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
@@ -58,25 +58,59 @@ export class GithubService {
     }
   }
 
-  async fetchPath(method, path, payload, accessToken, headers = {}) {
-    const options = this.getOptions(method, path, payload, accessToken, headers)
-    const [response, body] = await request(options)
-    const {statusCode} = response || {}
+  /**
+   * Checks if a given statusCode from a response is OK
+   * @param {Number} statusCode 
+   * @returns {Boolean} returns if given StatusCode is OK.
+   */
+  isOK(statusCode) {
+    const successCodes = [200, 201, 202, 203, 204, 300, 301, 302];
+    return successCodes.indexOf(statusCode) >= 0;
+  }
 
-    CallCounter.inc({type: 'total'}, 1)
-    // 300 codes are for github membership checks
-    if ([200, 201, 202, 203, 204, 300, 301, 302].indexOf(statusCode) < 0) {
+  handleGithubApiError(statusCode, response) {
+    if (!this.isOK(statusCode)) {
       if (statusCode >= 400 && statusCode <= 499) {
         if (method !== 'GET' || statusCode !== 404) {
           // only log 4xx if not GET 404 (happens often during zappr.yaml file check
-          error(`${statusCode} ${method} ${path}`, response.body)
+          if (statusCode === 403) {
+            CallCounter.inc({type: '4xx'}, 1)
+            throw new GithubBranchProtectedError(response);
+          }
         }
         CallCounter.inc({type: '4xx'}, 1)
       } else if (statusCode >= 500 && statusCode <= 599) {
         // always log 5xx
-        error(`${statusCode} ${method} ${path}`, response.body)
         CallCounter.inc({type: '5xx'}, 1)
       }
+      // Always log a detailed Error Message
+      error(`${statusCode}`, response.body)
+      throw new GithubServiceError(response)
+    }
+  }
+
+  async fetchPath(method, path, payload, accessToken, headers = {}) {
+    const options = this.getOptions(method, path, payload, accessToken, headers)
+    const [response, body] = await request(options)
+    const {statusCode} = response || {}
+    CallCounter.inc({type: 'total'}, 1)
+    // 300 codes are for github membership checks
+    if (!this.isOK(statusCode)) {
+      if (statusCode >= 400 && statusCode <= 499) {
+        if (method !== 'GET' || statusCode !== 404) {
+          // only log 4xx if not GET 404 (happens often during zappr.yaml file check
+          if (statusCode === 403) {
+            CallCounter.inc({type: '4xx'}, 1)
+            throw new GithubBranchProtectedError(response);
+          }
+        }
+        CallCounter.inc({type: '4xx'}, 1)
+      } else if (statusCode >= 500 && statusCode <= 599) {
+        // always log 5xx
+        CallCounter.inc({type: '5xx'}, 1)
+      }
+      // Always log a detailed Error Message
+      error(`${statusCode} ${method} ${path}`, response.body)
       throw new GithubServiceError(response)
     }
     else {
@@ -88,6 +122,8 @@ export class GithubService {
   async _fetchPage(url, token) {
     let links = {}
     const [resp, body] = await request(this.getOptions('GET', url, null, token))
+    const {statusCode} = resp || {}
+    this.handleGithubApiError(statusCode, resp);
     if (resp.headers && resp.headers.link) {
       links = this.parseLinkHeader(resp.headers.link)
     }
@@ -107,6 +143,7 @@ export class GithubService {
     const firstPage = await this._fetchPage(urlTemplate.replace('${page}', '0'), token)
     if (loadAll && firstPage.links.last > 0) {
       const pageDefs = Array(firstPage.links.last).fill(0).map((p, i) => i + 1)
+      debug(`Fetching ${pageDefs.length + 1} pages for ${urlTemplate}`)
       const pages = await Promise.all(
         pageDefs.map(
           page => this._fetchPage(urlTemplate.replace('${page}', page), token)))
