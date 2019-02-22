@@ -1,7 +1,7 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { GithubService } from '../../server/service/GithubService'
-import PullRequestLabels, { generateStatus } from '../../server/checks/PullRequestLabels'
+import PullRequestLabels, { generateStatusForRequired, generateStatusForOneOf } from '../../server/checks/PullRequestLabels'
 
 
 describe('Pull Request Labels', () => {
