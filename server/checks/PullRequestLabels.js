@@ -17,44 +17,33 @@ export function generateStatusForRequired(labels, checkConfig) {
 
   const missingLabels = setDifference(requiredSet, labelSet)
   if (missingLabels.size > 0) {
-    console.log(`missingLabels.size ${missingLabels.size}`)
     return createStatePayload(`PR misses required labels: ${[...missingLabels].join(', ')}.`, 'failure')
   }
   checkAdditionalLabels(setDifference(labelSet, requiredSet), additional)
 }
 
 export function generateStatusForOneOf(labels, checkConfig) {
-  console.log("generateStatusForOneOf started!")
   const {oneOf, additional} = checkConfig
   const oneOfSet = new Set(oneOf)
   const labelSet = new Set(labels)
   let valid = false;
 
-  console.log("checking labels!")
   labelSet.forEach(function(label) {
     if (oneOfSet.has(label)) {
       valid = true;
     }
   })
-  console.log(`valid: ${valid}`)
   if (!valid) {
-    console.log(`createStatePayload valid`)
     return createStatePayload(`PR misses one of the required labels: ${[...oneOfSet].join(', ')}.`, 'failure')
   }
-  console.log("checking AdditionalLabels!")
   checkAdditionalLabels(setDifference(labelSet, oneOfSet), additional)
 }
 
 export function checkAdditionalLabels(redundantLabels, additional) {
-  console.log(`additional: ${additional}`)
   if (additional) {
     // if additional labels are allowed, we don't care about them
-    console.log(`createStatePayload additional == true`)
     return createStatePayload(`PR has all required labels.`)
   } else {
-    console.log(`redundantLabels.size: ${redundantLabels.size}`)
-    console.log(`createStatePayload redundantLabels.size`)
-    console.log(`[...redundantLabels].join(', ')`, [...redundantLabels].join(', '))
     return redundantLabels.size === 0 ?
       createStatePayload(`PR has all required labels.`) :
       createStatePayload(`PR has redundant labels: ${[...redundantLabels].join(', ')}.`, 'failure')
