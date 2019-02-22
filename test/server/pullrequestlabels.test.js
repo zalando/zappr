@@ -10,7 +10,6 @@ describe('Pull Request Labels', () => {
       const labels = ['work-in-progress', 'approved']
       const required = ['approved']
       const status = generateStatusForRequired(labels, {additional: false, required})
-      console.log(status)
       expect(status.description).to.equal(`PR has redundant labels: work-in-progress.`)
       expect(status.state).to.equal('failure')
     })
@@ -19,7 +18,6 @@ describe('Pull Request Labels', () => {
       const labels = ['work-in-progress', 'approved']
       const required = ['approved']
       const status = generateStatusForRequired(labels, {additional: true, required})
-      console.log(status)
       expect(status.description).to.equal(`PR has all required labels.`)
       expect(status.state).to.equal('success')
     })
@@ -28,7 +26,6 @@ describe('Pull Request Labels', () => {
       const labels = ['work-in-progress', 'approved']
       const oneOf = ['approved', 'draft']
       const status = generateStatusForOneOf(labels, {additional: false, oneOf})
-      console.log(status)
       expect(status.description).to.equal(`PR has redundant labels: work-in-progress.`)
       expect(status.state).to.equal('failure')
     })
@@ -37,7 +34,6 @@ describe('Pull Request Labels', () => {
       const labels = ['work-in-progress', 'approved']
       const oneOf = ['approved', 'draft']
       const status = generateStatusForOneOf(labels, {additional: true, oneOf})
-      console.log(status)
       expect(status.description).to.equal(`PR has all required labels.`)
       expect(status.state).to.equal('success')
     })
