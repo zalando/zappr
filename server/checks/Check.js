@@ -1,6 +1,5 @@
 export function getPayloadFn(context) {
   return function createStatePayload(description, state = 'success') {
-    console.log('Check.js createStatePayload', state, context, description);
     return {
       state,
       context,
