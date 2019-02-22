@@ -29,7 +29,7 @@ export function generateStatusForOneOf(labels, checkConfig) {
   let valid = False;
 
   labelSet.forEach(function(label) {
-    if oneOfSet.has(label) {
+    if (oneOfSet.has(label)) {
       valid = True;
     }
   })
