@@ -6,7 +6,7 @@ import PullRequestLabels, { generateStatus } from '../../server/checks/PullReque
 
 describe('Pull Request Labels', () => {
   describe('#generateStatus', () => {
-    it('generates failure when there is all of the required labels and when there are redundant labels and additional = false', () => {
+    it('generates failure when there are all of the required labels and when there are redundant labels and additional = false', () => {
       const labels = ['work-in-progress', 'approved']
       const required = ['approved']
       const status = generateStatus(labels, {additional: false, required})
@@ -14,7 +14,7 @@ describe('Pull Request Labels', () => {
       expect(status.state).to.equal('failure')
     })
 
-    it('generates success when there is all of the required labels and when there are redundant labels and additional = true', () => {
+    it('generates success when there are all of the required labels and when there are redundant labels and additional = true', () => {
       const labels = ['work-in-progress', 'approved']
       const required = ['approved']
       const status = generateStatus(labels, {additional: true, required})
