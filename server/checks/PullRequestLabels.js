@@ -54,6 +54,7 @@ export function checkAdditionalLabels(redundantLabels, additional) {
   } else {
     console.log(`redundantLabels.size: ${redundantLabels.size}`)
     console.log(`createStatePayload redundantLabels.size`)
+    console.log(`[...redundantLabels].join(', ')`, [...redundantLabels].join(', ')})
     return redundantLabels.size === 0 ?
       createStatePayload(`PR has all required labels.`) :
       createStatePayload(`PR has redundant labels: ${[...redundantLabels].join(', ')}.`, 'failure')
