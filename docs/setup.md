@@ -173,6 +173,10 @@ pull-request:
     # pull request cannot be merged without these labels
     required:
       - reviewed
+    # pull request cannot be merged without one of these labels
+    oneOf:
+      - merge to dev
+      - merge to live
     # allow additional labels to be present. true is the default..
     additional: true
 ~~~
