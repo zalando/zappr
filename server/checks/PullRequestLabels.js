@@ -10,7 +10,7 @@ const error = logger(CHECK_TYPE, 'error')
 const debug = logger(CHECK_TYPE)
 const createStatePayload = getPayloadFn(CONTEXT)
 
-export function generateStatus(labels, checkConfig) {
+export function generateStatusForRequired(labels, checkConfig) {
   const {required, additional} = checkConfig
   const requiredSet = new Set(required)
   const labelSet = new Set(labels)
@@ -19,11 +19,31 @@ export function generateStatus(labels, checkConfig) {
   if (missingLabels.size > 0) {
     return createStatePayload(`PR misses required labels: ${[...missingLabels].join(', ')}.`, 'failure')
   }
+  checkAdditionalLabels(setDifference(labelSet, requiredSet), additional)
+}
+
+export function generateStatusForOneOf(labels, checkConfig) {
+  const {oneOf, additional} = checkConfig
+  const oneOfSet = new Set(oneOf)
+  const labelSet = new Set(labels)
+  let valid = False;
+
+  labelSet.forEach(function(label) {
+    if oneOfSet.has(label) {
+      valid = True;
+    }
+  })
+  if (!valid) {
+    return createStatePayload(`PR misses one of the required labels: ${[...oneOfSet].join(', ')}.`, 'failure')
+  }
+  checkAdditionalLabels(setDifference(labelSet, oneOfSet), additional)
+}
+
+export function checkAdditionalLabels(redundantLabels, additional) {
   if (additional) {
     // if additional labels are allowed, we don't care about them
     return createStatePayload(`PR has all required labels.`)
   } else {
-    const redundantLabels = setDifference(labelSet, requiredSet)
     return redundantLabels.size === 0 ?
       createStatePayload(`PR has all required labels.`) :
       createStatePayload(`PR has redundant labels: ${[...redundantLabels].join(', ')}.`, 'failure')
@@ -43,6 +63,7 @@ export default class PullRequestLabels extends Check {
 
   async fetchLabelsAndSetStatus({repository, pull_request, token, config}) {
     const required = getIn(config, ['pull-request', 'labels', 'required'], [])
+    const oneOf = getIn(config, ['pull-request', 'labels', 'oneOf'], [])
     const additional = getIn(config, ['pull-request', 'labels', 'additional'], true)
     const repoOwner = repository.owner.login
     const repoName = repository.name
@@ -52,9 +73,14 @@ export default class PullRequestLabels extends Check {
     let status = createStatePayload('No required labels are configured.')
     if (required.length > 0) {
       const labels = await this.github.getIssueLabels(repoOwner, repoName, number, token)
-      status = generateStatus(labels, {required, additional})
+      status = generateStatusForRequired(labels, {required, additional})
       await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
       info(`${fullName}#${number}: Set status to ${status.state} (labels: ${labels}, required: ${required}, additional: ${additional})`)
+    } else if (oneOf.length > 0) {
+      const labels = await this.github.getIssueLabels(repoOwner, repoName, number, token)
+      status = generateStatusForOneOf(labels, {oneOf, additional})
+      await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
+      info(`${fullName}#${number}: Set status to ${status.state} (labels: ${labels}, required: ${required}, additional: ${additional})`)   
     } else {
       await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
       info(`${fullName}#${number}: Set status to ${status.state} (no labels configured)`)
