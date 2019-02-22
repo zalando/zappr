@@ -26,11 +26,11 @@ export function generateStatusForOneOf(labels, checkConfig) {
   const {oneOf, additional} = checkConfig
   const oneOfSet = new Set(oneOf)
   const labelSet = new Set(labels)
-  let valid = False;
+  let valid = false;
 
   labelSet.forEach(function(label) {
     if (oneOfSet.has(label)) {
-      valid = True;
+      valid = true;
     }
   })
   if (!valid) {
