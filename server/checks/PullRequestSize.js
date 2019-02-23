@@ -10,7 +10,7 @@ const debug = logger(CHECK_TYPE)
 const createStatePayload = getPayloadFn(CONTEXT)
 
 
-export default class PullRequestTasks extends Check {
+export default class PullRequestSize extends Check {
   static TYPE = CHECK_TYPE;
   static CONTEXT = CONTEXT;
   static HOOK_EVENTS = [PULL_REQUEST];
