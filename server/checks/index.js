@@ -16,7 +16,7 @@ const CHECKS = {
   [PullRequestMilestone.TYPE]: PullRequestMilestone,
   [PullRequestLabels.TYPE]: PullRequestLabels,
   [PullRequestMergeCommit.TYPE]: PullRequestMergeCommit,
-  [PullRequestTasks.TYPE]: PullRequestTasks
+  [PullRequestTasks.TYPE]: PullRequestTasks,
   [PullRequestSize.TYPE]: PullRequestSize
 }
 
@@ -28,7 +28,7 @@ export const CHECK_NAMES = {
   [PullRequestMilestone.TYPE]: PullRequestMilestone.NAME,
   [PullRequestLabels.TYPE]: PullRequestLabels.NAME,
   [PullRequestMergeCommit.TYPE]: PullRequestMergeCommit.NAME,
-  [PullRequestTasks.TYPE]: PullRequestTasks.NAME
+  [PullRequestTasks.TYPE]: PullRequestTasks.NAME,
   [PullRequestSize.TYPE]: PullRequestSize.NAME
 }
 
