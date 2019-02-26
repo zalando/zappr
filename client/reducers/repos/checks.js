@@ -63,6 +63,26 @@ function check(state = {
         default:
           return state
       }
+    case REFRESH_TOKEN:
+      switch(action.status) {
+        case PENDING:
+          return {...state, isRefreshingToken: true}
+        case SUCCESS:
+          console.log(action.payload);
+          return {
+            ...state,
+            isRefreshingToken: false,
+            error: false
+          }
+        case ERROR: 
+          return {
+            ...state,
+            isRefreshingToken: false,
+            error: action.payload
+          }
+        default: 
+          return state
+      }
     default:
       return state
   }

@@ -86,6 +86,20 @@ export function repo(router) {
       ctx.throw(404, e)
     }
   })
+  .post('/api/repos/:id/refreshTokens', requireAuth, async(ctx) => { 
+    try{
+      const user = ctx.req.user;
+      const id = parseInt(ctx.params.id);
+      const updatedTokens = await checkHandler.onRefreshTokens(id, user);
+      info('updated Checks with new access token for repository: ', id);
+      ctx.response.status = 200;
+      ctx.body = { 
+        message: `${updatedTokens[0]} checks were updated`,
+      };
+    } catch(e) {
+      ctx.throw(404, e)
+    }
+  })
   .get('/api/repos/:id/zapprfile', requireAuth, async(ctx) => {
     const user = ctx.req.user
     const id = parseInt(ctx.params.id, 10)

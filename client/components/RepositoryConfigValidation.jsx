@@ -80,7 +80,7 @@ class Result extends React.Component {
   }
 }
 
-export default function RepositoryConfigValidation({validation, onValidate}) {
+export default function RepositoryConfigValidation({validation, onValidate, onRefreshToken, isRefreshing}) {
   const placeholder = <div style={{marginTop: '1em'}} />
   let result = placeholder
   if (validationFinished(validation.status)) {
@@ -90,7 +90,7 @@ export default function RepositoryConfigValidation({validation, onValidate}) {
   } else if (validation.error) {
     result = <Alert style={{marginTop: '1em'}} bsStyle='danger'>{validation.error.status} {validation.error.title}</Alert>
   }
-  return <div>
+  return (<div>
     <Button onClick={onValidate}>
       <span className={classes('fa', 'fa-fw', {
         'fa-spin': validation.status === Status.PENDING,
@@ -99,8 +99,15 @@ export default function RepositoryConfigValidation({validation, onValidate}) {
       })}/>
         Validate Zappr configuration
     </Button>
+    <Button onClick={onRefreshToken} > 
+      <span className={classes('fa', 'fa-fw', {
+        'fa-spin': isRefreshing,
+        'fa-info-circle': !isRefreshing
+      })} />
+      Refresh OAuth Token
+    </Button>
     {result}
-  </div>
+  </div>);
 }
 
 RepositoryConfigValidation.propTypes = {
@@ -109,5 +116,6 @@ RepositoryConfigValidation.propTypes = {
     message: PropTypes.string,
     config: PropTypes.object
   }).isRequired,
-  onValidate: PropTypes.func.isRequired
+  onValidate: PropTypes.func.isRequired,
+  onRefreshToken: PropTypes.func.isRequired,
 }

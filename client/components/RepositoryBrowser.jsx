@@ -30,7 +30,6 @@ export default class RepositoryBrowser extends Component {
         <Button
           style={{marginLeft: 15}}
           disabled={isFetching}
-          lg
           onClick={this.onFetchAll.bind(this)}>
           <i className={classes('fa', 'fa-refresh', {'fa-spin': isFetching})}/>&nbsp;Sync with Github
         </Button>

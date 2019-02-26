@@ -45,10 +45,11 @@ export default class RepositoryCheck extends Component {
       marginLeft: 15
     }
     const {check, onToggle} = this.props
+    // ToDo: Change this to show "updated_by" value 
     const checkMeta = check.isEnabled ?
       (!!check.created_by ?
         <span>was enabled by <a href={`${this.props.githubUrl}/${check.created_by}`}>@{check.created_by}</a> <Time
-          value={check.createdAt} relative/></span> :
+          value={check.updatedAt} relative/></span> :
           <span>is enabled</span>) :
       <span>is disabled</span>
     const header = (
