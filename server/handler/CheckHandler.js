@@ -52,12 +52,14 @@ export class CheckHandler {
 
   async onRefreshTokens(repoId, user) {
     const token = user.accessToken;
-    debug(`refreshing token for all checks for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'} by user ${user} `)
+    const userName = user.json.login;
+    debug(`refreshing token for all checks for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'} by user ${userName} `)
     try {
       return await Check.update({ token: token },
         {
           where: {
             repositoryId: repoId,
+            created_by: userName
           },
           returning: true
         });
