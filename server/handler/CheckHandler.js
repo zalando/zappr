@@ -55,11 +55,10 @@ export class CheckHandler {
     const userName = user.json.login;
     debug(`refreshing token for all checks for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'} by user ${userName} `)
     try {
-      return await Check.update({ token: token },
+      return await Check.update({ token: token, created_by: userName },
         {
           where: {
-            repositoryId: repoId,
-            created_by: userName
+            repositoryId: repoId
           },
           returning: true
         });
