@@ -51,7 +51,8 @@ class RepositoryHandler {
         })
       }
     } catch (e) {
-      throw new RepositoryHandlerError(DATABASE_ERROR)
+      debug(e)
+      throw new RepositoryHandlerError(DATABASE_ERROR, {repository: id})
     }
     if (!repository) throw new RepositoryHandlerError(REPOSITORY_NOT_FOUND, {repository: id})
     return repository
