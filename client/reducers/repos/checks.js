@@ -84,7 +84,6 @@ export default function checks(state = { isRefreshingToken: false, error: false}
         case PENDING:
           return {...state, isRefreshingToken: true}
         case SUCCESS:
-          // console.log(action.payload);
           return {
             ...state,
             isRefreshingToken: false,

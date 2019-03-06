@@ -1,11 +1,9 @@
 import CheckService from '../service/CheckService'
 import { PENDING, SUCCESS, ERROR } from '../actions/status'
-import { requestReposIfNeeded } from '../actions/repos'
 
 export const PUT_CHECK = Symbol('put check')
 export const DELETE_CHECK = Symbol('delete check')
 export const REFRESH_TOKEN = Symbol('refresh token')
-export const RELOAD_REPO_DETAIL = Symbol ('reload repo detail')
 
 
 function putCheck(status, payload = null) {
