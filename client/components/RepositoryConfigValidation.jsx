@@ -99,9 +99,10 @@ export default function RepositoryConfigValidation({validation, onValidate, onRe
       })}/>
         Validate Zappr configuration
     </Button>
-    <Button onClick={onRefreshToken} > 
+    <Button onClick={onRefreshToken} className="button-refreshToken"> 
       <span className={classes('fa', 'fa-fw', {
-        'fa-spin': isRefreshing,
+        'fa-spin ': isRefreshing,
+        'fa-refresh': isRefreshing, 
         'fa-info-circle': !isRefreshing
       })} />
       Refresh OAuth Token
@@ -118,4 +119,5 @@ RepositoryConfigValidation.propTypes = {
   }).isRequired,
   onValidate: PropTypes.func.isRequired,
   onRefreshToken: PropTypes.func.isRequired,
+  isRefreshing: PropTypes.bool.isRequired,
 }

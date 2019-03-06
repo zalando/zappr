@@ -1,9 +1,12 @@
 import CheckService from '../service/CheckService'
 import { PENDING, SUCCESS, ERROR } from '../actions/status'
+import { requestReposIfNeeded } from '../actions/repos'
 
 export const PUT_CHECK = Symbol('put check')
 export const DELETE_CHECK = Symbol('delete check')
 export const REFRESH_TOKEN = Symbol('refresh token')
+export const RELOAD_REPO_DETAIL = Symbol ('reload repo detail')
+
 
 function putCheck(status, payload = null) {
   return {
@@ -60,11 +63,14 @@ function refreshToken(status, payload = null) {
   }
 }
 
-function updateTokenForChecks(repo){
+function updateTokenForChecks(repo, reloadReposFn){
   return (dispatch) => {
     dispatch(refreshToken(PENDING, {}))
     CheckService.refreshTokens(repo.id)
-                .then((successMsg) => dispatch(refreshToken(SUCCESS, successMsg)))
+                .then((successMsg) => {
+                  dispatch(refreshToken(SUCCESS, successMsg))
+                  dispatch(reloadReposFn(true))
+                })
                 .catch(err => dispatch(refreshToken(ERROR, err)))
   }
 }
@@ -73,9 +79,9 @@ function updateTokenForChecks(repo){
  * Refresh access token with new user logged in (1% case)
  * @param {*} repo - repository data
  */
-export function requestRefreshToken(repo) {
+export function requestRefreshToken(repo, reloadReposFn) {
   if(repo) {
-    return updateTokenForChecks(repo)
+    return updateTokenForChecks(repo, reloadReposFn)
   } else {
     return {}
   }

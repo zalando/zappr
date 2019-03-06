@@ -1,5 +1,5 @@
 import { PENDING, SUCCESS, ERROR } from '../../actions/status'
-import { PUT_CHECK, DELETE_CHECK } from '../../actions/checks'
+import { PUT_CHECK, DELETE_CHECK, REFRESH_TOKEN } from '../../actions/checks'
 import { GET_REPOS } from '../../actions/repos'
 import { mapValues } from '../../../common/util'
 
@@ -63,12 +63,28 @@ function check(state = {
         default:
           return state
       }
+    default:
+      return state
+  }
+}
+
+export default function checks(state = { isRefreshingToken: false, error: false}, action) {
+  switch (action.type) {
+    case GET_REPOS:
+      switch (action.status) {
+        case SUCCESS:
+          // The repos response from the backend was normalized. Now we need to update
+          // every check of a repo with the default values from the check reducer.
+          return mapValues(action.payload.entities.checks, (_, v) => check(v, action))
+        default:
+          return state
+      }
     case REFRESH_TOKEN:
       switch(action.status) {
         case PENDING:
           return {...state, isRefreshingToken: true}
         case SUCCESS:
-          console.log(action.payload);
+          // console.log(action.payload);
           return {
             ...state,
             isRefreshingToken: false,
@@ -81,22 +97,6 @@ function check(state = {
             error: action.payload
           }
         default: 
-          return state
-      }
-    default:
-      return state
-  }
-}
-
-export default function checks(state = {}, action) {
-  switch (action.type) {
-    case GET_REPOS:
-      switch (action.status) {
-        case SUCCESS:
-          // The repos response from the backend was normalized. Now we need to update
-          // every check of a repo with the default values from the check reducer.
-          return mapValues(action.payload.entities.checks, (_, v) => check(v, action))
-        default:
           return state
       }
     case PUT_CHECK:

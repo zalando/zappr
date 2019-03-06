@@ -57,3 +57,7 @@ label.btn-primary.toggle-on:active {
       }
   }
 }
+
+.button-refreshToken {
+  float: right;
+}

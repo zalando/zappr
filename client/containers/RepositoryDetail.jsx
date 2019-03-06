@@ -6,6 +6,7 @@ import DocumentTitle from 'react-document-title'
 import RepositoryCheck from './../components/RepositoryCheck.jsx'
 import ConfigValidation from './../components/RepositoryConfigValidation.jsx'
 import { toggleCheck, requestRefreshToken } from '../actions/checks'
+import { requestReposIfNeeded } from '../actions/repos';
 import { requestConfigValidation } from '../actions/validate'
 
 import { checkId } from '../model/schema'
@@ -28,6 +29,7 @@ class RepositoryDetail extends Component {
     toggleCheck: PropTypes.func.isRequired,
     requestConfigValidation: PropTypes.func.isRequired,
     requestRefreshToken: PropTypes.func.isRequired,
+    requestReposIfNeeded: PropTypes.func.isRequired,
   };
 
   onToggleCheck(check, isChecked) {
@@ -39,13 +41,14 @@ class RepositoryDetail extends Component {
   }
 
   shouldRefreshToken(repo) {
-    this.props.requestRefreshToken(repo)
+    this.props.requestRefreshToken(repo, this.props.requestReposIfNeeded)
   }
 
   render() {
     if (!this.props.repository.full_name) return null
 
-    const {repository, checks, validations, isRefreshing} = this.props
+    const {repository, checks, validations} = this.props
+    const { isRefreshingToken } = checks;
     const header = (<h2>{repository.full_name}</h2>)
 
     return (
@@ -68,7 +71,7 @@ class RepositoryDetail extends Component {
             <ConfigValidation
               validation={validations[repository.full_name]}
               onValidate={this.onValidateConfig.bind(this, repository)}
-              isRefreshing={isRefreshing}
+              isRefreshing={isRefreshingToken}
               onRefreshToken={this.shouldRefreshToken.bind(this, repository)}
               />
               <span>Test</span>
@@ -96,4 +99,4 @@ class RepositoryDetail extends Component {
   }
 }
 
-export default connect(mapStateToProps, {toggleCheck, requestRefreshToken, requestConfigValidation})(RepositoryDetail)
+export default connect(mapStateToProps, {toggleCheck, requestRefreshToken, requestConfigValidation, requestReposIfNeeded})(RepositoryDetail)
