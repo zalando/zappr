@@ -16,9 +16,11 @@
     "build-client": "webpack --config webpack.client.js",
     "build-server": "webpack --config webpack.server.js",
     "clean": "rm -rf dist",
+    "debug-all": "run-p client 'build-server -- -dw' debug-server",
     "all": "run-p client 'build-server -- -dw' server",
     "client": "webpack-dev-server -d -w --history-api-fallback --inline --no-info --config webpack.client.js --content-base dist/client",
     "server": "nodemon dist/server/server.min.js --watch dist/server",
+    "debug-server": "node --inspect-brk dist/server/server.min.js",
     "start": "node dist/server/server.min.js",
     "scm": "scm-source > scm-source.json"
   },

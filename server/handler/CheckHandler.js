@@ -60,7 +60,8 @@ export class CheckHandler {
           where: {
             repositoryId: repoId
           },
-          returning: true
+          returning: true,
+          individualHooks: true
         });
     } catch(e) {
       throw new CheckHandlerError(REFRESH_TOKEN_ERROR, {repository: repoId}) 
