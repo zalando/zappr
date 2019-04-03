@@ -77,7 +77,7 @@ export default db.define('check', {
   },
   hooks: {
     beforeUpdate: encryptTokenHook,
-    beforeCreate: encryptTokenHook
+    beforeCreate: encryptTokenHook,
   }
 })
 

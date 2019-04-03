@@ -50,11 +50,24 @@ export class CheckHandler {
     }
   }
 
-  onRefreshTokens(repoIds, token) {
-    // noop for now
-    // implement this when we fucked up
-    return Promise.resolve()
+  async onRefreshTokens(repoId, user) {
+    const token = user.accessToken;
+    const userName = user.json.login;
+    debug(`refreshing token for all checks for repo ${repoId} w/ token ${token ? token.substr(0, 4) : 'NONE'} by user ${userName} `)
+    try {
+      return await Check.update({ token: token, created_by: userName },
+        {
+          where: {
+            repositoryId: repoId
+          },
+          returning: true,
+          individualHooks: true
+        });
+    } catch(e) {
+      throw new CheckHandlerError(REFRESH_TOKEN_ERROR, {repository: repoId}) 
+    }
   }
+
 
   /**
    * @param {Number} repoId - Repository ID

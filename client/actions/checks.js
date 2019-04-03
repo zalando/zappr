@@ -3,6 +3,8 @@ import { PENDING, SUCCESS, ERROR } from '../actions/status'
 
 export const PUT_CHECK = Symbol('put check')
 export const DELETE_CHECK = Symbol('delete check')
+export const REFRESH_TOKEN = Symbol('refresh token')
+
 
 function putCheck(status, payload = null) {
   return {
@@ -50,3 +52,35 @@ export function toggleCheck(check) {
     return disableCheck(check)
   }
 }
+
+function refreshToken(status, payload = null) {
+  return {
+    type: REFRESH_TOKEN,
+    status,
+    payload
+  }
+}
+
+function updateTokenForChecks(repo, reloadReposFn){
+  return (dispatch) => {
+    dispatch(refreshToken(PENDING, {}))
+    CheckService.refreshTokens(repo.id)
+                .then((successMsg) => {
+                  dispatch(refreshToken(SUCCESS, successMsg))
+                  dispatch(reloadReposFn(true))
+                })
+                .catch(err => dispatch(refreshToken(ERROR, err)))
+  }
+}
+
+/**
+ * Refresh access token with new user logged in (1% case)
+ * @param {*} repo - repository data
+ */
+export function requestRefreshToken(repo, reloadReposFn) {
+  if(repo) {
+    return updateTokenForChecks(repo, reloadReposFn)
+  } else {
+    return {}
+  }
+} 

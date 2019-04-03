@@ -72,6 +72,7 @@ export function changeMode(router) {
  * Authorization callback endpoint.
  */
 export function authorize(router) {
+  console.log("/auth/github/callback", router);
   return router.get('/auth/github/callback', passport.authenticate('github', {
     successRedirect: '/',
     failureRedirect: '/login?status=failure'

@@ -19,6 +19,7 @@ export default class CheckHandlerError extends Error {
       case CHECK_EXISTS: message = `Check ${type} already exists for repository ${repository}.`; break;
       case CHECK_NOT_FOUND: message = `Check ${type} not found.`; break;
       case DATABASE_ERROR: message = `An error occured while storing/loading a check. ${repository} ${type}`; break;
+      case REFRESH_TOKEN_ERROR: message = `An error occurred while updating access tokens for checks. ${repository}`; break;
     }
     super('Error during check processing')
     this.detail = message
