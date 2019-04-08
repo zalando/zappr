@@ -50,13 +50,13 @@ Until now there were two reasons why this happened:
 
 The person who enabled the Zappr check does not have access to the repository anymore, for whatever reason. Since Zappr stores a personal access token for every check (to communicate with GitHub during check execution), it's a problem if the permissions of this token change.
  
-**Solution**: Disable and enable the Zappr check to replace the stored token.
+**Solution**: Use REFRESH OAUTH TOKEN button to refresh the stored token.
 
 ### API errors
 
 Services Zappr depends on return http status code > 499.
 
-**Solution**: Disable and enable the Zappr check to retry the services call.
+**Solution**: Use REFRESH OAUTH TOKEN button to refresh the stored token and retry the services call.
 
 
 ### The case that happened only once
