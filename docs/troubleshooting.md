@@ -56,8 +56,7 @@ The person who enabled the Zappr check does not have access to the repository an
 
 Services Zappr depends on return http status code > 499.
 
-**Solution**: Use REFRESH OAUTH TOKEN button to refresh the stored token.
-
+**Solution**: Disable and enable the Zappr check to retry the services call.
 
 ### The case that happened only once
 
