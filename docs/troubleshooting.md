@@ -58,6 +58,7 @@ Services Zappr depends on return http status code > 499.
 
 **Solution**: Disable and enable the Zappr check to retry the services call.
 
+
 ### The case that happened only once
 
 There is a limit of 1000 status updates per combination of context (like `zappr`, `zappr/pr/specification`...) and commit ID. If there are A LOT of comments in a PR, this limit might be exceeded.
