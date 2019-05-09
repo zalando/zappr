@@ -42,7 +42,7 @@ It is customized by everything under `approvals`. The following options are supp
 
 * `minimum`: How many approvals a pull request needs before it is considered mergable. Defaults to 2.
 * `ignore`: Whether Zappr should ignore approvals by the `last_committer` on the pull request, the `pr_opener`, `both` or `none`. Defaults to `none`.
-* `pattern`: Since approvals are essentially comments that match a pattern, you can configure the pattern! It's a string that will be passed to Javascript's `RegExp` constructor and defaults to `^(:+1:|👍)$`. (Tip: If you're not sure about your regex, [regex101.com](https://regex101.com/) is great to test it.)
+* `pattern`: Since approvals are essentially comments that match a pattern, you can configure the pattern! It's a string that will be passed to Javascript's `RegExp` constructor and defaults to `^(:+1:|👍)$`. (Tip: If you're not sure about your regex, [regexr.com](https://regexr.com/) is great to test it.)
 * `from`: By default any comment that matches the pattern is considered an approval, regardless of the author. You can change this by
   * `organization`: list organizations under `orgs` that the author has to be a public member of
   * `usernames`: list usernames under `users`
