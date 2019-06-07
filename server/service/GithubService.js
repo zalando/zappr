@@ -268,7 +268,8 @@ export class GithubService {
   async updateWebhookFor(user, repo, events, accessToken) {
     debug(`${user}/${repo}: updating webhook with events: ${events.join(", ")}`)
     let path = API_URL_TEMPLATES.HOOK.replace('${owner}', user).replace('${repo}', repo)
-    let hook_url = nconf.get('HOST_ADDR') + '/api/hook'
+    const HOOK_URL = nconf.get('HOOK_URL')
+    let hook_url = HOOK_URL ? HOOK_URL : nconf.get('HOST_ADDR') + '/api/hook'
     // payload for hook
     let payload = {
       name: 'web',

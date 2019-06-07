@@ -30,6 +30,7 @@ Zappr provides a whole lot of configuration options for flexibility.
 * `GITHUB_HOOK_SECRET`: Secret value used to verify only Github calls Zappr
 * `GITHUB_UI_URL`: URL to Github web user interface
 * `GITHUB_API_URL`: URL to Github API
+* `HOOK_URL`: Optional explicit webhook url to use for receiving webhooks from Github. Required if there is a proxy or load balancer that receives traffic from the internet and forwards it to Zappr.
 
 ### Server
 

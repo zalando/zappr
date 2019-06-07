@@ -317,4 +317,75 @@ describe('The Github service', () => {
       }
     })
   })
+
+  describe('#updateWebhookFor', () => {
+    it('should build webhook url from host address', async(done) => {
+      try {
+        const USER = 'user'
+        const REPO = 'repo'
+        const TOKEN = 'token'
+
+        github.fetchPath.returns([])
+        nconf.set('HOOK_URL', null)
+
+        await github.updateWebhookFor(USER, REPO, [], TOKEN)    
+        expect(github.fetchPath.args).to.deep.equal([
+          ['GET', `/repos/${USER}/${REPO}/hooks`,
+            null,
+            TOKEN],
+          ['POST', `/repos/${USER}/${REPO}/hooks`,
+            {
+              name: 'web',
+              active: true,
+              events: [],
+              config: {
+                url: nconf.get('HOST_ADDR') + '/api/hook',
+                content_type: 'json',
+                secret: nconf.get('GITHUB_HOOK_SECRET')
+              }
+            },
+            TOKEN]
+        ])
+
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+
+    it('should use provided webhook url', async(done) => {
+      try {
+        const USER = 'user'
+        const REPO = 'repo'
+        const TOKEN = 'token'
+        const HOOK_URL = 'hookurl'
+
+        github.fetchPath.returns([])
+        nconf.set('HOOK_URL', HOOK_URL)
+
+        await github.updateWebhookFor(USER, REPO, [], TOKEN)
+        expect(github.fetchPath.args).to.deep.equal([
+          ['GET', `/repos/${USER}/${REPO}/hooks`,
+            null,
+            TOKEN],
+          ['POST', `/repos/${USER}/${REPO}/hooks`,
+            {
+              name: 'web',
+              active: true,
+              events: [],
+              config: {
+                url: HOOK_URL,
+                content_type: 'json',
+                secret: nconf.get('GITHUB_HOOK_SECRET')
+              }
+            },
+            TOKEN]
+        ])
+
+        done()
+      } catch (e) {
+        done(e)
+      }
+    })
+  })
 })
