@@ -6,6 +6,7 @@ cache:
     - node_modules
 services:
   - postgresql
+  - xvfb
 install:
   - npm install
   - npm install pg
