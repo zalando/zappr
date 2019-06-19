@@ -13,7 +13,6 @@ install:
 before_script:
   # set up for headless firefox
   - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
   # change postgres user password
   - psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" -U postgres
   # create database and schema
