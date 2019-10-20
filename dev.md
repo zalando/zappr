@@ -19,7 +19,7 @@ In case you use localtunnel as your VPN, set the `Authorization callback URL` in
 ## Database Setup
 Zappr needs a database during development and testing. For this reason there's a `docker-compose.yaml`
 for your convenience, with which you can either start a database for development (`postgres-dev`) **or** testing: (`postgres-test`).  
-Since dev and test database share the same port, you should either change the port of one of the databases in the `docker-compose.yaml`.  
+Since dev and test database share the same port, you should change the port of one of the databases in the `docker-compose.yaml`.  
 Example:
 ```yaml
   ...
@@ -100,21 +100,21 @@ You need **3** separate Terminals to start zappr using this approach.
 $ ./run-zappr-local-terminal01.sh
 ~~~
 The script starts a docker machine and a developer database.
-Stop the script is blocking - stop it with CTRL-C.
+The script is blocking - stop it with CTRL-C.
 
 - In Terminal 2
 ~~~ bash
 $ ./run-zappr-local-terminal02.sh
 ~~~
 The script populates database data and runs the starts zappr using NPM.
-Stop the script is blocking - stop it with CTRL-C.
+The script is blocking - stop it with CTRL-C.
 
 - In Terminal 3
 ~~~ bash
 $ ./run-zappr-local-terminal03.sh
 ~~~
 The script sets up the tunnel using _localtunnel.me_ .
-Stop the script is blocking - stop it with CTRL-C.
+The script is blocking - stop it with CTRL-C.
 
 ### NPM
  - Precondition VPN Setup
@@ -224,6 +224,8 @@ Workaround:
 # e.g.
 docker-machine create -d "virtualbox" default
 ~~~
+
+For this step to work you need Virtualbox installed. You can download it here: https://www.virtualbox.org/wiki/Downloads
 
 ### Can't connect to docker daemon
 
