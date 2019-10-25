@@ -29,7 +29,7 @@ export default class Approval extends Check {
   static TYPE = 'approval'
   static CONTEXT = context
   static NAME = 'Approval check'
-  static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT]
+  static HOOK_EVENTS = [EVENTS.PULL_REQUEST, EVENTS.ISSUE_COMMENT, EVENTS.PULL_REQUEST_REVIEW]
 
   /**
    * @param {GithubService} github
@@ -48,7 +48,7 @@ export default class Approval extends Check {
    * and returns it if it exists. Otherwise creates and returns a new one.
    *
    * @param dbRepoId The db id for the repository
-   * @param {RepositoryHandler} Numbe/github identifier of the pull request
+   * @param number github identifier of the pull request
    * @returns {Object} The pull request information stored/created in the database.
    */
   async getOrCreateDbPullRequest(dbRepoId, number) {
@@ -118,26 +118,25 @@ export default class Approval extends Check {
   }
 
   /**
-   * Returns the comment if it matches the config, null otherwise.
+   * Returns `true` if username is in the config, false `otherwise`.
    */
-  async doesCommentMatchConfig(repository, comment, fromConfig, token) {
+  async doesUsernameMatchConfig(repository, username, fromConfig, token) {
     // persons must either be listed explicitly in users OR
     // be a collaborator OR
     // member of at least one of listed orgs
     const {orgs, collaborators, users} = fromConfig
-    const username = comment.user
     const {full_name} = repository
     // first do the quick username check
     if (users && users.indexOf(username) >= 0) {
       debug(`${full_name}: ${username} is listed explicitly`)
-      return comment
+      return true
     }
     // now collaborators
     if (collaborators) {
       const isCollaborator = await this.github.isCollaborator(repository.owner.login, repository.name, username, token)
       if (isCollaborator) {
         debug(`${full_name}: ${username} is collaborator`)
-        return comment
+        return true
       }
     }
     // and orgs
@@ -145,12 +144,12 @@ export default class Approval extends Check {
       const orgMember = await Promise.all(orgs.map(o => this.github.isMemberOfOrg(o, username, token)))
       if (orgMember.indexOf(true) >= 0) {
         debug(`${full_name}: ${username} is org member`)
-        return comment
+        return true
       }
     }
     debug(`${full_name}: ${username}'s approval does not count`)
     // okay, no member of anything
-    return null
+    return false
   }
 
   /**
@@ -168,7 +167,7 @@ export default class Approval extends Check {
     async function checkComment(stats, comment) {
       let matchesTotal = false
       if (config.from) {
-        matchesTotal = await that.doesCommentMatchConfig(repository, comment, config.from, token)
+        matchesTotal = await that.doesUsernameMatchConfig(repository, comment.user, config.from, token)
         if (matchesTotal) {
           info(`${repository.full_name}: Counting ${comment.user}'s comment`)
           stats.total.push(comment.user)
@@ -184,7 +183,7 @@ export default class Approval extends Check {
           if (!stats.groups[group]) {
             stats.groups[group] = []
           }
-          const matchesGroup = await that.doesCommentMatchConfig(repository, comment, config.groups[group].from, token)
+          const matchesGroup = await that.doesUsernameMatchConfig(repository, comment.user, config.groups[group].from, token)
           if (matchesGroup) {
             // counting this as total as well if it didn't before
             if (!matchesTotal) {
@@ -209,63 +208,93 @@ export default class Approval extends Check {
    *
    * @param repository The repository
    * @param pull_request The pull request
-   * @param comments The comments to process
+   * @param entries The comments or reviews to process
    * @param config The approval configuration
    * @param token The access token to use
    * @returns {Object} Object of the shape {approvals: {total: int, groups: { groupName: int }}, vetos: int }
    */
-  async countApprovalsAndVetos(repository, pull_request, comments, config, token) {
+  async countApprovalsAndVetos(repository, pull_request, entries, config, token) {
     const ignore = await this.fetchIgnoredUsers(repository, pull_request, config, token)
     const approvalPattern = config.pattern
     const vetoPattern = _.get(config, 'veto.pattern')
 
     const fullName = `${repository.full_name}`
-    // slightly unperformant filtering here:
-    const containsAlreadyCommentByUser = (c1, i, cmts) => i === cmts.findIndex(c2 => c1.user === c2.user)
-    // filter ignored users
-    const potentialApprovalComments = comments.filter(comment => {
-                                                const login = comment.user
-                                                // comment is ignored if login is in ignored list or matches a global ignored regex array
-                                                const include = (ignore.indexOf(login) === -1 && commenterIsNotIgnored(login));
-                                                if (!include) {
-                                                  info('%s: Ignoring user: %s.', fullName, login)
-                                                }
-                                                return include
-                                              })
-                                              // get comments that match specified approval pattern
-                                              // TODO add unicode flag once available in node
-                                              .filter(comment => {
-                                                const text = comment.body.trim()
-                                                const include = (new RegExp(approvalPattern)).test(text)
-                                                if (!include) {
-                                                  info('%s: %s\'s comment "%s" does not match pattern "%s".', fullName, comment.user, text.substring(0, 16), approvalPattern)
-                                                }
-                                                return include
-                                              })
-                                              // kicking out multiple approvals from same person
-                                              .filter(containsAlreadyCommentByUser)
 
+    const containsAlreadyEntryByUser = (c1, i, cmts) => i === cmts.findIndex(c2 => c1.user === c2.user)
+    const potentialApprovals = entries.filter(entry => {
+                                        const login = entry.user
+                                        // entry is ignored if login is in ignored list or matches a global ignored regex array
+                                        const include = (ignore.indexOf(login) === -1 && commenterIsNotIgnored(login));
+                                        if (!include) {
+                                          info('%s: Ignoring user: %s.', fullName, login)
+                                        }
+                                        return include
+                                      })
+                                      // get comments that match specified approval pattern
+                                      // TODO add unicode flag once available in node
+                                      .filter(entry => {
+                                        const text = entry.body.trim()
+                                        if (entry.state) {
+                                          // `state` is available only for 'reviews' and is not for 'comments'
+                                          return entry.state === 'APPROVED'
+                                        } else {
+                                          const include = (new RegExp(approvalPattern)).test(text)
+                                          if (!include) {
+                                            info('%s: %s\'s comment "%s" does not match pattern "%s".', fullName, entry.user, text.substring(0, 16), approvalPattern)
+                                          }
+                                          return include
+                                        }
+                                      })
+                                      // reverse the order to preserve newest entries
+                                      .reverse()
+                                      // kicking out multiple approvals from same person
+                                      .filter(containsAlreadyEntryByUser)
+
+    const potentialVetos = vetoPattern ?
+      entries.filter(entry => {
+                if (entry.state) {
+                  // `state` is available only for 'reviews' and is not for 'comments'
+                  return entry.state === 'CHANGES_REQUESTED'
+                } else {
+                  const text = entry.body.trim()
+                  const include = (new RegExp(vetoPattern)).test(text)
+                  return include
+                }
+              })
+              // reverse the order to preserve newest entries
+              .reverse()
+              // kicking out multiple vetos from same person
+              .filter(containsAlreadyEntryByUser) : []
+
+    /**
+     * At this point we want to filter `potentialVetos` and `potentialApprovals`
+     * once more, based on selection in them. Approval can filter +1 out, as well as code change
+     * requirement should drop approvals
+     */
+    
+    const approvalsToUse = potentialApprovals.filter(a => {
+      const approvalTime = a.submitted_at || a.created_at
+      return potentialVetos.every(v => {
+        const vetoTime = v.submitted_at || v.created_at
+        return new Date(vetoTime) < new Date(approvalTime) || a.user !== v.user
+      })
+    })
+
+    const vetosToUse = potentialVetos.filter(v => {
+      const vetoTime = v.submitted_at || v.created_at
+      return potentialApprovals.every(a => {
+        const approvalTime = a.submitted_at || a.created_at
+        return new Date(vetoTime) > new Date(approvalTime) || a.user !== v.user
+      })
+    })
 
     const approvals = (config.from || config.groups) ?
-      await this.getCommentStatsForConfig(repository, potentialApprovalComments, config, token) :
-    {total: potentialApprovalComments.map(c => c.user)}
+      await this.getCommentStatsForConfig(repository, approvalsToUse, config, token) :
+      {total: approvalsToUse.map(c => c.user)}
 
-
-    let vetos = []
-    if (vetoPattern) {
-      const potentialVetoComments = comments.filter(comment => {
-                                              const text = comment.body.trim()
-                                              const include = (new RegExp(vetoPattern)).test(text)
-                                              return include
-                                            })
-                                            // kicking out multiple vetos from same person
-                                            .filter(containsAlreadyCommentByUser)
-
-      vetos = (config.from || config.groups) ?
-        (await this.getCommentStatsForConfig(repository, potentialVetoComments, config, token)).total :
-        potentialVetoComments.map(c => c.user)
-
-    }
+    const vetos = vetoPattern ? (config.from || config.groups) ?
+      (await this.getCommentStatsForConfig(repository, vetosToUse, config, token)).total :
+      vetosToUse.map(c => c.user) : []
 
     return {
       approvals,
@@ -323,7 +352,19 @@ export default class Approval extends Check {
     const user = repository.owner.login
     const upstreamComments = await this.github.getComments(user, repository.name, pull_request.number, formatDate(last_push), token)
     const comments = [...frozenComments, ...upstreamComments].filter((c, idx, array) => idx === array.findIndex(c2 => c.id === c2.id))
-    return await this.countApprovalsAndVetos(repository, pull_request, comments, config.approvals, token)
+
+    const upstreamReviews = await this.github.getReviews(user, repository.name, pull_request.number, formatDate(last_push), token)
+
+    const entries = [...comments, ...upstreamReviews].sort((a, b) => {
+      // created_at for comments and submitted_at for reviews
+      const aTime = a.created_at || a.submitted_at
+      const bTime = b.created_at || b.submitted_at
+      return new Date(aTime) - new Date(bTime)
+    })
+
+    const approvalsAndVetos = await this.countApprovalsAndVetos(repository, pull_request, entries, config.approvals, token)
+
+    return approvalsAndVetos
   }
 
   /**
@@ -384,10 +425,10 @@ export default class Approval extends Check {
    * @param dbRepoId The database ID of the affected repository
    */
   async execute(config, event, hookPayload, token, dbRepoId) {
-    const {action, repository, pull_request, number, issue} = hookPayload
+    const {action, repository, pull_request, number = pull_request.number} = hookPayload
     const repoName = repository.name
     const user = repository.owner.login
-    const {minimum} = config.approvals
+    const { minimum } = config.approvals
     let sha = ''
     const pendingPayload = {
       state: 'pending',
@@ -430,7 +471,7 @@ export default class Approval extends Check {
             const approvals = {total: []}
             const vetos = []
             const status = Approval.generateStatus({approvals, vetos}, config.approvals)
-            await this.github.setCommitStatus(user, repoName, sha, status, token)
+            await this.github.setCommitStatus(user, repoName, sha, status, token) // TODO: seems unnecessary
             await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
                                                                                   .withResult({
                                                                                     approvals,
@@ -474,33 +515,34 @@ export default class Approval extends Check {
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
         }
         // on an issue comment
-      } else if (event === EVENTS.ISSUE_COMMENT) {
+      } else if (event === EVENTS.ISSUE_COMMENT || event === EVENTS.PULL_REQUEST_REVIEW) {
         // check it belongs to an open pr
-        const pr = await this.github.getPullRequest(user, repoName, issue.number, token)
+        const pr = await this.github.getPullRequest(user, repoName, number, token)
         if (!pr || pr.state !== 'open') {
-          debug(`${repository.full_name}#${issue.number}: Ignoring comment, not a PR`)
+          debug(`${repository.full_name}#${number}: Ignoring comment, not a PR`)
           return
         }
-        const author = hookPayload.comment.user.login
+
+        const author = hookPayload.comment ? hookPayload.comment.user.login : hookPayload.review.user.login
         if (!commenterIsNotIgnored(author)) {
-          debug(`${repository.full_name}#${issue.number}: Ignoring comment, it was created by a robot user.`)
+          debug(`${repository.full_name}#${number}: Ignoring comment, it was created by a robot user.`)
           return
         }
         sha = pr.head.sha
         // set status to pending first
         await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
         // read last push date from db
-        const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, issue.number)
+        const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, number)
         // read frozen comments and update if appropriate
         const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
-        const commentId = hookPayload.comment.id
+        const commentId = hookPayload.comment ? hookPayload.comment.id : hookPayload.review.id
         const commentAlreadyFrozen = frozenComments.map(comment => comment.id).indexOf(commentId) !== -1
         if (['edited', 'deleted'].indexOf(action) !== -1 && !commentAlreadyFrozen) {
           // check if it was edited by someone else than the original author
           const editor = hookPayload.sender.login
           if (editor !== author) {
             // OMFG
-            const comment = toGenericComment(hookPayload.comment)
+            const comment = toGenericComment(hookPayload.comment || hookPayload.review)
             const frozenComment = {
               id: commentId,
               body: action === 'edited' ? hookPayload.changes.body.from : comment.body,
@@ -511,15 +553,16 @@ export default class Approval extends Check {
             if (new Date(comment.created_at) > dbPR.last_push) {
               frozenComments.push(frozenComment)
             }
-            info(`${repository.full_name}#${issue.number}: ${editor} ${action} ${author}'s comment ${commentId}, it's now frozen.`)
+            info(`${repository.full_name}#${number}: ${editor} ${action} ${author}'s comment ${commentId}, it's now frozen.`)
           }
         }
-        debug(`${repository.full_name}#${issue.number}: Comment added`)
+        debug(`${repository.full_name}#${number}: Comment added`)
         await this.fetchApprovalsAndSetStatus(repository, pr, dbPR.last_push, config, token, frozenComments)
       }
     }
     catch (e) {
       error(e)
+      console.error({'`execute` error': e})
       await this.github.setCommitStatus(user, repoName, sha, {
         state: 'error',
         context,
