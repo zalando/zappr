@@ -425,7 +425,7 @@ export default class Approval extends Check {
    * @param dbRepoId The database ID of the affected repository
    */
   async execute(config, event, hookPayload, token, dbRepoId) {
-    const {action, repository, pull_request, number = pull_request.number} = hookPayload
+    const {action, repository, pull_request = {}, number = pull_request.number} = hookPayload
     const repoName = repository.name
     const user = repository.owner.login
     const { minimum } = config.approvals
