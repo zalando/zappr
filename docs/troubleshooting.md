@@ -56,7 +56,7 @@ The person who enabled the Zappr check does not have access to the repository an
 
 Services Zappr depends on return http status code > 499.
 
-**Solution**: Disable and enable the Zappr check to retry the services call.
+**Solution**: Login to Zappr; Let the repository sync finish; Select the repository; on the right side disable and enable the Zappr check to retry the services call.
 
 
 ### The case that happened only once
