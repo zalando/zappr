@@ -22,7 +22,7 @@ To help you decide if Zappr's the right tool for your use case, we've compared i
 
 ## LGTM
 
-**Deprecated** : [lgtm.co](https://lgtm.co) is no longer available, and the [source code](https://github.com/lgtmco/lgtm) for the project has been marked as archived. As the semmle, the company owning LGTM, has joined forces with GitHub, we might expect to see similar features integrated with GitHub natively at some point.
+**Deprecated** : [lgtm.co](https://lgtm.co) is no longer available, and the [source code](https://github.com/lgtmco/lgtm) for the project has been marked as *archived*. As [semmle](https://semmle.com/), the company owning LGTM, has joined forces with GitHub, we might expect to see similar features integrated into GitHub natively at some point.
 
 [LGTM](https://lgtm.co/docs/overview/) works in a fashion very similar to Zappr. Some differences to note:
  
