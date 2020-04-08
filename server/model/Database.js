@@ -117,6 +117,9 @@ export const db = new Database(
   nconf.get('DB_PASS'),
   {
     dialect: "postgres",
+    dialectOptions: {
+      ssl: nconf.get('DB_SSL') === 'true' || nconf.get('DB_SSL') === true
+    },
     host: nconf.get('DB_HOST'),
     port: nconf.get('DB_PORT'),
     logging: log,
