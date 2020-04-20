@@ -48,9 +48,9 @@ Until now there were two reasons why this happened:
 
 ### The 99% case
 
-The person who enabled the Zappr check does not have access to the repository anymore, for whatever reason. Since Zappr stores a personal access token for every check (to communicate with GitHub during check execution), it's a problem if the permissions of this token change.
+The person who enabled the Zappr check does not have access to the repository anymore, or his OAuth GitHub token gets expired. Since Zappr stores a personal access token for every check (to communicate with GitHub during check execution), a check will stop working if its token cannot be used to communicate with GitHub anymore.
  
-**Solution**: Use REFRESH OAUTH TOKEN button to refresh the stored token.
+**Solution**: Use REFRESH OAUTH TOKEN button to refresh the stored token or disable / enable the check.
 
 ### API errors
 
