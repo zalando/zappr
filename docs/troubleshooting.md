@@ -52,7 +52,7 @@ The person who enabled the Zappr check does not have access to the repository an
  
   **Solution**: 
   - Use REFRESH OAUTH TOKEN button to refresh the stored token or disable / enable the check .
-  - close and re-open the pull request.
+  - Close and re-open the pull request.
 
 ### API errors
 
