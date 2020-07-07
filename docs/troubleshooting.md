@@ -50,13 +50,15 @@ Until now there were two reasons why this happened:
 
 The person who enabled the Zappr check does not have access to the repository anymore, or his OAuth GitHub token gets expired. Since Zappr stores a personal access token for every check (to communicate with GitHub during check execution), a check will stop working if its token cannot be used to communicate with GitHub anymore.
  
-**Solution**: Use REFRESH OAUTH TOKEN button to refresh the stored token or disable / enable the check.
+**Workaround**: 
+  - Use REFRESH OAUTH TOKEN button to refresh the stored token or disable/enable the check.
+  - Close and re-open the pull request.
 
 ### API errors
 
 Services Zappr depends on return http status code > 499.
 
-**Solution**: Login to Zappr; Let the repository sync finish; Select the repository; on the right side disable and enable the Zappr check to retry the services call.
+**Workaround**: Login to Zappr; Let the repository sync finish; Select the repository; on the right side disable and enable the Zappr check to retry the services call.
 ![Zappr 99% case](img/troubleshooting/99percentcase.png)¬
 
 
@@ -64,4 +66,4 @@ Services Zappr depends on return http status code > 499.
 
 There is a limit of 1000 status updates per combination of context (like `zappr`, `zappr/pr/specification`...) and commit ID. If there are A LOT of comments in a PR, this limit might be exceeded.
 
-**Solution**: Add an additional commit to the PR.
+**Workaround**: Add an additional commit to the PR.
