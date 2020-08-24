@@ -117,7 +117,7 @@
     "lodash": "4.17.5",
     "moment": "^2.8.3",
     "nconf": "0.8.4",
-    "node-tokens": "0.0.9",
+    "node-tokens": "0.0.16",
     "node-uuid": "1.4.7",
     "normalizr": "2.2.0",
     "passport": "0.3.2",
