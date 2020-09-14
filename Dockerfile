@@ -1,4 +1,4 @@
-FROM registry.opensource.zalan.do/stups/node:6.9-cd35
+FROM registry.opensource.zalan.do/stups/node:12.16.1-50
 
 RUN apt-get update && apt-get dist-upgrade -y
 
