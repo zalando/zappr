@@ -5,4 +5,4 @@ approvals:
       from:
         orgs:
           - zalando
-X-Zalando-Team: opensource
+X-Zalando-Team: machinery
