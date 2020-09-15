@@ -88,7 +88,7 @@
     "temp": "0.8.3",
     "url-loader": "0.5.7",
     "webpack": "1.13.1",
-    "webpack-dev-server": "1.16.5",
+    "webpack-dev-server": "3.1.11",
     "winston": "2.2.0"
   },
   "dependencies": {
