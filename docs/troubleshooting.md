@@ -34,6 +34,7 @@ And Zappr's status looks like this:
 Then you need to make sure that
 
 * This organization exists in the GitHub instance (github.com or your GHE)
+* The approval was made by adding a "normal" comment to the Pull Request **not** by using a review comment
 * Everybody who is supposed to approve is a **public** member of this organization
 
 You can change and verify the membership visibility at `<GITHUB INSTANCE>/orgs/<YOUR ORG>/people` (e.g. [github.com/orgs/zalando/people](https://github.com/orgs/zalando/people)).
