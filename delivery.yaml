@@ -1,5 +1,7 @@
-build_steps:
-  - desc: Build
+version: "2017-09-20"
+pipeline:
+  - id: Build
+    type: script
     env:
      GITHUB_TOKEN:
        secret_id: "gh_test"
