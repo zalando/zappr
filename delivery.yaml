@@ -10,7 +10,7 @@ pipeline:
   commands:
   - desc: Build
     cmd: |
-      wget https://github.com/github/codeql-action/releases/latest/download/codeql-runner-linux
+      wget -q https://github.com/github/codeql-action/releases/latest/download/codeql-runner-linux
       chmod +x codeql-runner-linux
       ./codeql-runner-linux init --repository "zalando/zappr" --github-url https://github.com --github-auth "$GITHUB_TOKEN"
       COMMIT=`git rev-parse HEAD`
