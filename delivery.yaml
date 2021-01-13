@@ -7,7 +7,7 @@ pipeline:
        secret_id: "gh_test"
        secret_version: "51d07aad-0b9f-423d-b987-b53868308721"
        available_in_pull_requests: true
-    cmd: |
+    commands: |
       wget https://github.com/github/codeql-action/releases/latest/download/codeql-runner-linux
       chmod +x codeql-runner-linux
       ./codeql-runner-linux init --repository "zalando/zappr" --github-url https://github.com --github-auth "$GITHUB_TOKEN"
