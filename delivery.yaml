@@ -15,7 +15,7 @@ pipeline:
       ./codeql-runner-linux init --repository "zalando/zappr" --github-url https://github.com --github-auth "$GITHUB_TOKEN"
       COMMIT=`git rev-parse HEAD`
       echo "$COMMIT"
-      ./codeql-runner-linux analyze --repository "zalando/zappr" --github-url https://github.com --github-auth "$GITHUB_TOKEN" --commit "$COMMIT" --ref "refs/heads/main"
+      ./codeql-runner-linux analyze --repository "zalando/zappr" --github-url https://github.com --github-auth "$GITHUB_TOKEN" --commit "$COMMIT" --ref "refs/heads/master"
 
       #function npm {
       #  docker run -i --rm -v "$(pwd):/workspace" -w /workspace registry.opensource.zalan.do/stups/node:latest npm "$@"
