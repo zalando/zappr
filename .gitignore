@@ -115,3 +115,6 @@ scm-source.json
 *.secret
 .env.properties
 
+# codeql
+codeql-runner-linux
+codeql-runner
