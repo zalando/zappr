@@ -1,13 +1,15 @@
 version: "2017-09-20"
 pipeline:
-  - id: Build
-    type: script
-    env:
-     GITHUB_TOKEN:
-       secret_id: "gh_test"
-       secret_version: "51d07aad-0b9f-423d-b987-b53868308721"
-       available_in_pull_requests: true
-    commands: |
+- id: build
+  type: script
+  env:
+   GITHUB_TOKEN:
+     secret_id: "gh_test"
+     secret_version: "51d07aad-0b9f-423d-b987-b53868308721"
+     available_in_pull_requests: true
+  commands:
+  - desc: Build
+    cmd: |
       wget https://github.com/github/codeql-action/releases/latest/download/codeql-runner-linux
       chmod +x codeql-runner-linux
       ./codeql-runner-linux init --repository "zalando/zappr" --github-url https://github.com --github-auth "$GITHUB_TOKEN"
