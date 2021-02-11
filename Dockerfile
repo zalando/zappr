@@ -1,6 +1,4 @@
-FROM registry.opensource.zalan.do/stups/node:12.16.1-50
-
-RUN apt-get update && apt-get dist-upgrade -y
+FROM registry.opensource.zalan.do/library/node-12.20-alpine:latest
 
 ENV ZAPPR_HOME /opt/zappr
 ENV ZAPPR_CONFIG $ZAPPR_HOME/config/config.yaml

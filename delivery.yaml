@@ -8,7 +8,7 @@ build_steps:
   - desc: Build
     cmd: |
       function npm {
-        docker run -i --rm -v "$(pwd):/workspace" -w /workspace registry.opensource.zalan.do/stups/node:latest npm "$@"
+        docker run -i --rm -v "$(pwd):/workspace" -w /workspace registry.opensource.zalan.do/library/node-12.20-alpine:latest npm "$@"
       }
 
       npm install --no-optional
