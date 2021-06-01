@@ -1,26 +1,30 @@
-build_steps:
-  - desc: Prepare
-    cmd: |
-      curl -o /tmp/ensure-docker -f https://delivery.cloud.zalando.com/utils/ensure-docker
-      chmod +x /tmp/ensure-docker
-      /tmp/ensure-docker
+version: "2017-09-20"
 
-  - desc: Build
-    cmd: |
-      function npm {
-        docker run -i --rm -v "$(pwd):/workspace" -w /workspace registry.opensource.zalan.do/library/node-12.20-alpine:latest npm "$@"
-      }
+dependencies:
+  - id: node
+    type: docker
+    ref: registry.opensource.zalan.do/library/node-12.20-alpine
 
-      npm install --no-optional
-      npm run dist
+pipeline:
+  - id: build_and_publish
+    type: script
+    commands:
 
-  - desc: Publish Docker image
-    cmd: |
-      COMMIT_ID="$(git log --format='%H' -n 1 | cut -c 1-7)"
-      if [[ "${CDP_TARGET_BRANCH}" = "master" && -z "${CDP_PULL_REQUEST_NUMBER}" ]]; then
-        IMAGE_NAME="registry-write.opensource.zalan.do/machinery/zappr:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
-      else
-        IMAGE_NAME="registry-write.opensource.zalan.do/machinery/zappr-pr-test:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
-      fi
-      docker build -t "${IMAGE_NAME}" .
-      docker push "${IMAGE_NAME}"
+      - desc: Build
+        cmd: |
+          function npm {
+            docker run -i --rm -v "$(pwd):/workspace" -w /workspace registry.opensource.zalan.do/library/node-12.20-alpine:latest npm "$@"
+          }
+          npm install --no-optional
+          npm run dist
+
+      - desc: Publish Docker image
+        cmd: |
+          COMMIT_ID="$(git log --format='%H' -n 1 | cut -c 1-7)"
+          if [[ "${CDP_TARGET_BRANCH}" = "master" && -z "${CDP_PULL_REQUEST_NUMBER}" ]]; then
+            IMAGE_NAME="registry-write.opensource.zalan.do/machinery/zappr:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
+          else
+            IMAGE_NAME="registry-write.opensource.zalan.do/machinery/zappr-pr-test:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
+          fi
+          docker build -t "${IMAGE_NAME}" .
+          docker push "${IMAGE_NAME}"
