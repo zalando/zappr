@@ -9,11 +9,6 @@ pipeline:
   - id: build_and_publish
     type: script
     commands:
-      - desc: Prepare
-        cmd: |
-          curl -o /tmp/ensure-docker -f https://delivery.cloud.zalando.com/utils/ensure-docker
-          chmod +x /tmp/ensure-docker
-          /tmp/ensure-docker
 
       - desc: Build
         cmd: |
