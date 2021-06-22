@@ -220,7 +220,7 @@ describe('Approval#fetchCountApprovalsAndVetos', () => {
 
   it('should properly merge frozen comments', async(done) => {
     try {
-      const approval = new Approval({getComments: sinon.stub().returns(comments)}, null)
+      const approval = new Approval({getComments: sinon.stub().returns(comments), getReviews: sinon.stub().returns({})}, null)
       approval.countApprovalsAndVetos = sinon.stub()
       // repository, pull_request, last_push, frozenComments, config, token
       await approval.fetchAndCountApprovalsAndVetos(DEFAULT_REPO, PR_PAYLOAD.pull_request, DB_PR.last_push, frozenComments, DEFAULT_CONFIG, TOKEN)
@@ -255,7 +255,7 @@ describe('Approval#countApprovalsAndVetos', () => {
   it('should honor the provided pattern', async(done) => {
     try {
       const approval = new Approval(null, null)
-      const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, {}, comments, DEFAULT_CONFIG.approvals)
+      const {approvals} = await approval.countApprovalsAndVetos(DEFAULT_REPO, {}, comments, {}, DEFAULT_CONFIG.approvals)
       expect(approvals).to.deep.equal({total: ['mfellner']})
       done()
     } catch (e) {
@@ -420,6 +420,7 @@ describe('Approval#execute', () => {
       user: 'mr-foo',
       id: 4
     }])
+    github.getReviews = sinon.stub().returns({})
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
       await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
@@ -474,6 +475,7 @@ describe('Approval#execute', () => {
       user: 'bar',
       id: 3
     }])
+    github.getReviews = sinon.stub().returns({})
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
       await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
@@ -524,6 +526,7 @@ describe('Approval#execute', () => {
       user: 'bar-robot',
       id: 3
     }])
+    github.getReviews = sinon.stub().returns({})
     github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
     try {
       await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
@@ -613,6 +616,7 @@ describe('Approval#execute', () => {
       PR_PAYLOAD.action = 'reopened'
       github.fetchPullRequestCommits = sinon.stub().returns([])
       github.getComments = sinon.stub().returns([])
+      github.getReviews = sinon.stub().returns({})
       approval.countApprovalsAndVetos = sinon.stub().returns({
         approvals: {total: ['red', 'blue', 'green', 'yellow']},
         vetos: []
@@ -840,6 +844,7 @@ describe('Approval#execute', () => {
         github.getPullRequest = sinon.stub()
           .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, pullRequestNumber, TOKEN)
           .returns(pullRequest)
+        github.getReviews = sinon.stub().returns({})
         pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
           .withArgs(DB_REPO_ID, pullRequestNumber)
           .returns(DB_PR)
@@ -935,6 +940,7 @@ describe('Approval#execute', () => {
       github.getPullRequest = sinon.stub()
                                    .withArgs(DEFAULT_REPO.owner.login, DEFAULT_REPO.name, MALICIOUS_PAYLOAD.issue.number, TOKEN)
                                    .returns(PR_PAYLOAD.pull_request)
+      github.getReviews = sinon.stub().returns({})
       pullRequestHandler.getOrCreateDbPullRequest = sinon.stub()
                                                          .withArgs(DB_REPO_ID, MALICIOUS_PAYLOAD.issue.number)
                                                          .returns(DB_PR)
