@@ -214,7 +214,7 @@ export default class Approval extends Check {
    * @param token The access token to use
    * @returns {Object} Object of the shape {approvals: {total: int, groups: { groupName: int }}, vetos: int }
    */
-  async countApprovalsAndVetos(repository, pull_request, comments, config, token) {
+  async countApprovalsAndVetos(repository, pull_request, comments, reviews, config, token) {
     const ignore = await this.fetchIgnoredUsers(repository, pull_request, config, token)
     const approvalPattern = config.pattern
     const vetoPattern = _.get(config, 'veto.pattern')
@@ -322,8 +322,9 @@ export default class Approval extends Check {
   async fetchAndCountApprovalsAndVetos(repository, pull_request, last_push, frozenComments, config, token) {
     const user = repository.owner.login
     const upstreamComments = await this.github.getComments(user, repository.name, pull_request.number, formatDate(last_push), token)
+    const upstreamReviews = await this.github.getReviews(user, repository.name, pull_request.number, token)
     const comments = [...frozenComments, ...upstreamComments].filter((c, idx, array) => idx === array.findIndex(c2 => c.id === c2.id))
-    return await this.countApprovalsAndVetos(repository, pull_request, comments, config.approvals, token)
+    return await this.countApprovalsAndVetos(repository, pull_request, comments, upstreamReviews, config.approvals, token)
   }
 
   /**

@@ -2,7 +2,7 @@ import path from 'path'
 import nconf from '../nconf'
 import { Counter } from 'prom-client'
 import GithubServiceError, { GithubBranchProtectedError } from './GithubServiceError'
-import { joinURL, promiseFirst, decode, encode, getIn, toGenericComment } from '../../common/util'
+import {joinURL, promiseFirst, decode, encode, getIn, toGenericComment, toGenericReview} from '../../common/util'
 import { logger } from '../../common/debug'
 import { request } from '../util'
 
@@ -39,7 +39,8 @@ const API_URL_TEMPLATES = {
   BRANCH: '/repos/${owner}/${repo}/branches/${branch}',
   COMMITS: '/repos/${owner}/${repo}/git/commits',
   REPOS: '/user/repos?page=${page}&visibility=all',
-  REPO_BY_ID: '/repositories/${id}'
+  REPO_BY_ID: '/repositories/${id}',
+  REVIEWS: '/repos/${owner}/${repo}/pulls/${number}/reviews'
 }
 
 export class GithubService {
@@ -60,7 +61,7 @@ export class GithubService {
 
   /**
    * Checks if a given statusCode from a response is OK
-   * @param {Number} statusCode 
+   * @param {Number} statusCode
    * @returns {Boolean} returns if given StatusCode is OK.
    */
   isOK(statusCode) {
@@ -206,6 +207,16 @@ export class GithubService {
     }
     // return generic comments
     return comments.map(toGenericComment)
+  }
+
+  async getReviews(user, repo, number, accessToken){
+    let path = API_URL_TEMPLATES.REVIEWS
+                                .replace('${owner}', user)
+                                .replace('${repo}', repo)
+                                .replace('${number}', number)
+
+    const reviews = await this.fetchPath('GET', path, null, accessToken)
+    return reviews.map(toGenericReview)
   }
 
 
