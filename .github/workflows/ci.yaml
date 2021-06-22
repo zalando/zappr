@@ -11,7 +11,8 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-20.04
-    container: node:12.22
+    container:
+      image: node:12.22
     services:
       postgres:
         image: postgres:9.4
@@ -33,7 +34,7 @@ jobs:
           PGPASSWORD: postgres
         run: |
           apt update
-          apt install -qy postgresql-client libgtk-3-0 libdbus-glib-1-2
+          apt install -qy postgresql-client libgtk-3-0 libdbus-glib-1-2 sudo
           wget -O FirefoxSetup.tar.bz2 "https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US"
           mkdir /opt/firefox
           tar xjf FirefoxSetup.tar.bz2 -C /opt/firefox/
@@ -50,4 +51,4 @@ jobs:
           KARMA_BROWSER: FirefoxHeadless
         run: |
           npm test
-          npm run test-karma
+          sudo -E npm run test-karma
