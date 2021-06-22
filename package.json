@@ -61,9 +61,9 @@
     "http-proxy-agent": "2.1.0",
     "https-proxy-agent": "2.2.4",
     "json-loader": "0.5.4",
-    "karma": "0.13.x",
-    "karma-chrome-launcher": "0.2.x",
-    "karma-firefox-launcher": "0.1.x",
+    "karma": "6.3.x",
+    "karma-chrome-launcher": "3.1.x",
+    "karma-firefox-launcher": "2.1.x",
     "karma-mocha": "0.2.x",
     "karma-mocha-reporter": "2.2.5",
     "karma-sourcemap-loader": "0.3.7",
@@ -141,7 +141,7 @@
     "winston": "2.2.0"
   },
   "optionalDependencies": {
-    "pg": "4.5.6"
+    "pg": "^4.5.6"
   },
   "babel": {
     "env": {

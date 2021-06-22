@@ -47,7 +47,7 @@ jobs:
           DISPLAY: ":99:0"
           DB_HOST: postgres
           DB_PASSWORD: "postgres"
-          KARMA_BROWSER: Firefox
+          KARMA_BROWSER: FirefoxHeadless
         run: |
           npm test
           npm run test-karma
