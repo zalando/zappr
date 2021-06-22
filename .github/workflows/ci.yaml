@@ -34,21 +34,18 @@ jobs:
           PGPASSWORD: postgres
         run: |
           apt update
-          apt install -qy postgresql-client libgtk-3-0 libdbus-glib-1-2 sudo
-          wget -O FirefoxSetup.tar.bz2 "https://download.mozilla.org/?product=firefox-latest&os=linux64&lang=en-US"
-          mkdir /opt/firefox
-          tar xjf FirefoxSetup.tar.bz2 -C /opt/firefox/
-          ln -s /opt/firefox/firefox/firefox /usr/bin/firefox
+          apt install -qy postgresql-client
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          apt install -qy ./google-chrome-stable_current_amd64.deb
           psql -h postgres -p 5432 -c 'create database zappr;' -U postgres
           psql -h postgres -p 5432 -c 'create schema zappr_data; create schema zappr_meta;' -U postgres zappr
           npm install
           npm install pg
       - name: Run unit tests
         env:
-          DISPLAY: ":99:0"
           DB_HOST: postgres
           DB_PASSWORD: "postgres"
-          KARMA_BROWSER: FirefoxHeadless
+          KARMA_BROWSER: ChromeHeadlessNoSandbox
         run: |
           npm test
-          sudo -E npm run test-karma
+          npm run test-karma
