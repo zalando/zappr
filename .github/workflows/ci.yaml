@@ -1,0 +1,51 @@
+name: CI
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-20.04
+    container:
+      image: node:12.22
+    services:
+      postgres:
+        image: postgres:9.4
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        env:
+          POSTGRES_HOST: postgres
+          POSTGRES_PORT: 5432
+          PGPASSWORD: postgres
+        run: |
+          apt update
+          apt install -qy postgresql-client
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          apt install -qy ./google-chrome-stable_current_amd64.deb
+          psql -h postgres -p 5432 -c 'create database zappr;' -U postgres
+          psql -h postgres -p 5432 -c 'create schema zappr_data; create schema zappr_meta;' -U postgres zappr
+          npm install
+          npm install pg
+      - name: Run unit tests
+        env:
+          DB_HOST: postgres
+          DB_PASSWORD: "postgres"
+          KARMA_BROWSER: ChromeHeadlessNoSandbox
+        run: |
+          npm test
+          npm run test-karma

@@ -8,6 +8,12 @@ module.exports = function (config) {
   config.set({
     urlRoot: '/karma/',
     browsers: [nconf.get('KARMA_BROWSER')],
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
     singleRun: true, // set false for debugging
     frameworks: ['mocha'],
     files: [
