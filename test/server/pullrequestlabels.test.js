@@ -1,23 +1,39 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { GithubService } from '../../server/service/GithubService'
-import PullRequestLabels, { generateStatus } from '../../server/checks/PullRequestLabels'
+import PullRequestLabels, { generateStatusForRequired, generateStatusForOneOf } from '../../server/checks/PullRequestLabels'
 
 
 describe('Pull Request Labels', () => {
   describe('#generateStatus', () => {
-    it('generates failure when there are redundant labels and additional = false', () => {
+    it('generates failure when there are all of the required labels and when there are redundant labels and additional = false', () => {
       const labels = ['work-in-progress', 'approved']
       const required = ['approved']
-      const status = generateStatus(labels, {additional: false, required})
+      const status = generateStatusForRequired(labels, {additional: false, required})
       expect(status.description).to.equal(`PR has redundant labels: work-in-progress.`)
       expect(status.state).to.equal('failure')
     })
 
-    it('generates success when there are redundant labels and additional = true', () => {
+    it('generates success when there are all of the required labels and when there are redundant labels and additional = true', () => {
       const labels = ['work-in-progress', 'approved']
       const required = ['approved']
-      const status = generateStatus(labels, {additional: true, required})
+      const status = generateStatusForRequired(labels, {additional: true, required})
+      expect(status.description).to.equal(`PR has all required labels.`)
+      expect(status.state).to.equal('success')
+    })
+    
+    it('generates failure when there is one of the required labels and when there are redundant labels and additional = false', () => {
+      const labels = ['work-in-progress', 'approved']
+      const oneOf = ['approved', 'draft']
+      const status = generateStatusForOneOf(labels, {additional: false, oneOf})
+      expect(status.description).to.equal(`PR has redundant labels: work-in-progress.`)
+      expect(status.state).to.equal('failure')
+    })
+
+    it('generates success when there is one of the required labels and there are redundant labels and additional = true', () => {
+      const labels = ['work-in-progress', 'approved']
+      const oneOf = ['approved', 'draft']
+      const status = generateStatusForOneOf(labels, {additional: true, oneOf})
       expect(status.description).to.equal(`PR has all required labels.`)
       expect(status.state).to.equal('success')
     })
@@ -27,7 +43,7 @@ describe('Pull Request Labels', () => {
       it(`[additional: ${additional}] generates failure when required labels are missing`, () => {
         const labels = ['approved']
         const required = ['ux-approved', 'approved']
-        const status = generateStatus(labels, {required, additional})
+        const status = generateStatusForRequired(labels, {required, additional})
         expect(status.description).to.equal(`PR misses required labels: ux-approved.`)
         expect(status.state).to.equal('failure')
       })
@@ -35,7 +51,7 @@ describe('Pull Request Labels', () => {
       it(`[additional: ${additional}] generates success otherwise`, () => {
         const labels = ['approved']
         const required = ['approved']
-        const status = generateStatus(labels, {required, additional})
+        const status = generateStatusForRequired(labels, {required, additional})
         expect(status.description).to.equal('PR has all required labels.')
         expect(status.state).to.equal('success')
       })

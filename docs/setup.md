@@ -170,9 +170,13 @@ It is configured under `pull-request.labels` and supports two options:
 ~~~ yaml
 pull-request:
   labels:
-    # pull request cannot be merged without these labels
+    # pull request cannot be merged without all of these labels
     required:
       - reviewed
+    # pull request cannot be merged without one of these labels
+    oneOf:
+      - merge to dev
+      - merge to live
     # allow additional labels to be present. true is the default..
     additional: true
 ~~~
