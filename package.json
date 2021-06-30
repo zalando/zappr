@@ -136,7 +136,7 @@
     "redux-router": "1.0.0-beta8",
     "redux-thunk": "2.3.0",
     "request": "2.88.2",
-    "sequelize": "3.35.1",
+    "sequelize": "5.15.1",
     "umzug": "1.11.0",
     "winston": "2.2.0"
   },
