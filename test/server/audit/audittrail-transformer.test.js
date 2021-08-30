@@ -6,7 +6,9 @@ import nconf from '../../../server/nconf'
 
 const issueWebhook = require('../../fixtures/webhook.issue_comment.json')
 const mergeWebhook = require('../../fixtures/webhook.pull_request.merge.json')
+const EVENT_VERSION = '3'
 
+nconf.set('AUDIT_EVENT_VERSION', EVENT_VERSION)
 
 describe('The AuditTrailTransformer', () => {
   describe('should produce correct output (pr-merged)', () => {
@@ -21,7 +23,6 @@ describe('The AuditTrailTransformer', () => {
     const result = transform(auditEvent)
 
     it('[envelope]', () => {
-
       expect(result).to.be.a('object')
                     .and.have.all.keys('triggered_at', 'triggered_by', 'event_type', 'payload')
       expect(result.triggered_at).to.be.a('string')
@@ -31,7 +32,7 @@ describe('The AuditTrailTransformer', () => {
                                .and.deep.equal({
         namespace: 'cloud.zalando.com',
         name: 'pull-request-merged',
-        version: '1'
+        version: EVENT_VERSION
       })
       expect(result.payload).to.be.an('object')
                             .and.have.all.keys('repository', 'pull_request', 'merged_at', 'default_branch', 'result_commit_id', 'base_ref', 'head')
@@ -137,7 +138,7 @@ describe('The AuditTrailTransformer', () => {
                                .and.deep.equal({
         namespace: 'cloud.zalando.com',
         name: 'pull-request-interaction',
-        version: '1'
+        version: EVENT_VERSION
       })
       expect(result.payload).to.be.a('object')
                             .and.have.all.keys('repository', 'approvers', 'is_approved', 'pull_request', 'commit_id')
