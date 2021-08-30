@@ -9,7 +9,7 @@ function getPrInteractionEvent(auditEvent) {
   const event_type = {
     namespace: 'cloud.zalando.com',
     name: 'pull-request-interaction',
-    version: '1'
+    version: nconf.get('AUDIT_EVENT_VERSION') || 1
   }
   const payload = {
     repository: getRepo(auditEvent.resource.repository),
@@ -30,7 +30,7 @@ function getPrMergedEvent(auditEvent) {
   const event_type = {
     namespace: 'cloud.zalando.com',
     name: 'pull-request-merged',
-    version: '1'
+    version: nconf.get('AUDIT_EVENT_VERSION') || 1
   }
   const payload = {
     repository: getRepo(auditEvent.resource.repository),
