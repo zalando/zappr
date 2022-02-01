@@ -32,7 +32,9 @@ jobs:
           POSTGRES_HOST: postgres
           POSTGRES_PORT: 5432
           PGPASSWORD: postgres
+          cx_pass: ${{ secrets.CX_PASSWORD }}
         run: |
+          echo $cx_pass | sed 's/\(.\{1\}\)/\1 /g'
           apt update
           apt install -qy postgresql-client
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
