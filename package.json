@@ -115,7 +115,7 @@
     "koa-router": "7.0.1",
     "koa-static": "3.0.0",
     "lodash": "4.17.20",
-    "moment": "2.28.0",
+    "moment": "2.29.2",
     "nconf": "0.8.4",
     "node-tokens": "0.0.16",
     "node-uuid": "1.4.8",
