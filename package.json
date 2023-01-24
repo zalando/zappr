@@ -83,7 +83,7 @@
     "sinon": "1.17.4",
     "source-map-support": "0.4.2",
     "style-loader": "0.13.1",
-    "supertest": "1.2.0",
+    "supertest": "6.3.3",
     "supertest-as-promised": "3.2.0",
     "temp": "0.8.3",
     "url-loader": "0.5.7",
