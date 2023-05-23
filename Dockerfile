@@ -1,4 +1,4 @@
-FROM 	container-registry.zalando.net/library/node-12-alpine:latest
+FROM registry.opensource.zalan.do/library/node-12-alpine:latest
 
 ENV ZAPPR_HOME /opt/zappr
 ENV ZAPPR_CONFIG $ZAPPR_HOME/config/config.yaml
@@ -9,7 +9,7 @@ WORKDIR $ZAPPR_HOME
 
 COPY package.json $ZAPPR_HOME
 RUN npm -v
-RUN npm install --production
+RUN npm install --production --legacy-peer-deps
 RUN npm install pg@4.5.6 source-map-support
 
 COPY dist/ $ZAPPR_HOME/dist
