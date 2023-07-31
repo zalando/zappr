@@ -118,11 +118,13 @@ export const db = new Database(
   {
     dialect: "postgres",
     dialectOptions: {
-      ssl: nconf.get('DB_SSL') === 'true' || nconf.get('DB_SSL') === true,
-      /**
-       * fixes self-signed cert issue for testbed deployments (https://stackoverflow.com/questions/58965011/sequelizeconnectionerror-self-signed-certificate)
-       */
-      rejectUnauthorized: false
+      ssl: {
+        require: nconf.get('DB_SSL') === 'true' || nconf.get('DB_SSL') === true,
+        /**
+         * fixes self-signed cert issue for testbed deployments (https://stackoverflow.com/questions/58965011/sequelizeconnectionerror-self-signed-certificate)
+         */
+        rejectUnauthorized: false
+    }
     },
     host: nconf.get('DB_HOST'),
     port: nconf.get('DB_PORT'),
