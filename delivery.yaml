@@ -3,7 +3,7 @@ version: "2017-09-20"
 dependencies:
   - id: node
     type: docker
-    ref: registry.opensource.zalan.do/library/node-12.20-alpine
+    ref: registry.opensource.zalan.do/library/node-12-alpine
 
 pipeline:
   - id: build_and_publish
@@ -13,7 +13,7 @@ pipeline:
       - desc: Build
         cmd: |
           function npm {
-            docker run -i --rm -v "$(pwd):/workspace" -w /workspace registry.opensource.zalan.do/library/node-12.20-alpine:latest npm "$@"
+            docker run -i --rm -v "$(pwd):/workspace" -w /workspace registry.opensource.zalan.do/library/node-12-alpine:latest npm "$@"
           }
           npm install --no-optional
           npm run dist
