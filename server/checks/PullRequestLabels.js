@@ -78,11 +78,15 @@ export default class PullRequestLabels extends Check {
       info(`${fullName}#${number}: Set status to ${status.state} (labels: ${labels}, required: ${required}, additional: ${additional})`)
     } else if (oneOf.length > 0) {
       const labels = await this.github.getIssueLabels(repoOwner, repoName, number, token)
+
+      info(`before generateStatusForOneOf:: status: ${labels}`)
+      info(`before generateStatusForOneOf:: status: ${oneOf}`)
+            
       status = generateStatusForOneOf(labels, {oneOf, additional})
 
-      debug(`generateStatusForOneOf:: status: ${labels}`)
-      debug(`generateStatusForOneOf:: status: ${oneOf}`)
-      debug(`generateStatusForOneOf:: status: ${status}`)
+      info(`generateStatusForOneOf:: status: ${labels}`)
+      info(`generateStatusForOneOf:: status: ${oneOf}`)
+      info(`generateStatusForOneOf:: status: ${status}`)
       
       await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
       info(`${fullName}#${number}: Set status to ${status.state} (labels: ${labels}, required: ${oneOf}, additional: ${additional})`)   
