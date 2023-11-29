@@ -19,7 +19,8 @@ export function generateStatusForRequired(labels, checkConfig) {
   if (missingLabels.size > 0) {
     return createStatePayload(`PR misses required labels: ${[...missingLabels].join(', ')}.`, 'failure')
   }
-  checkAdditionalLabels(setDifference(labelSet, requiredSet), additional)
+  
+  return checkAdditionalLabels(setDifference(labelSet, requiredSet), additional)
 }
 
 export function generateStatusForOneOf(labels, checkConfig) {
@@ -36,7 +37,8 @@ export function generateStatusForOneOf(labels, checkConfig) {
   if (!valid) {
     return createStatePayload(`PR misses one of the required labels: ${[...oneOfSet].join(', ')}.`, 'failure')
   }
-  checkAdditionalLabels(setDifference(labelSet, oneOfSet), additional)
+  
+  return checkAdditionalLabels(setDifference(labelSet, oneOfSet), additional)
 }
 
 export function checkAdditionalLabels(redundantLabels, additional) {
@@ -78,16 +80,7 @@ export default class PullRequestLabels extends Check {
       info(`${fullName}#${number}: Set status to ${status.state} (labels: ${labels}, required: ${required}, additional: ${additional})`)
     } else if (oneOf.length > 0) {
       const labels = await this.github.getIssueLabels(repoOwner, repoName, number, token)
-
-      info(`before generateStatusForOneOf:: status: ${labels}`)
-      info(`before generateStatusForOneOf:: status: ${oneOf}`)
-            
       status = generateStatusForOneOf(labels, {oneOf, additional})
-
-      info(`generateStatusForOneOf:: status: ${labels}`)
-      info(`generateStatusForOneOf:: status: ${oneOf}`)
-      info(`generateStatusForOneOf:: status: ${status}`)
-      
       await this.github.setCommitStatus(repoOwner, repoName, pull_request.head.sha, status, token)
       info(`${fullName}#${number}: Set status to ${status.state} (labels: ${labels}, required: ${oneOf}, additional: ${additional})`)   
     } else {
