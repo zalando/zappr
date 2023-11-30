@@ -56,6 +56,12 @@ LOG_LEVEL: debug
 
 AUDIT_RELEVANT_ORGS: []
 
+# Retries for calls to external parties (Github et.c). Calls are retried with exponential backoff
+# Retry delay in milliseconds
+EXTERNAL_REQUEST_RETRY_DELAY: 150
+# Max retry delay in milliseconds. Set this to a value less than EXTERNAL_REQUEST_RETRY_DELAY to disable retries
+MAX_EXTERNAL_REQUEST_RETRY_DELAY: 10000
+
 # path to zapprfile in repository
 VALID_ZAPPR_FILE_PATHS:
   - "/.zappr.yaml"
