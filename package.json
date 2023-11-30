@@ -116,7 +116,7 @@
     "koa-static": "3.0.0",
     "lodash": "4.17.20",
     "moment": "2.28.0",
-    "nconf": "0.8.4",
+    "nconf": "0.11.4",
     "node-tokens": "0.0.16",
     "node-uuid": "1.4.8",
     "normalizr": "2.2.0",
