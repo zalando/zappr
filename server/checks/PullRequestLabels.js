@@ -19,7 +19,7 @@ export function generateStatusForRequired(labels, checkConfig) {
   if (missingLabels.size > 0) {
     return createStatePayload(`PR misses required labels: ${[...missingLabels].join(', ')}.`, 'failure')
   }
-  checkAdditionalLabels(setDifference(labelSet, requiredSet), additional)
+  return checkAdditionalLabels(setDifference(labelSet, requiredSet), additional)
 }
 
 export function generateStatusForOneOf(labels, checkConfig) {
@@ -36,7 +36,7 @@ export function generateStatusForOneOf(labels, checkConfig) {
   if (!valid) {
     return createStatePayload(`PR misses one of the required labels: ${[...oneOfSet].join(', ')}.`, 'failure')
   }
-  checkAdditionalLabels(setDifference(labelSet, oneOfSet), additional)
+  return checkAdditionalLabels(setDifference(labelSet, oneOfSet), additional)
 }
 
 export function checkAdditionalLabels(redundantLabels, additional) {
