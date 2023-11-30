@@ -23,6 +23,23 @@ function commenterIsNotIgnored (login) {
   return IGNORE_LOGIN_RE.reduce((accumulator, currentValue) => accumulator && !RegExp(currentValue).test(login), true);
 }
 
+/**
+ * Gets optional additional PR info required based on a specified config
+ * Current optional info: 
+ *  - labels. required if a label based condition is set for a group
+ *
+ * @param config The approval/veto configuration
+ * @returns {Object} Object with boolean attributes for the respective optional additional PR info
+ */
+export function getOptionalDetailsRequiredForPR (config) {
+  return (config && config.groups) ? Object.keys(config.groups).reduce((result, group) => {
+    if (config.groups[group].conditions && config.groups[group].conditions.labels
+        && ((config.groups[group].conditions.labels.include && config.groups[group].conditions.labels.include.length > 0) ||
+        (config.groups[group].conditions.labels.exclude && config.groups[group].conditions.labels.exclude.length > 0))) result.labels = true
+
+    return result
+  }, { labels: false }) : { labels: false }
+}
 
 export default class Approval extends Check {
 
@@ -70,7 +87,7 @@ export default class Approval extends Check {
    * @param approvalConfig Approval configuration
    * @returns {Object} Object consumable by Github Status API
    */
-  static generateStatus({approvals, vetos}, {minimum, groups}) {
+  static generateStatus({approvals, vetos}, {minimum, groups}, labels) {
     if (vetos.length > 0) {
       return {
         description: `Vetoes: ${vetos.map(u => `@${u}`).join(', ')}.`,
@@ -83,7 +100,19 @@ export default class Approval extends Check {
       // check group requirements
       const unsatisfied = Object.keys(approvals.groups)
                                 .reduce((result, approvalGroup) => {
-                                  const needed = groups[approvalGroup].minimum
+                                  let needed = groups[approvalGroup].minimum
+                                  if (labels) {
+                                    needed = -1
+                                    if (groups[approvalGroup].conditions && groups[approvalGroup].conditions.labels) {
+                                      if (groups[approvalGroup].conditions.labels.exclude && groups[approvalGroup].conditions.labels.exclude.some(l=> labels.includes(l))) {
+                                        needed = 0
+                                      }
+                                      if (needed === -1 && groups[approvalGroup].conditions.labels.include && !groups[approvalGroup].conditions.labels.include.some(l=> labels.includes(l))) {
+                                        needed = 0
+                                      }
+                                    }
+                                    if (needed === -1) needed = groups[approvalGroup].minimum
+                                  }
                                   const given = approvals.groups[approvalGroup].length
                                   const diff = needed - given
                                   if (diff > 0) {
@@ -335,13 +364,15 @@ export default class Approval extends Check {
    * @param config The Zappr configuration
    * @param token The GH token to use
    * @param additionalComments Additional comments to consider that are not available via the API
+   * @param requiredOptionalPRInfo An object holding information about additional optional information to fetch for a PR
    */
-  async fetchApprovalsAndSetStatus(repository, pull_request, lastPush, config, token, additionalComments = []) {
+  async fetchApprovalsAndSetStatus(repository, pull_request, lastPush, config, token, additionalComments = [], requiredOptionalPRInfo) {
     const user = repository.owner.login
     const repoName = repository.name
     const sha = pull_request.head.sha
     const {approvals, vetos} = await this.fetchAndCountApprovalsAndVetos(repository, pull_request, lastPush, additionalComments, config, token)
-    const status = Approval.generateStatus({approvals, vetos}, config.approvals)
+    const labels = requiredOptionalPRInfo.labels ? await this.github.getIssueLabels(user, repoName, pull_request.number, token): []
+    const status = Approval.generateStatus({approvals, vetos}, config.approvals, labels)
     // update status
     await this.github.setCommitStatus(user, repoName, sha, status, token)
     await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent({
@@ -429,7 +460,9 @@ export default class Approval extends Check {
             // if it was opened, set to pending
             const approvals = {total: []}
             const vetos = []
-            const status = Approval.generateStatus({approvals, vetos}, config.approvals)
+            // this PR was just opened, there won't be a label at this time
+            const labels = []
+            const status = Approval.generateStatus({approvals, vetos}, config.approvals, labels)
             await this.github.setCommitStatus(user, repoName, sha, status, token)
             await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
                                                                                   .withResult({
@@ -448,7 +481,8 @@ export default class Approval extends Check {
           // get approvals for pr
           info(`${repository.full_name}#${number}: PR was reopened`)
           const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
-          await this.fetchApprovalsAndSetStatus(repository, pull_request, dbPR.last_push, config, token, frozenComments)
+          const requiredOptionalPRInfo = getOptionalDetailsRequiredForPR(config.approvals)
+          await this.fetchApprovalsAndSetStatus(repository, pull_request, dbPR.last_push, config, token, frozenComments, requiredOptionalPRInfo)
           // if it was synced, ie a commit added to it
         } else if (action === 'synchronize') {
           // update last push in db
@@ -458,7 +492,9 @@ export default class Approval extends Check {
           // set status to pending (has to be unlocked with further comments)
           const approvals = {total: []}
           const vetos = []
-          const status = Approval.generateStatus({approvals, vetos}, config.approvals)
+          const requiredOptionalPRInfo = getOptionalDetailsRequiredForPR(config.approvals)
+          const labels = requiredOptionalPRInfo.labels ? await this.github.getIssueLabels(user, repoName, pull_request.number, token): []
+          const status = Approval.generateStatus({approvals, vetos}, config.approvals, labels)
           await this.github.setCommitStatus(user, repoName, sha, status, token)
           await this.audit.log(new AuditEvent(AUDIT_EVENTS.COMMIT_STATUS_UPDATE).fromGithubEvent(hookPayload)
                                                                                 .withResult({
@@ -472,6 +508,16 @@ export default class Approval extends Check {
                                                                                   repository
                                                                                 }))
           info(`${repository.full_name}#${number}: PR was synced, set state to pending`)
+        } else if (action === 'labeled' || action === 'unlabeled'){
+          // set status to pending first
+          await this.github.setCommitStatus(user, repoName, sha, pendingPayload, token)
+          // read last push date from db
+          const dbPR = await this.getOrCreateDbPullRequest(dbRepoId, number)
+          // read frozen comments and update if appropriate
+          const frozenComments = await this.pullRequestHandler.onGetFrozenComments(dbPR.id, dbPR.last_push)
+          debug(`${repository.full_name}#${number}: ${action}`)
+          const requiredOptionalPRInfo = getOptionalDetailsRequiredForPR(config.approvals)
+          await this.fetchApprovalsAndSetStatus(repository, pull_request, dbPR.last_push, config, token, frozenComments, requiredOptionalPRInfo)
         }
         // on an issue comment
       } else if (event === EVENTS.ISSUE_COMMENT) {
@@ -515,7 +561,8 @@ export default class Approval extends Check {
           }
         }
         debug(`${repository.full_name}#${issue.number}: Comment added`)
-        await this.fetchApprovalsAndSetStatus(repository, pr, dbPR.last_push, config, token, frozenComments)
+        const requiredOptionalPRInfo = getOptionalDetailsRequiredForPR(config.approvals)
+        await this.fetchApprovalsAndSetStatus(repository, pr, dbPR.last_push, config, token, frozenComments, requiredOptionalPRInfo)
       }
     }
     catch (e) {
