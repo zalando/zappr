@@ -122,7 +122,7 @@ export class CheckHandler {
    */
   async onEnableCheck(user, repository, type) {
     const repo = repository.get('json')
-    const types = [type, ...repository.checks.map(c => c.type)]
+    const types = Array.from(new Set([type, ...repository.checks.map(c => c.type)]))
     const events = findHookEventsFor(types)
     // TODO: could use a database constraint instead?
     let existingCheck

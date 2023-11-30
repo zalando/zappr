@@ -209,9 +209,9 @@ export function symbolToString(sym) {
 }
 
 export function toGenericComment(githubComment) {
-  const {user, ...rest} = githubComment
+  const {user: { login: user }, ...rest} = githubComment
   return {
     ...rest,
-    user: user.login
+    user,
   }
 }

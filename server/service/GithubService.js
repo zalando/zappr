@@ -27,6 +27,7 @@ const API_URL_TEMPLATES = {
   ORG_MEMBER: '/orgs/${org}/public_members/${user}',
   STATUS: '/repos/${owner}/${repo}/statuses/${sha}',
   COMMENT: '/repos/${owner}/${repo}/issues/${number}/comments',
+  REVIEWS: '/repos/${owner}/${repo}/pulls/${pull_number}/reviews',
   COLLABORATOR: '/repos/${owner}/${repo}/collaborators/${user}',
   REPO_CONTENT: '/repos/${owner}/${repo}/contents',
   REF: '/repos/${owner}/${repo}/git/refs/heads/${branch}',
@@ -191,21 +192,35 @@ export class GithubService {
   }
 
   async getComments(user, repo, number, since, accessToken) {
-    let path = API_URL_TEMPLATES.COMMENT
-                                .replace('${owner}', user)
-                                .replace('${repo}', repo)
-                                .replace('${number}', number)
-    if (since) {
-      path += `?since=${since}`
-    }
+    const basePathFromTemplate = API_URL_TEMPLATES.COMMENT
+                                                  .replace('${owner}', user)
+                                                  .replace('${repo}', repo)
+                                                  .replace('${number}', number)
+    const path = `${basePathFromTemplate}?per_page=100`
     const comments = await this.fetchPath('GET', path, null, accessToken)
+
     if (since) {
-      // return only comments created since
       const sinceDate = new Date(since)
       return comments.filter(c => new Date(c.created_at) >= sinceDate).map(toGenericComment)
     }
-    // return generic comments
     return comments.map(toGenericComment)
+  }
+
+  async getReviews(owner, repo, pull_number, since, accessToken) {
+    const basePathFromTemplate = API_URL_TEMPLATES.REVIEWS
+                                                  .replace('${owner}', owner)
+                                                  .replace('${repo}', repo)
+                                                  .replace('${pull_number}', pull_number)
+    const path = `${basePathFromTemplate}?per_page=100`
+    const reviews = await this.fetchPath('GET', path, null, accessToken)
+
+    let reviewsToReturn = reviews
+    if (since) {
+      const sinceDate = new Date(since)
+      reviewsToReturn = reviews.filter(c => new Date(c.submitted_at) >= sinceDate)
+    }
+    
+    return reviewsToReturn.map(toGenericComment)
   }
 
 

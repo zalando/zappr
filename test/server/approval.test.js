@@ -220,7 +220,7 @@ describe('Approval#fetchCountApprovalsAndVetos', () => {
 
   it('should properly merge frozen comments', async(done) => {
     try {
-      const approval = new Approval({getComments: sinon.stub().returns(comments)}, null)
+      const approval = new Approval({getComments: sinon.stub().returns(comments), getReviews: sinon.stub().returns([])}, null)
       approval.countApprovalsAndVetos = sinon.stub()
       // repository, pull_request, last_push, frozenComments, config, token
       await approval.fetchAndCountApprovalsAndVetos(DEFAULT_REPO, PR_PAYLOAD.pull_request, DB_PR.last_push, frozenComments, DEFAULT_CONFIG, TOKEN)

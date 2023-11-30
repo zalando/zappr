@@ -8,7 +8,7 @@ export const PING = 'ping'
  */
 export const COMMIT_COMMENT = 'commit_comment'
 /**
- * Any time a Commit is commented on.
+ * Any time a Commit is commented on. TODO: Mistake, copied from above?
  */
 export const CREATE = 'create'
 /**
@@ -55,6 +55,12 @@ export const PAGE_BUILD = 'page_build'
  * Any time a Repository changes from private to public.
  */
 export const PUBLIC = 'public'
+/**
+ * Triggered when a pull request review is submitted into a non-pending state, the body is edited,
+ * or the review is dismissed.
+ * https://developer.github.com/v3/activity/events/types/#pullrequestreviewevent
+ */
+export const PULL_REQUEST_REVIEW = 'pull_request_review'
 /**
  * Any time a comment is created on a portion of the unified diff of a pull request (the Files Changed tab).
  */
