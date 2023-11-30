@@ -215,3 +215,12 @@ export function toGenericComment(githubComment) {
     user: user.login
   }
 }
+
+export function toGenericReview(githubReview) {
+  const {user, state, author_association} = githubReview
+  return {
+    user: user.login,
+    state: state,
+    author_association: author_association
+  }
+}
