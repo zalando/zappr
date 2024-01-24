@@ -1,4 +1,4 @@
-FROM registry.opensource.zalan.do/library/node-12-alpine:latest
+FROM registry.opensource.zalan.do/library/node-20-alpine:latest
 
 ENV ZAPPR_HOME /opt/zappr
 ENV ZAPPR_CONFIG $ZAPPR_HOME/config/config.yaml
