@@ -16,6 +16,7 @@ halt "rogue" pull requests before they're merged into the master branch.
 
 Please refer to [our documentation](https://zappr.readthedocs.org/).
 
+
 ### Zappr local development
 
 Please refer to [local development](dev.md).
