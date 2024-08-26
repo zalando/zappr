@@ -204,3 +204,22 @@ Needs to be done:
 ~~~
 
 Currently this check doesn't take configuration.
+
+### Pull Request Size
+
+With the Pull Request Size Restriction check you can block a pull request which is too big. You can restrict three different key metrics from the PR:
+
+- Lines added
+- Lines removed
+- Files changed
+
+It is configured under `pull-request.size` and supports the following options:
+
+~~~ yaml
+pull-request:
+  size:
+    max:
+      additions: 500
+      deletions: 500
+      changed_files: 20
+~~~
