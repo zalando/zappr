@@ -1,3 +1,11 @@
+## [DEPRECATED]
+
+### The project has been deprecated.
+
+### https://zappr.opensource.zalando.de is out of service.
+
+---
+
 ![zappr](client/img/banner_tiny.png)
 
 **Approval checks for GitHub pull requests.**

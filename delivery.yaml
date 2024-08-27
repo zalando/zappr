@@ -1,10 +1,5 @@
 version: "2017-09-20"
 
-dependencies:
-  - id: node
-    type: docker
-    ref: registry.opensource.zalan.do/library/node-12-alpine
-
 pipeline:
   - id: build_and_publish
     type: script
@@ -27,4 +22,4 @@ pipeline:
             IMAGE_NAME="registry-write.opensource.zalan.do/machinery/zappr-pr-test:${COMMIT_ID}-${CDP_TARGET_REPOSITORY_COUNTER}"
           fi
           docker build -t "${IMAGE_NAME}" .
-          docker push "${IMAGE_NAME}"
+          # docker push "${IMAGE_NAME}"
