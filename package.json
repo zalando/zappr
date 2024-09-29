@@ -69,7 +69,7 @@
     "karma-sourcemap-loader": "0.3.7",
     "karma-webpack": "1.7.0",
     "mocha": "2.5.3",
-    "mountebank": "1.7.2",
+    "mountebank": "1.16.0",
     "node-scm-source": "0.2.0",
     "nodemon": "1.9.2",
     "npm-run-all": "^4.1.5",
