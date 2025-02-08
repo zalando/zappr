@@ -91,6 +91,8 @@ const REGULAR_ISSUE_PAYLOAD = {
     login: 'prayerslayer'
   }
 }
+const PR_LABEL_PAYLOAD = Object.assign({}, PR_PAYLOAD, {action: 'labeled'})
+const PR_UNLABEL_PAYLOAD = Object.assign({}, PR_PAYLOAD, {action: 'unlabeled'})
 const DEFAULT_CONFIG = {
   approvals: {
     minimum: 2,
@@ -101,10 +103,70 @@ const DEFAULT_CONFIG = {
     }
   }
 }
+const CONFIG_APPROVAL_GROUPS = {
+  foo: {
+    minimum: 1,
+    from: {
+      users: ['foo', 'mr-foo']
+    }
+  },
+  bar: {
+    minimum: 1,
+    from: {
+      users: ['bar']
+    }
+  }
+}
+const LABEL_TEST_GROUP = {
+  baz: {
+    minimum: 1,
+    from: {
+      users: ['faz']
+    }
+  }
+}
+const INCLUDE_LABEL_CONDITIONS_CONFIG = {
+  approvals: Object.assign({}, DEFAULT_CONFIG.approvals, {groups: Object.assign({}, CONFIG_APPROVAL_GROUPS, {baz: Object.assign({}, LABEL_TEST_GROUP.baz, 
+    {
+      conditions: {
+        labels: {
+          include: ['goodlabel']
+        }
+      }
+    })})
+  })
+}
+const EXCLUDE_LABEL_CONDITIONS_CONFIG = {
+  approvals: Object.assign({}, DEFAULT_CONFIG.approvals, {groups: Object.assign({}, CONFIG_APPROVAL_GROUPS, {baz: Object.assign({}, LABEL_TEST_GROUP.baz, 
+    {
+      conditions: {
+        labels: {
+          exclude: ['badlabel']
+        }
+      }
+    })})
+  })
+}
+const LABEL_CONDITIONS_READY_CONFIG = {
+  approvals: Object.assign({}, DEFAULT_CONFIG.approvals, {groups: Object.assign({}, CONFIG_APPROVAL_GROUPS, {baz: Object.assign({}, LABEL_TEST_GROUP.baz, 
+    {
+      conditions: {
+        labels: {
+          include: ['goodlabel'],
+          exclude: ['badlabel']
+        }
+      }
+    })})
+  })
+}
 const SUCCESS_STATUS = Approval.generateStatus({
   approvals: {total: ['foo', 'bar']},
   vetos: []
 }, DEFAULT_CONFIG.approvals)
+const MISSING_APPROVAL_GROUP_STATUS = Approval.generateStatus({
+  approvals: {total: ['foo', 'bar'], groups: { foo: [1], bar: [2], baz: [] }},
+  vetos: []
+}, LABEL_CONDITIONS_READY_CONFIG.approvals, ['goodlabel'])
 const BLOCKED_BY_VETO_STATUS = Approval.generateStatus({
   approvals: {total: ['foo', 'bar']},
   vetos: ['mr-foo']
@@ -381,13 +443,14 @@ describe('Approval#execute', () => {
       getApprovals: sinon.spy(),
       getPullRequest: sinon.spy(),
       getComments: sinon.spy(),
-      fetchPullRequestCommits: sinon.spy()
+      fetchPullRequestCommits: sinon.spy(),
+      getIssueLabels: sinon.spy()
     }
     auditService = sinon.createStubInstance(AuditService)
     approval = new Approval(github, pullRequestHandler, auditService)
   })
 
-  const SKIP_ACTIONS = ['assigned', 'unassigned', 'labeled', 'unlabeled', 'closed']
+  const SKIP_ACTIONS = ['assigned', 'unassigned', 'closed']
 
   SKIP_ACTIONS.forEach(action=> {
     it(`should do nothing on "${action}"`, async(done) => {
@@ -980,6 +1043,349 @@ describe('Approval#execute', () => {
       expect(auditService.log.calledOnce).to.be.true
       expect(pullRequestHandler.onDeletePullRequest.calledOnce).to.be.true
       expect(github.setCommitStatus.called).to.be.false
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should not fetch PR labels if label based condition is not specified', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+
+    try {
+      await approval.execute(DEFAULT_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(0)
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should ignore approval group requirements if "includes" label based condition is not met', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns(['foolabel'])
+    try {
+      await approval.execute(INCLUDE_LABEL_CONDITIONS_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        SUCCESS_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should apply approval group requirements if "includes" label based condition is met', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns(['goodlabel'])
+    try {
+      await approval.execute(INCLUDE_LABEL_CONDITIONS_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        MISSING_APPROVAL_GROUP_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should ignore approval group requirements if "excludes" label based condition is not met', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns(['badlabel'])
+    try {
+      await approval.execute(EXCLUDE_LABEL_CONDITIONS_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        SUCCESS_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should apply approval group requirements if "excludes" label based condition is met: different label', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns(['foolabel'])
+    try {
+      await approval.execute(EXCLUDE_LABEL_CONDITIONS_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        MISSING_APPROVAL_GROUP_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should apply approval group requirements if "excludes" label based condition is met: no label', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns([])
+    try {
+      await approval.execute(EXCLUDE_LABEL_CONDITIONS_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        MISSING_APPROVAL_GROUP_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('"excludes" label based conditions should have higher priority than "includes" conditions', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns(['goodlabel', 'badlabel'])
+    try {
+      await approval.execute(LABEL_CONDITIONS_READY_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        SUCCESS_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('"includes": multiple label based conditions and issue labels should work', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns(['goodlabel', 'indifferentlabel'])
+    try {
+      await approval.execute(LABEL_CONDITIONS_READY_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        MISSING_APPROVAL_GROUP_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('"excludes": multiple label based conditions and issue labels should work', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns(['badlabel', 'indifferentlabel'])
+    try {
+      await approval.execute(LABEL_CONDITIONS_READY_CONFIG, EVENTS.ISSUE_COMMENT, ISSUE_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        SUCCESS_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should set commit status when label is added to PR', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns(['badlabel', 'indifferentlabel'])
+    try {
+      await approval.execute(LABEL_CONDITIONS_READY_CONFIG, EVENTS.PULL_REQUEST, PR_LABEL_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        SUCCESS_STATUS,
+        TOKEN
+      ])
+      done()
+    } catch (e) {
+      done(e)
+    }
+  })
+
+  it('should set commit status when label is removed from PR', async(done) => {
+    github.getComments = sinon.stub().returns([{
+      body: ':+1:',
+      user: 'foo',
+      id: 1
+    }, {
+      body: ':+1:',
+      user: 'bar',
+      id: 2
+    }])
+    github.getPullRequest = sinon.stub().returns(PR_PAYLOAD.pull_request)
+    github.getIssueLabels = sinon.stub().returns(['badlabel', 'indifferentlabel'])
+    try {
+      await approval.execute(LABEL_CONDITIONS_READY_CONFIG, EVENTS.PULL_REQUEST, PR_UNLABEL_PAYLOAD, TOKEN, DB_REPO_ID)
+
+      expect(github.setCommitStatus.callCount).to.equal(2)
+      expect(github.getIssueLabels.callCount).to.equal(1)
+
+      const successStatusCallArgs = github.setCommitStatus.args[1]
+      expect(successStatusCallArgs).to.deep.equal([
+        'mfellner',
+        'hello-world',
+        'abcd1234',
+        SUCCESS_STATUS,
+        TOKEN
+      ])
       done()
     } catch (e) {
       done(e)

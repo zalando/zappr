@@ -32,6 +32,32 @@ approvals:
       from:
         orgs:
           - zalando
+    # this defines a "zalando-leads" approver group that is only required if "zalando-lead" label is present on a pull request
+    zalando-leads:
+      minimum: 1
+      # the group includes every public zalando org member
+      from:
+        users:
+          - zalando-lead-1
+          - zalando-lead-2
+          - zalando-lead-3
+      conditions:
+        labels:
+          include:
+          - zalando-lead
+    # this defines a "zalando-pm" approver group that is only required if "zalando-lead" label is NOT present on a pull request
+    zalando-pm:
+      minimum: 1
+      # the group includes every public zalando org member
+      from:
+        users:
+          - zalando-pm-1
+          - zalando-pm-2
+          - zalando-pm-3
+      conditions:
+        labels:
+          exclude:
+          - zalando-lead
 commit:
   message:
     # note that there are no default patterns for commit messages

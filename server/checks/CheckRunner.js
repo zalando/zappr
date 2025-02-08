@@ -16,6 +16,7 @@ import { githubService as defaultGithubService } from '../service/GithubService'
 import { pullRequestHandler as defaultPullRequestHandler } from '../handler/PullRequestHandler'
 import { findDeepInObj } from '../../common/util'
 import { logger } from '../../common/debug'
+import { getOptionalDetailsRequiredForPR } from './Approval'
 const info = logger('checkrunner', 'info')
 const error = logger('checkrunner', 'error')
 
@@ -103,12 +104,15 @@ export default class CheckRunner {
         const dbPR = await this.pullRequestHandler.onGet(dbRepo.id, pullRequest.number)
         switch (checkType) {
           case Approval.TYPE:
+            const requiredOptionalPRInfo = getOptionalDetailsRequiredForPR(config.approvals)
             return this.approval.fetchApprovalsAndSetStatus(
               repository,
               pullRequest,
               dbPR ? dbPR.last_push : new Date(0), // beginning of time
               config,
-              token
+              token,
+              [],
+              requiredOptionalPRInfo
             )
           case Specification.TYPE:
             return this.specification.validate(config, pullRequest, repository, token)
