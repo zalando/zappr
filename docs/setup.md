@@ -156,9 +156,9 @@ specification:
     contains-url: true
     # contains an issue number
     contains-issue-number: true
-   template:
-     # is different from pull request body
-     differs-from-body: true
+  template:
+    # is different from pull request body
+    differs-from-body: true
 ~~~
 
 ### Pull Request Labels
